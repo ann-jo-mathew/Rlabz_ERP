@@ -1,0 +1,131 @@
+================================================================================
+RLABZ ERP - HOW TO ADD A NEW MODULE WITHOUT AFFECTING EXISTING CODE
+================================================================================
+
+This project follows a Modular Monolith architecture for both Frontend and Backend.
+Every feature module (Auth, Dashboard, Finance, Student, etc.) is self-contained.
+
+Adding a new module takes less than 5 minutes and WILL NOT affect or break any 
+existing modules.
+
+================================================================================
+PART 1: ADDING A FRONTEND MODULE (Vanilla JS + Vite)
+================================================================================
+
+Example: We want to add a "finance" module.
+
+STEP 1: Create the Module Folder Structure
+------------------------------------------
+Create a new directory inside `frontend/src/modules/`:
+  frontend/src/modules/finance/
+  ├── views/
+  │   └── FinanceHome.js
+  └── routes.js
+
+STEP 2: Write the View Component (`FinanceHome.js`)
+--------------------------------------------------
+Create `frontend/src/modules/finance/views/FinanceHome.js`:
+
+  export function FinanceHome(route, router) {
+    const container = document.createElement('div');
+    container.className = 'finance-home animate-fade-in';
+
+    container.innerHTML = `
+      <div class="page-header">
+        <h1>Finance & Invoices</h1>
+        <p>Manage enterprise billing and invoices.</p>
+      </div>
+
+      <div class="card-panel">
+        <h2>Billing Overview</h2>
+        <p>Total Revenue: $45,000</p>
+      </div>
+    `;
+
+    return container;
+  }
+
+  export default FinanceHome;
+
+STEP 3: Define Module Routes (`routes.js`)
+------------------------------------------
+Create `frontend/src/modules/finance/routes.js`:
+
+  import { DashboardLayout } from '@/core/layouts/DashboardLayout.js';
+
+  const routes = [
+    {
+      path: '/finance',
+      component: DashboardLayout,
+      children: [
+        {
+          path: '',
+          name: 'finance-home',
+          component: () => import('./views/FinanceHome.js')
+        }
+      ]
+    }
+  ];
+
+  export default routes;
+
+STEP 4: Register in `module-manifest.js` (The ONLY Shared File)
+--------------------------------------------------------------
+Open `frontend/src/module-manifest.js` and add an entry to the `modules` array:
+
+  {
+    name: 'finance',
+    path: '/finance',
+    loadRoutes: () => import('@/modules/finance/routes.js'),
+    sidebar: true,
+    title: 'Finance & Invoices',
+    icon: 'IconFinance',
+    requiredPermissions: ['view-finance'],
+  }
+
+RESULT:
+- The sidebar will automatically generate a "Finance & Invoices" link.
+- Navigating to `/finance` will dynamically lazy-load your view inside the layout.
+
+================================================================================
+PART 2: ADDING A BACKEND MODULE (PHP / Laravel)
+================================================================================
+
+STEP 1: Create the Backend Module Folder
+----------------------------------------
+Create a directory in `backend/Modules/`:
+  backend/Modules/Finance/
+  ├── Controllers/
+  │   └── FinanceController.php
+  └── Routes/
+      └── api.php
+
+STEP 2: Define Backend Routes (`Routes/api.php`)
+------------------------------------------------
+Create `backend/Modules/Finance/Routes/api.php`:
+
+  <?php
+  use Illuminate\Support\Facades\Route;
+
+  Route::group(['prefix' => 'finance', 'middleware' => ['auth.jwt']], function () {
+      Route::get('/summary', function() {
+          return response()->json(['revenue' => 45000, 'pending' => 8]);
+      });
+  });
+
+STEP 3: Add Permissions to User Payload in AuthController
+--------------------------------------------------------
+In `backend/Modules/Auth/Controllers/AuthController.php`, include the new module
+and permission in the user token payload:
+
+  'permissions' => ['view-dashboard', 'edit-project', 'view-finance'],
+  'modules' => ['dashboard', 'project-client', 'finance', 'auth']
+
+================================================================================
+GOLDEN RULES FOR ZERO SIDE-EFFECTS
+================================================================================
+
+1. NEVER edit another teammate's module files inside `src/modules/<other-module>/`.
+2. ALWAYS register your new module in `module-manifest.js`.
+3. ALWAYS scope your CSS classes with prefix (e.g. `.finance-home`, `.finance-card`).
+4. NEVER touch core routing logic — `module-manifest.js` handles routing automatically!
