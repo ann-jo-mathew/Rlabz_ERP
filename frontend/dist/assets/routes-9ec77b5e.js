@@ -1,0 +1,1 @@
+import{_ as e}from"./index-259ac0f3.js";const t=[{path:"/login",name:"login",component:()=>e(()=>import("./LoginView-7c910acf.js"),["assets/LoginView-7c910acf.js","assets/index-259ac0f3.js","assets/index-8c3721c8.css"]),meta:{requiresAuth:!1}}];export{t as default};

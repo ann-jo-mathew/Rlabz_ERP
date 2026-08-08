@@ -1,0 +1,70 @@
+# PROJECT ARCHITECTURE & WORKFLOW ANALYSIS
+
+This project is built using a Modular Monolith architecture for both the frontend and the backend. Instead of clumping all controllers together and all views together, the application is vertically sliced by feature domains (like Auth, Dashboard, Finance, etc.). This makes the codebase highly scalable and allows teammates to work on different features independently without causing merge conflicts.
+
+================================================================================
+1. BACKEND (PHP / Laravel-style)
+================================================================================
+The backend is built in PHP and heavily utilizes Laravel's ecosystem (e.g., Routing, Middleware, Requests).
+
+- Location: ERP/backend/Modules/
+- Structure: The backend is divided into 10 distinct, self-contained modules:
+  - Auth
+  - Certificates
+  - Communication
+  - Coordinator
+  - Dashboard
+  - Faculty
+  - Finance
+  - Github
+  - ProjectClient
+  - Student
+  Every module has its own Routes, Controllers, and functionality.
+
+- Mock Authentication:
+  Currently, the backend is using a mock implementation for authentication to speed up development. Instead of hitting a real database, AuthController checks for hardcoded credentials (username: admin, password: password). If matched, it manually generates a mock JWT token (appending .mocksignature to it) and grants fake permissions (e.g., view-dashboard, edit-project).
+
+- Middleware:
+  JwtMiddleware intercepts protected API requests. It looks for .mocksignature in the Bearer token, decodes the mock payload without verifying a cryptographic signature, and attaches the user to the request so other controllers can authorize actions.
+
+================================================================================
+2. FRONTEND (Vue 3 + Vite + Pinia)
+================================================================================
+The frontend mirrors the backend's modular structure perfectly.
+
+- Location: ERP/frontend/src/
+- Tech Stack: Vue 3, Vite (for fast builds), Pinia (for state management), and Vue Router.
+- Module Manifest: The cornerstone of the frontend is src/module-manifest.js. This acts as the single source of truth that registers all active modules in the application.
+- Lazy Loading: For performance optimization, the manifest uses dynamic imports (e.g., loadRoutes: () => import('@/modules/auth/routes.js')). This means the browser only downloads the JavaScript for a module when the user actually navigates to it, keeping the initial load very fast.
+- State Management: The Pinia store (src/core/stores/auth.js) manages the user's session. It handles the API call to the backend login route and stores the returned JWT token and user details in the browser's localStorage. It even includes a "Pure Frontend Mock Fallback" so the frontend can still be tested and logged into even if the backend server is completely turned off.
+
+================================================================================
+3. THE CORE WORKFLOW (Example: Logging In)
+================================================================================
+To understand how the frontend and backend talk to each other, here is what happens when a user logs in:
+
+1. User Action:
+   The user enters admin / password on the frontend login page and submits the form.
+
+2. Frontend Store:
+   The Pinia Auth Store intercepts this and sends a POST request to http://localhost:8000/api/auth/login.
+
+3. Backend Route:
+   The backend receives the request at the Auth module's api.php route and forwards it to AuthController@login.
+
+4. Backend Processing:
+   The AuthController sees the mock credentials, approves them, and constructs the fake JWT token. It returns this token along with an array of modules the user is allowed to access and specific permissions.
+
+5. Frontend Processing:
+   The Pinia store receives the response, saves the token to localStorage, and updates its state to indicate the user is authenticated.
+
+6. Dynamic Rendering:
+   Based on the permissions and modules returned by the backend, the frontend dynamically renders the UI. It checks against module-manifest.js to determine which sidebar links to show (e.g., showing Dashboard but hiding Finance if the user lacks permissions).
+
+7. Subsequent Requests:
+   When the frontend requests protected data (like loading dashboard statistics), it attaches the JWT token in the header. The backend's JwtMiddleware decodes it, verifies the user payload, and serves the data.
+
+================================================================================
+SUMMARY
+================================================================================
+The project is set up to be highly decoupled. If you need to add a new feature (like an "Inventory" system) in the future, you would simply create an Inventory folder in backend/Modules/, an inventory folder in frontend/src/modules/, and register it in module-manifest.js.
