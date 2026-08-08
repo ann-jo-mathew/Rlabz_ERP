@@ -41,29 +41,89 @@ class AuthController extends Controller
         //     return response()->json(['error' => 'Unauthorized'], 401);
         // }
         
-        // MOCK IMPLEMENTATION (No DB needed):
-        if ($request->username === 'admin' && $request->password === 'password') {
+        // MOCK USERS CONFIGURATION:
+        $mockUsers = [
+            'director' => [
+                'password' => 'director123',
+                'id' => 1,
+                'username' => 'director',
+                'name' => 'Director & Co-ordinator',
+                'role' => 'director',
+                'defaultRoute' => '/dashboard',
+                'modules' => ['dashboard', 'finance', 'project-client', 'github', 'audit-notifications', 'auth'],
+                'permissions' => ['view-dashboard', 'view-finance-readonly', 'view-projects', 'view-github', 'view-audit-notifications'],
+            ],
+            'coordinator' => [
+                'password' => 'coord123',
+                'id' => 2,
+                'username' => 'coordinator',
+                'name' => 'Co-ordinator',
+                'role' => 'coordinator',
+                'defaultRoute' => '/coordinator',
+                'modules' => ['coordinator', 'finance', 'student', 'project-client', 'communication', 'github', 'certificates', 'auth'],
+                'permissions' => ['view-coordinator', 'view-finance-readonly', 'view-student', 'view-projects', 'view-communication', 'view-github', 'view-certificates'],
+            ],
+            'finance_head' => [
+                'password' => 'finance123',
+                'id' => 3,
+                'username' => 'finance_head',
+                'name' => 'Finance Head',
+                'role' => 'finance_head',
+                'defaultRoute' => '/finance',
+                'modules' => ['finance', 'student', 'project-client', 'auth'],
+                'permissions' => ['view-finance', 'view-student-designations', 'view-projects'],
+            ],
+            'faculty' => [
+                'password' => 'faculty123',
+                'id' => 4,
+                'username' => 'faculty',
+                'name' => 'Faculty Member',
+                'role' => 'faculty',
+                'defaultRoute' => '/faculty',
+                'modules' => ['faculty', 'project-client', 'communication', 'github', 'auth'],
+                'permissions' => ['view-faculty', 'view-projects', 'view-communication', 'view-github'],
+            ],
+            'student' => [
+                'password' => 'student123',
+                'id' => 5,
+                'username' => 'student',
+                'name' => 'Student User',
+                'role' => 'student',
+                'defaultRoute' => '/student',
+                'modules' => ['student', 'project-client', 'communication', 'github', 'certificates', 'auth'],
+                'permissions' => ['view-student', 'view-projects', 'view-communication', 'view-github', 'view-certificates-read'],
+            ],
+            // Legacy / Fallback Admin account
+            'admin' => [
+                'password' => 'password',
+                'id' => 99,
+                'username' => 'admin',
+                'name' => 'Administrator',
+                'role' => 'director',
+                'defaultRoute' => '/dashboard',
+                'modules' => ['dashboard', 'finance', 'project-client', 'github', 'audit-notifications', 'auth'],
+                'permissions' => ['view-dashboard', 'view-finance-readonly', 'view-projects', 'view-github', 'view-audit-notifications'],
+            ]
+        ];
+
+        $username = $request->username;
+        $password = $request->password;
+
+        if (isset($mockUsers[$username]) && $mockUsers[$username]['password'] === $password) {
+            $userConfig = $mockUsers[$username];
+            unset($userConfig['password']);
+
             $mockToken = base64_encode(json_encode([
                 'typ' => 'JWT', 'alg' => 'HS256'
-            ])) . '.' . base64_encode(json_encode([
-                'sub' => 1,
-                'username' => 'admin',
-                'role' => 'director',
-                'permissions' => ['view-dashboard', 'edit-project'],
-                'modules' => ['dashboard', 'project-client', 'auth'],
+            ])) . '.' . base64_encode(json_encode(array_merge($userConfig, [
+                'sub' => $userConfig['id'],
                 'exp' => time() + 3600
-            ])) . '.mocksignature';
+            ]))) . '.mocksignature';
 
-            return $this->respondWithToken($mockToken, [
-                'id' => 1,
-                'username' => 'admin',
-                'role' => 'director',
-                'permissions' => ['view-dashboard', 'edit-project'],
-                'modules' => ['dashboard', 'project-client', 'auth'],
-            ]);
+            return $this->respondWithToken($mockToken, $userConfig);
         }
 
-        return response()->json(['error' => 'Unauthorized (Use admin/password for mock)'], 401);
+        return response()->json(['error' => 'Invalid username or password. Check MOCK_LOGIN_CREDENTIALS.txt.'], 401);
     }
 
     /**

@@ -2,35 +2,85 @@
  * RLABZ MODULE MANIFEST
  * 
  * This is the SINGLE shared contract point for the frontend.
- * When a teammate creates a new module, they only need to add an entry here.
+ * Other team members will populate their module folders inside src/modules/<name>/
+ * and register their loadRoutes functions here.
  */
 
 export const modules = [
   {
     name: 'auth',
     path: '/auth',
-    // The load function dynamically imports the module's router
     loadRoutes: () => import('@/modules/auth/routes.js'),
-    sidebar: false, // Auth doesn't appear in the sidebar
+    sidebar: false,
   },
   {
     name: 'dashboard',
     path: '/dashboard',
-    loadRoutes: () => import('@/modules/dashboard/routes.js'),
     sidebar: true,
     title: 'Director Dashboard',
-    icon: 'IconDashboard', // Placeholder for an icon component/class
-    requiredPermissions: ['view-dashboard'], // Handled by authGuard
+    icon: 'IconDashboard',
+  },
+  {
+    name: 'coordinator',
+    path: '/coordinator',
+    sidebar: true,
+    title: 'Co-ordinator Workspace',
+    icon: 'IconCoordinator',
+  },
+  {
+    name: 'faculty',
+    path: '/faculty',
+    sidebar: true,
+    title: 'Faculty Portal',
+    icon: 'IconFaculty',
+  },
+  {
+    name: 'finance',
+    path: '/finance',
+    sidebar: true,
+    title: 'Finance & Payroll',
+    icon: 'IconFinance',
+  },
+  {
+    name: 'student',
+    path: '/student',
+    sidebar: true,
+    title: 'Student Portal & Records',
+    icon: 'IconStudent',
   },
   {
     name: 'project-client',
     path: '/projects',
-    loadRoutes: () => import('@/modules/project-client/routes.js'),
     sidebar: true,
     title: 'Projects & Clients',
     icon: 'IconProjects',
-    requiredPermissions: ['view-projects'], 
+  },
+  {
+    name: 'communication',
+    path: '/communication',
+    sidebar: true,
+    title: 'Communication',
+    icon: 'IconCommunication',
+  },
+  {
+    name: 'github',
+    path: '/github',
+    sidebar: true,
+    title: 'GitHub Integration',
+    icon: 'IconGithub',
+  },
+  {
+    name: 'certificates',
+    path: '/certificates',
+    sidebar: true,
+    title: 'Certificates & Reporting',
+    icon: 'IconCertificates',
+  },
+  {
+    name: 'audit-notifications',
+    path: '/audit-notifications',
+    sidebar: true,
+    title: 'Audit Log & Notifications',
+    icon: 'IconAudit',
   }
-  // Teammates will add their modules here:
-  // { name: 'coordinator', ... },
 ];

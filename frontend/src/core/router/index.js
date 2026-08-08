@@ -1,5 +1,6 @@
 import { modules } from '../../module-manifest.js';
 import { authGuard } from '../guards/authGuard.js';
+import { useAuthStore } from '../stores/auth.js';
 
 class VanillaRouter {
   constructor() {
@@ -65,14 +66,16 @@ class VanillaRouter {
   }
 
   async handleRoute(path) {
+    const authStore = useAuthStore();
+    const defaultRoute = authStore.user?.defaultRoute || '/dashboard';
+
     if (path === '/') {
-      return this.push('/dashboard');
+      return this.push(authStore.isAuthenticated ? defaultRoute : '/login');
     }
 
     let targetRoute = this.match(path);
     if (!targetRoute) {
-      // Fallback redirect to dashboard
-      return this.push('/dashboard');
+      return this.push(authStore.isAuthenticated ? defaultRoute : '/login');
     }
 
     // Run navigation guards
@@ -110,16 +113,21 @@ class VanillaRouter {
     let contentElement = null;
 
     if (route.component) {
-      // Check if component is an async import function or a component object/function
       let componentDef = route.component;
-      if (typeof componentDef === 'function' && !componentDef.prototype?.render && componentDef.name !== 'DashboardLayout') {
-        const module = await componentDef();
-        componentDef = module.default || module;
-      }
-
-      if (typeof componentDef === 'function') {
-        contentElement = await componentDef(route, this);
-      } else if (typeof componentDef.render === 'function') {
+      if (typeof componentDef === 'function' && componentDef.name !== 'DashboardLayout') {
+        const result = componentDef(route, this);
+        if (result && typeof result.then === 'function') {
+          const module = await result;
+          componentDef = module.default || module;
+          if (typeof componentDef === 'function') {
+            contentElement = await componentDef(route, this);
+          } else {
+            contentElement = componentDef;
+          }
+        } else {
+          contentElement = result;
+        }
+      } else if (componentDef && typeof componentDef.render === 'function') {
         contentElement = await componentDef.render(route, this);
       }
     }
@@ -137,43 +145,64 @@ class VanillaRouter {
 export const router = new VanillaRouter();
 
 export async function setupRouter() {
-  // Dynamically load all module routes from the manifest
+  // Dynamically load module routes from manifest
+  const { DashboardLayout } = await import('../layouts/DashboardLayout.js');
+  const EmptyComponent = () => document.createElement('div');
+
   for (const module of modules) {
     if (module.loadRoutes) {
-      const moduleRoutes = await module.loadRoutes();
-      const routesList = moduleRoutes.default || moduleRoutes;
+      try {
+        const moduleRoutes = await module.loadRoutes();
+        const routesList = moduleRoutes.default || moduleRoutes;
 
-      if (Array.isArray(routesList)) {
-        routesList.forEach(route => {
-          const processRoute = (r, layoutComponent = null) => {
-            const fullRoute = {
-              path: r.path,
-              name: r.name,
-              component: r.component,
-              layout: layoutComponent || r.layout,
-              meta: {
-                ...(r.meta || {}),
-                ...(module.requiredPermissions ? { requiresAuth: true, requiredPermissions: module.requiredPermissions } : {})
+        if (Array.isArray(routesList)) {
+          routesList.forEach(route => {
+            const processRoute = (r, layoutComponent = null) => {
+              const fullRoute = {
+                path: r.path,
+                name: r.name,
+                component: r.component,
+                layout: layoutComponent || r.layout,
+                meta: {
+                  moduleName: module.name,
+                  requiresAuth: module.name !== 'auth',
+                  ...(r.meta || {}),
+                  ...(module.requiredPermissions ? { requiredPermissions: module.requiredPermissions } : {})
+                }
+              };
+
+              if (r.children && Array.isArray(r.children)) {
+                r.children.forEach(child => {
+                  const childPath = r.path + (child.path ? '/' + child.path : '');
+                  processRoute({
+                    ...child,
+                    path: childPath,
+                    meta: { ...r.meta, ...child.meta }
+                  }, r.component);
+                });
+              } else {
+                router.addRoute(fullRoute);
               }
             };
 
-            if (r.children && Array.isArray(r.children)) {
-              r.children.forEach(child => {
-                const childPath = r.path + (child.path ? '/' + child.path : '');
-                processRoute({
-                  ...child,
-                  path: childPath,
-                  meta: { ...r.meta, ...child.meta }
-                }, r.component); // Parent component is layout
-              });
-            } else {
-              router.addRoute(fullRoute);
-            }
-          };
-
-          processRoute(route);
-        });
+            processRoute(route);
+          });
+        }
+      } catch (err) {
+        console.warn(`Could not load routes for module ${module.name}, registering layout fallback:`, err);
       }
+    } else if (module.sidebar) {
+      // Register route rendering DashboardLayout with empty content
+      router.addRoute({
+        path: module.path,
+        name: module.name,
+        component: EmptyComponent,
+        layout: DashboardLayout,
+        meta: {
+          moduleName: module.name,
+          requiresAuth: true
+        }
+      });
     }
   }
 

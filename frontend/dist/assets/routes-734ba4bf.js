@@ -1,1 +1,0 @@
-import{_ as o}from"./index-259ac0f3.js";import{D as t}from"./DashboardLayout-2903c8be.js";const a=[{path:"/projects",component:t,children:[{path:"",name:"projects-home",component:()=>o(()=>import("./ProjectsHome-2a4f2eb1.js"),[])}]}];export{a as default};

@@ -1,1 +1,0 @@
-import{_ as o}from"./index-259ac0f3.js";import{D as a}from"./DashboardLayout-2903c8be.js";const e=[{path:"/dashboard",component:a,children:[{path:"",name:"dashboard",component:()=>o(()=>import("./DashboardHome-2d5aae10.js"),[])}]}];export{e as default};
