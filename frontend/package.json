@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {},
+  "dependencies": {
+    "html2pdf.js": "^0.14.0"
+  },
   "devDependencies": {
     "vite": "^4.4.5"
   }
