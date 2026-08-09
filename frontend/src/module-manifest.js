@@ -37,6 +37,7 @@ export const modules = [
   {
     name: 'finance',
     path: '/finance',
+    loadRoutes: () => import('@/modules/finance/routes.js'),
     sidebar: true,
     title: 'Finance & Payroll',
     icon: 'IconFinance',
