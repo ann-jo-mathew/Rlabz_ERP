@@ -1,0 +1,340 @@
+/* ============================================================
+   RLABZ ERP — Finance Module Styles
+   Theme: Emerald (#059669) · Font: Plus Jakarta Sans
+   ============================================================ */
+
+/* ── Module Shell ──────────────────────────────────────────── */
+.finance-module {
+  padding: 0;
+  font-family: var(--font-family);
+  color: var(--text-main);
+}
+
+/* ── Page Header ───────────────────────────────────────────── */
+.fin-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.fin-page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.fin-page-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.fin-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  transition: var(--transition);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.fin-back-link:hover { color: var(--primary-hover); gap: 10px; }
+
+/* ── KPI Summary Strip ─────────────────────────────────────── */
+.fin-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1100px) { .fin-kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .fin-kpi-strip { grid-template-columns: 1fr; } }
+
+.fin-kpi-card {
+  border-radius: var(--radius-lg);
+  padding: 1.4rem 1.6rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: default;
+}
+
+.fin-kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+.fin-kpi-card::after {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  pointer-events: none;
+}
+
+.fin-kpi-card .kpi-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 0.4rem;
+}
+
+.fin-kpi-card .kpi-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.fin-kpi-card .kpi-sub {
+  font-size: 0.78rem;
+  opacity: 0.75;
+  margin-top: 0.35rem;
+}
+
+.fin-kpi-card.primary  { background: linear-gradient(135deg, #059669, #047857); }
+.fin-kpi-card.teal     { background: linear-gradient(135deg, #0891b2, #0e7490); }
+.fin-kpi-card.indigo   { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.fin-kpi-card.purple   { background: linear-gradient(135deg, #a855f7, #9333ea); }
+.fin-kpi-card.warning  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.fin-kpi-card.danger   { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+/* ── Section Panel ─────────────────────────────────────────── */
+.fin-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+.fin-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.fin-panel-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.fin-panel-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+hr.fin-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 1.25rem 0;
+}
+
+/* ── Grid Layouts ──────────────────────────────────────────── */
+.fin-grid-2   { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+.fin-grid-3   { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+.fin-grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+.fin-grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+@media (max-width: 1024px) {
+  .fin-grid-2, .fin-grid-3, .fin-grid-1-2, .fin-grid-2-1 { grid-template-columns: 1fr; }
+}
+
+/* ── Chart ─────────────────────────────────────────────────── */
+.fin-chart-wrap { position: relative; width: 100%; }
+
+/* ── Table ─────────────────────────────────────────────────── */
+.fin-table-wrap { overflow-x: auto; }
+
+.fin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.fin-table thead th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.fin-table tbody td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.fin-table tbody tr:last-child td { border-bottom: none; }
+.fin-table tbody tr { transition: background 0.15s; }
+.fin-table tbody tr:hover { background: #f0fdf4; }
+
+/* ── Badges ─────────────────────────────────────────────────── */
+.fin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fin-badge.success { background: #d1fae5; color: #065f46; }
+.fin-badge.warning { background: #fef3c7; color: #92400e; }
+.fin-badge.danger  { background: #fee2e2; color: #991b1b; }
+.fin-badge.info    { background: #dbeafe; color: #1e40af; }
+.fin-badge.neutral { background: #f1f5f9; color: #475569; }
+.fin-badge.purple  { background: #ede9fe; color: #5b21b6; }
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.fin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.fin-btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+}
+.fin-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,150,105,0.4); }
+
+.fin-btn.outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+.fin-btn.outline:hover { background: var(--bg-main); border-color: var(--primary); color: var(--primary); }
+
+.fin-btn.ghost { background: transparent; color: var(--primary); }
+.fin-btn.ghost:hover { background: var(--primary-light); }
+
+.fin-btn.sm { padding: 0.35rem 0.75rem; font-size: 0.78rem; }
+
+/* ── Breakdown Rows ─────────────────────────────────────────── */
+.fin-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed var(--border-color);
+  font-size: 0.875rem;
+}
+
+.fin-breakdown-row:last-child { border-bottom: none; }
+.fin-breakdown-row .label { color: var(--text-muted); }
+.fin-breakdown-row .value { font-weight: 600; }
+
+.fin-breakdown-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.9rem 0 0.4rem;
+  font-weight: 700;
+  font-size: 1rem;
+  border-top: 2px solid var(--border-color);
+  margin-top: 0.5rem;
+}
+
+/* ── Progress Bar ───────────────────────────────────────────── */
+.fin-progress-bg {
+  background: var(--border-color);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+  margin-top: 0.4rem;
+}
+
+.fin-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary-accent), var(--primary));
+  transition: width 0.7s ease;
+}
+
+/* ── Legend ─────────────────────────────────────────────────── */
+.fin-legend { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.fin-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.83rem;
+}
+
+.fin-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.fin-legend-item .leg-pct { margin-left: auto; font-weight: 700; color: var(--text-main); }
+.fin-legend-item .leg-label { color: var(--text-muted); flex: 1; }
+
+/* ── Aging Cells ────────────────────────────────────────────── */
+.fin-aging-cell {
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  display: inline-block;
+}
+.fin-aging-cell.a0 { color: var(--text-muted); }
+.fin-aging-cell.a1 { background: #d1fae5; color: #065f46; }
+.fin-aging-cell.a2 { background: #fef3c7; color: #92400e; }
+.fin-aging-cell.a3 { background: #fed7aa; color: #9a3412; }
+.fin-aging-cell.a4 { background: #fee2e2; color: #991b1b; }
+
+/* ── Summary stat card (payment section) ───────────────────── */
+.fin-pay-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.fin-pay-stat .pstat-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.fin-pay-stat .pstat-value { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+
+/* ── Animations ─────────────────────────────────────────────── */
+.animate-fade-in { animation: fin-fade-up 0.35s ease-out both; }
+
+@keyframes fin-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* legacy compat classes kept for safety */
+.finance-header h1 { font-size: 1.75rem; font-weight: 800; }
+.finance-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; }
