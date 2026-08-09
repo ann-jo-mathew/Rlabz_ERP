@@ -1,4 +1,5 @@
 import { useAuthStore } from '../stores/auth.js';
+import { modules } from '../../module-manifest.js';
 
 export function authGuard(to, from, next) {
   const authStore = useAuthStore();
@@ -20,6 +21,12 @@ export function authGuard(to, from, next) {
   if (isAuthenticated && to.meta?.moduleName && to.meta.moduleName !== 'auth') {
     const allowedModules = authStore.modules || [];
     if (!allowedModules.includes(to.meta.moduleName)) {
+      return next(defaultRoute);
+    }
+
+    // Check module-level role restrictions from manifest
+    const targetModule = modules.find(m => m.name === to.meta.moduleName);
+    if (targetModule && targetModule.allowedRoles && !targetModule.allowedRoles.includes(authStore.role)) {
       return next(defaultRoute);
     }
   }

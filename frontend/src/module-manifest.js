@@ -46,9 +46,11 @@ export const modules = [
   {
     name: 'student',
     path: '/student',
+    loadRoutes: () => import('@/modules/student/routes.js'),
     sidebar: true,
     title: 'Student Portal & Records',
     icon: 'IconStudent',
+    allowedRoles: ['student'],
   },
   {
     name: 'project-client',
