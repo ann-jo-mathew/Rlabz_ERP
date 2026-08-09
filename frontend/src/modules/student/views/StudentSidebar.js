@@ -1,8 +1,12 @@
-/**
- * Dynamic Sidebar Replacer for Student Portal
- * Overrides the navigation links in DashboardLayout with Student Portal sub-pages.
- */
+import { useAuthStore } from '@/core/stores/auth.js';
+
 export function renderStudentSidebar() {
+  const authStore = useAuthStore();
+  const currentPath = window.location.pathname;
+  if (authStore.role !== 'student' || !currentPath.startsWith('/student')) {
+    return;
+  }
+
   const sidebarNav = document.querySelector('.sidebar-nav');
   if (!sidebarNav) return;
 
@@ -83,7 +87,6 @@ export function renderStudentSidebar() {
   }
 
   // Update active css classes on matching sidebar link
-  const currentPath = window.location.pathname;
   sidebarNav.querySelectorAll('a').forEach(a => {
     const href = a.getAttribute('href');
     if (href) {

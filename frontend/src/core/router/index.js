@@ -175,16 +175,10 @@ class VanillaRouter {
           outlet.appendChild(contentElement);
         }
       }
-      // Update sidebar active state to reflect the new route
+      // Update sidebar and active state to reflect the new route
       const currentPath = window.location.pathname;
-      this.container.querySelectorAll('.sidebar-nav a').forEach(a => {
-        const href = a.getAttribute('href');
-        if (href && currentPath.startsWith(href)) {
-          a.classList.add('active');
-        } else {
-          a.classList.remove('active');
-        }
-      });
+      const { updateSidebar } = await import('../layouts/DashboardLayout.js');
+      updateSidebar(currentPath);
       // Update topbar title
       const topbarTitle = this.container.querySelector('.topbar-title');
       if (topbarTitle && route.name) {

@@ -49,6 +49,7 @@ export const modules = [
     sidebar: true,
     title: 'Student Portal & Records',
     icon: 'IconStudent',
+    allowedRoles: ['student'],
   },
   {
     name: 'project-client',
