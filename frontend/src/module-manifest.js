@@ -16,6 +16,7 @@ export const modules = [
   {
     name: 'dashboard',
     path: '/dashboard',
+    loadRoutes: () => import('@/modules/dashboard/routes.js'),
     sidebar: true,
     title: 'Director Dashboard',
     icon: 'IconDashboard',
