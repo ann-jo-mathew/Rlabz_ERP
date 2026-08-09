@@ -2,6 +2,17 @@
    FACULTY MODULE
    ========================================= */
 
+/* Sidebar Subnav Styles */
+.faculty-subnav {
+    padding-left: 2.5rem;
+    list-style: none;
+    margin-top: 0.2rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
 .faculty-home,
 .faculty-profile,
 .faculty-projects,
@@ -9,6 +20,18 @@
     padding: 30px;
     max-width: 1200px;
     margin: 0 auto;
+    /* Prevent the layout from exceeding the viewport height and stretching the sidebar */
+    max-height: calc(100vh - 132px);
+    overflow-y: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.faculty-home::-webkit-scrollbar,
+.faculty-profile::-webkit-scrollbar,
+.faculty-projects::-webkit-scrollbar,
+.faculty-students::-webkit-scrollbar {
+    display: none;
 }
 
 /* Page Header */
@@ -536,4 +559,108 @@
     .faculty-project-info {
         grid-template-columns: 1fr;
     }
+}
+
+/* =========================================
+   STUDENTS TABLE (FacultyStudents)
+   ========================================= */
+.faculty-student-toolbar {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+#faculty-student-search {
+    width: 100%;
+    max-width: 400px;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    background: #fff;
+}
+
+#faculty-student-search:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.faculty-student-table-container {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.faculty-student-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.faculty-student-table th {
+    background: #f8fafc;
+    padding: 16px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.faculty-student-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #334155;
+}
+
+.faculty-student-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.faculty-student-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.faculty-designation {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.faculty-designation.nova {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.faculty-designation.orbit {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.faculty-designation.spark {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+.faculty-student-view {
+    padding: 6px 12px;
+    border: none;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.faculty-student-view:hover {
+    background: #e2e8f0;
+    color: #1e293b;
 }

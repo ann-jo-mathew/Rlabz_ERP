@@ -1,9 +1,9 @@
-import { DashboardLayout } from '@/core/layouts/DashboardLayout.js';
+import { FacultyLayout } from './FacultyLayout.js';
 
 const routes = [
   {
     path: '/faculty',
-    component: DashboardLayout,
+    component: FacultyLayout,
     children: [
       {
         path: '',
