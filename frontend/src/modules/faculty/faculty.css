@@ -1,0 +1,539 @@
+/* =========================================
+   FACULTY MODULE
+   ========================================= */
+
+.faculty-home,
+.faculty-profile,
+.faculty-projects,
+.faculty-students {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Page Header */
+
+.faculty-home .page-header,
+.faculty-profile .page-header,
+.faculty-projects .page-header,
+.faculty-students .page-header {
+    margin-bottom: 30px;
+}
+
+.faculty-home .page-header h1,
+.faculty-profile .page-header h1,
+.faculty-projects .page-header h1,
+.faculty-students .page-header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #172033;
+}
+
+.faculty-home .page-header p,
+.faculty-profile .page-header p,
+.faculty-projects .page-header p,
+.faculty-students .page-header p {
+    margin: 0;
+    color: #718096;
+    font-size: 14px;
+}
+
+
+/* =========================================
+   FACULTY DASHBOARD
+   ========================================= */
+
+.faculty-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 35px;
+}
+
+.faculty-stat-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.faculty-stat-card .stat-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    background: #e8f7f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+}
+
+.faculty-stat-card h3 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    color: #172033;
+}
+
+.faculty-stat-card p {
+    margin: 0;
+    font-size: 13px;
+    color: #718096;
+}
+
+
+/* =========================================
+   DASHBOARD SECTIONS
+   ========================================= */
+
+.faculty-dashboard-section {
+    margin-top: 20px;
+}
+
+.faculty-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.faculty-section-header h2 {
+    margin: 0;
+    font-size: 21px;
+    color: #172033;
+}
+
+.faculty-view-btn {
+    border: none;
+    background: #087f5b;
+    color: white;
+    padding: 9px 16px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.faculty-view-btn:hover {
+    background: #066b4d;
+}
+
+
+/* =========================================
+   PROJECT LIST
+   ========================================= */
+
+.faculty-project-list {
+    display: grid;
+    gap: 16px;
+}
+
+.faculty-project-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 22px;
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.faculty-project-card h3 {
+    margin: 0 0 7px;
+    color: #172033;
+    font-size: 17px;
+}
+
+.faculty-project-card p {
+    margin: 5px 0;
+    color: #718096;
+    font-size: 13px;
+}
+
+
+/* =========================================
+   STATUS
+   ========================================= */
+
+.faculty-status {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.faculty-status.active {
+    background: #e7f7ef;
+    color: #087f5b;
+}
+
+
+/* =========================================
+   PROGRESS BAR
+   ========================================= */
+
+.faculty-project-progress {
+    min-width: 220px;
+}
+
+.faculty-project-progress p {
+    font-weight: 600;
+    color: #172033;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.progress-header span {
+    color: #718096;
+    font-size: 13px;
+}
+
+.progress-header strong {
+    color: #087f5b;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #08a875;
+    border-radius: 10px;
+}
+
+
+/* =========================================
+   PROJECT GRID
+   ========================================= */
+
+.faculty-project-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.faculty-project-detail-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.project-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.project-card-header h2 {
+    margin: 0 0 6px;
+    font-size: 19px;
+    color: #172033;
+}
+
+.project-card-header p {
+    margin: 0;
+    color: #718096;
+    font-size: 13px;
+}
+
+
+/* =========================================
+   PROJECT INFORMATION
+   ========================================= */
+
+.project-information {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.project-information div {
+    background: #f7faf9;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.project-information span {
+    display: block;
+    font-size: 11px;
+    color: #718096;
+    margin-bottom: 5px;
+}
+
+.project-information strong {
+    font-size: 14px;
+    color: #172033;
+}
+
+
+/* =========================================
+   VIEW PROJECT BUTTON
+   ========================================= */
+
+.faculty-project-view {
+    width: 100%;
+    margin-top: 20px;
+    border: none;
+    background: #087f5b;
+    color: white;
+    padding: 11px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.faculty-project-view:hover {
+    background: #066b4d;
+}
+
+
+/* =========================================
+   PROJECT DETAILS
+   ========================================= */
+
+.faculty-project-details {
+    margin-top: 30px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 25px;
+}
+
+.faculty-project-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+}
+
+.faculty-project-detail-header h2 {
+    margin: 0 0 6px;
+    color: #172033;
+}
+
+.faculty-project-detail-header p {
+    margin: 0;
+    color: #718096;
+}
+
+.faculty-close-button {
+    border: none;
+    background: #f1f5f4;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.faculty-close-button:hover {
+    background: #e2e8e6;
+}
+
+.faculty-project-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.faculty-project-info div {
+    padding: 15px;
+    background: #f7faf9;
+    border-radius: 8px;
+}
+
+.faculty-project-info span {
+    display: block;
+    font-size: 12px;
+    color: #718096;
+    margin-bottom: 5px;
+}
+
+.faculty-project-info strong {
+    color: #172033;
+}
+
+
+/* =========================================
+   STUDENT ASSIGNMENT
+   ========================================= */
+
+.faculty-assignment-section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 25px;
+}
+
+.faculty-assignment-section h2 {
+    margin: 0 0 6px;
+    color: #172033;
+}
+
+.faculty-assignment-section p {
+    color: #718096;
+    font-size: 13px;
+}
+
+
+/* Assignment cards */
+
+.faculty-assignment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.faculty-assignment-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    background: #ffffff;
+}
+
+.faculty-assignment-card h3 {
+    margin: 12px 0 5px;
+    color: #172033;
+}
+
+.faculty-assignment-card p {
+    margin: 0 0 15px;
+    font-size: 12px;
+}
+
+
+/* Designation icon */
+
+.designation-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    background: #087f5b;
+}
+
+
+/* Dropdown */
+
+.faculty-student-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    background: white;
+    color: #172033;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.faculty-student-select:focus {
+    outline: none;
+    border-color: #087f5b;
+}
+
+
+/* Assign button */
+
+.faculty-assignment-actions {
+    margin-top: 22px;
+}
+
+.faculty-assign-button {
+    border: none;
+    background: #087f5b;
+    color: white;
+    padding: 11px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.faculty-assign-button:hover {
+    background: #066b4d;
+}
+
+
+/* Success message */
+
+.faculty-assignment-message {
+    margin-top: 15px;
+}
+
+.assignment-success {
+    background: #e7f7ef;
+    border: 1px solid #b7e4ce;
+    color: #087f5b;
+    padding: 11px 15px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 1000px) {
+
+    .faculty-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .faculty-project-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .faculty-assignment-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    .faculty-home,
+    .faculty-profile,
+    .faculty-projects,
+    .faculty-students {
+        padding: 20px;
+    }
+
+    .faculty-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .faculty-project-card {
+        flex-direction: column;
+    }
+
+    .faculty-project-progress {
+        min-width: 0;
+    }
+
+    .project-information,
+    .faculty-project-info {
+        grid-template-columns: 1fr;
+    }
+}

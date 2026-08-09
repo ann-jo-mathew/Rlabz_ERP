@@ -30,6 +30,7 @@ export const modules = [
   {
     name: 'faculty',
     path: '/faculty',
+    loadRoutes: () => import('@/modules/faculty/routes.js'),
     sidebar: true,
     title: 'Faculty Portal',
     icon: 'IconFaculty',
@@ -66,10 +67,11 @@ export const modules = [
   {
     name: 'github',
     path: '/github',
+    loadRoutes: () => import('@/modules/github/routes.js'),
     sidebar: true,
     title: 'GitHub Integration',
     icon: 'IconGithub',
-  },
+},
   {
     name: 'certificates',
     path: '/certificates',
