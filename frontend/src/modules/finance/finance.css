@@ -335,6 +335,274 @@ hr.fin-divider {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Finance Filter Bar ─────────────────────────────────────── */
+.fin-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.fin-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.fin-filter-group label,
+.fin-filter-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fin-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 0.85rem;
+  font-size: 0.875rem;
+  font-family: var(--font-family);
+  font-weight: 500;
+  color: var(--text-main);
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  line-height: 1.4;
+}
+
+.fin-input::placeholder { color: var(--text-muted); font-weight: 400; }
+
+.fin-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+}
+
+/* Select wrapper for custom arrow */
+.fin-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fin-select-wrap select.fin-input {
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+.fin-select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-muted);
+  pointer-events: none;
+}
+
+.fin-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fin-search-wrap svg.search-icon {
+  position: absolute;
+  left: 0.7rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.fin-search-wrap input.fin-input {
+  padding-left: 2.2rem;
+}
+
+/* Project-first picker (Student Payroll) */
+.fin-project-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, rgba(5,150,105,0.04), rgba(5,150,105,0.02));
+  border: 1px solid rgba(5,150,105,0.18);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.fin-project-picker-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+}
+
+/* ── Form Section ─────────────────────────────────────────── */
+.fin-form-section {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  margin-bottom: 1.25rem;
+  display: none;
+}
+
+.fin-form-section.visible { display: block; }
+
+.fin-form-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.85rem;
+}
+
+.fin-form-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.fin-form-group textarea.fin-input {
+  height: auto;
+  padding: 0.6rem 0.85rem;
+  resize: vertical;
+  min-height: 70px;
+}
+
+.fin-form-subhead {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 1rem 0 0.5rem;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fin-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Spinner for process buttons */
+.fin-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: fin-spin 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes fin-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Designation badges */
+.fin-badge.nova   { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.fin-badge.orbit  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.fin-badge.spark  { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.fin-badge.indigo { background: #ede9fe; color: #5b21b6; }
+.fin-badge.primary { background: #d1fae5; color: #065f46; }
+
+/* ── Payroll hours cell ──────────────────────────────────── */
+.fin-hours-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fin-hours-logged {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.fin-hours-approved {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* ── Project cost breakdown sections ─────────────────────── */
+.fin-cost-section {
+  margin-bottom: 0.75rem;
+}
+
+.fin-cost-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0.4rem;
+}
+
+.fin-cost-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.fin-cost-item .label { color: var(--text-muted); }
+.fin-cost-item .value { font-weight: 600; color: var(--text-main); }
+
+.fin-cost-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-top: 2px solid var(--border-color);
+  margin-top: 0.4rem;
+}
+
+/* ── Alert ─────────────────────────────────────────────────── */
+.alert-error {
+  padding: 1rem 1.25rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid #fca5a5;
+}
+
 /* legacy compat classes kept for safety */
 .finance-header h1 { font-size: 1.75rem; font-weight: 800; }
 .finance-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; }

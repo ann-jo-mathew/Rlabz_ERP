@@ -6,29 +6,82 @@
 
 class FinanceService {
   constructor() {
-    this.gstRate = 0.18; // 18% mock GST
+    this.gstRate = 0.18; // 18% mock GST (configurable, not a hardcoded rule)
+    
+    // Configurable Mock Rates (Not finalized business rules)
+    this.rates = {
+      'Nova': 250,
+      'Orbit': 200,
+      'Spark': 150
+    };
 
-    // Mock Projects
+    // Mock Projects (Project Finance status: Draft / Approved / Active / Closed)
     this.projects = [
-      { id: 101, name: 'RLabZ ERP Website', status: 'In Progress', client: 'Internal RLabZ', estimated_cost: 120000, margin_target: 30 },
-      { id: 102, name: 'College Management System', status: 'Completed', client: 'Rajagiri College', estimated_cost: 450000, margin_target: 25 },
-      { id: 103, name: 'Student Portal App', status: 'In Progress', client: 'Rajagiri College', estimated_cost: 200000, margin_target: 20 }
+      { 
+        id: 101, 
+        name: 'RLabZ ERP Website', 
+        status: 'Active', 
+        client: 'Internal RLabZ', 
+        estimated_cost: 150000,
+        dev_student: 60000,
+        dev_faculty: 40000,
+        dev_rlabz: 35000,
+        host_ssl: 2000,
+        host_domain: 3000,
+        host_api: 10000,
+        maintenance_support: 0 // Optional
+      },
+      { 
+        id: 102, 
+        name: 'College Management System', 
+        status: 'Closed', 
+        client: 'Rajagiri College', 
+        estimated_cost: 450000,
+        dev_student: 150000,
+        dev_faculty: 100000,
+        dev_rlabz: 150000,
+        host_ssl: 5000,
+        host_domain: 5000,
+        host_api: 20000,
+        maintenance_support: 20000
+      },
+      { 
+        id: 103, 
+        name: 'Student Portal App', 
+        status: 'Approved', 
+        client: 'Rajagiri College', 
+        estimated_cost: 200000,
+        dev_student: 80000,
+        dev_faculty: 50000,
+        dev_rlabz: 60000,
+        host_ssl: 2000,
+        host_domain: 3000,
+        host_api: 0, // Not applicable
+        maintenance_support: 5000
+      }
     ];
 
-    // Mock Invoices (Client Billing)
+    // Mock Client Payments (Status: Pending / Confirmed / Failed / Rejected)
+    this.clientPayments = [
+      { id: 'PAY-2026-001', projectId: 101, date: '2026-07-10', amount: 59000, type: 'Advance', method: 'Bank Transfer', status: 'Confirmed', ref: 'TXN-99881', remarks: 'Initial setup' },
+      { id: 'PAY-2026-002', projectId: 102, date: '2026-06-14', amount: 531000, type: 'Final', method: 'Bank Transfer', status: 'Confirmed', ref: 'TXN-99882', remarks: 'Full delivery' },
+      { id: 'PAY-2026-003', projectId: 103, date: '2026-08-08', amount: 70800, type: 'Advance', method: 'Bank Transfer', status: 'Confirmed', ref: 'TXN-99883', remarks: 'Milestone 1' }
+    ];
+
+    // Mock Invoices (Client Billing - generated from payments/projects for display)
     this.invoices = [
-      { id: 'INV-2026-001', projectId: 101, date: '2026-07-01', dueDate: '2026-07-15', items: [{ desc: 'Initial Development Phase', amount: 50000 }], status: 'Paid', paymentDate: '2026-07-10', txRef: 'TXN-99881' },
-      { id: 'INV-2026-002', projectId: 101, date: '2026-08-01', dueDate: '2026-08-15', items: [{ desc: 'Frontend Implementation', amount: 40000 }], status: 'Pending', paymentDate: null, txRef: null },
-      { id: 'INV-2026-003', projectId: 102, date: '2026-06-01', dueDate: '2026-06-15', items: [{ desc: 'Full System Delivery', amount: 450000 }], status: 'Paid', paymentDate: '2026-06-14', txRef: 'TXN-99882' },
-      { id: 'INV-2026-004', projectId: 103, date: '2026-08-05', dueDate: '2026-08-20', items: [{ desc: 'App Mockups & UI', amount: 60000 }], status: 'Paid', paymentDate: '2026-08-08', txRef: 'TXN-99883' }
+      { id: 'INV-2026-001', projectId: 101, date: '2026-07-01', dueDate: '2026-07-15', subtotal: 50000, gstAmount: 9000, grandTotal: 59000, status: 'Paid', paymentDate: '2026-07-10', txRef: 'TXN-99881' },
+      { id: 'INV-2026-002', projectId: 101, date: '2026-08-01', dueDate: '2026-08-15', subtotal: 40000, gstAmount: 7200, grandTotal: 47200, status: 'Pending', paymentDate: null, txRef: null },
+      { id: 'INV-2026-003', projectId: 102, date: '2026-06-01', dueDate: '2026-06-15', subtotal: 450000, gstAmount: 81000, grandTotal: 531000, status: 'Paid', paymentDate: '2026-06-14', txRef: 'TXN-99882' },
+      { id: 'INV-2026-004', projectId: 103, date: '2026-08-05', dueDate: '2026-08-20', subtotal: 60000, gstAmount: 10800, grandTotal: 70800, status: 'Paid', paymentDate: '2026-08-08', txRef: 'TXN-99883' }
     ];
 
-    // Mock Student Payroll
+    // Mock Student Payroll (Status: Calculated / Approved / Processing / Paid / Failed)
     this.studentPayroll = [
-      { id: 'PRL-1001', studentName: 'Alex Johnson', designation: 'Frontend Dev', projectId: 101, hours: 40, rate: 250, period: 'July 2026', status: 'Paid', paymentDate: '2026-08-01', txRef: 'TXN-PAY-001' },
-      { id: 'PRL-1002', studentName: 'Maria Garcia', designation: 'Backend Dev', projectId: 101, hours: 30, rate: 300, period: 'July 2026', status: 'Paid', paymentDate: '2026-08-01', txRef: 'TXN-PAY-002' },
-      { id: 'PRL-1003', studentName: 'Sam Smith', designation: 'UI/UX Designer', projectId: 103, hours: 25, rate: 200, period: 'August 2026', status: 'Pending', paymentDate: null, txRef: null },
-      { id: 'PRL-1004', studentName: 'Alex Johnson', designation: 'Frontend Dev', projectId: 101, hours: 20, rate: 250, period: 'August 2026', status: 'Pending', paymentDate: null, txRef: null }
+      { id: 'PRL-1001', studentName: 'Alex Johnson', designation: 'Nova', projectId: 101, loggedHours: 42, approvedHours: 40, period: 'July 2026', status: 'Paid', paymentDate: '2026-08-01', txRef: 'TXN-PAY-001' },
+      { id: 'PRL-1002', studentName: 'Maria Garcia', designation: 'Orbit', projectId: 101, loggedHours: 30, approvedHours: 30, period: 'July 2026', status: 'Paid', paymentDate: '2026-08-01', txRef: 'TXN-PAY-002' },
+      { id: 'PRL-1003', studentName: 'Sam Smith', designation: 'Spark', projectId: 103, loggedHours: 25, approvedHours: 25, period: 'August 2026', status: 'Approved', paymentDate: null, txRef: null },
+      { id: 'PRL-1004', studentName: 'Alex Johnson', designation: 'Nova', projectId: 101, loggedHours: 22, approvedHours: 20, period: 'August 2026', status: 'Calculated', paymentDate: null, txRef: null }
     ];
 
     // Mock Faculty / Resource Costs
@@ -37,25 +90,21 @@ class FinanceService {
       { id: 'FAC-002', name: 'Dr. Grace Hopper', role: 'System Architect', projectId: 101, amount: 15000, date: '2026-07-20', status: 'Paid', txRef: 'TXN-FAC-002' }
     ];
 
-    // Mock Other Expenses
+    // Mock Other Expenses (Hosting / Maintenance)
     this.otherExpenses = [
-      { id: 'EXP-001', type: 'Hosting', desc: 'AWS Server July', projectId: 101, amount: 5000, date: '2026-07-28' },
-      { id: 'EXP-002', type: 'Hosting', desc: 'AWS Server Aug', projectId: 101, amount: 5000, date: '2026-08-28' },
-      { id: 'EXP-003', type: 'Software License', desc: 'Figma Pro', projectId: 103, amount: 2000, date: '2026-08-01' }
+      { id: 'EXP-001', type: 'Hosting - AWS Server', projectId: 101, amount: 5000, date: '2026-07-28', status: 'Paid' },
+      { id: 'EXP-002', type: 'Hosting - Domain', projectId: 101, amount: 3000, date: '2026-08-28', status: 'Paid' },
+      { id: 'EXP-003', type: 'Maintenance', projectId: 102, amount: 20000, date: '2026-08-01', status: 'Paid' }
     ];
 
     this._calculateDerivedData();
   }
 
   _calculateDerivedData() {
-    this.invoices.forEach(inv => {
-      inv.subtotal = inv.items.reduce((sum, item) => sum + item.amount, 0);
-      inv.gstAmount = inv.subtotal * this.gstRate;
-      inv.grandTotal = inv.subtotal + inv.gstAmount;
-    });
-
     this.studentPayroll.forEach(pr => {
-      pr.grossAmount = pr.hours * pr.rate;
+      const rate = this.rates[pr.designation] || 0;
+      pr.rate = rate;
+      pr.grossAmount = pr.approvedHours * rate;
     });
   }
 
@@ -68,12 +117,17 @@ class FinanceService {
     let totalBilling = 0;
     let totalCollected = 0;
     
-    this.invoices.forEach(inv => {
-      totalBilling += inv.subtotal; // Use pre-tax for KPI billing
-      if (inv.status === 'Paid') totalCollected += inv.subtotal;
+    this.projects.forEach(p => {
+      const pBilling = p.dev_student + p.dev_faculty + p.dev_rlabz + p.host_ssl + p.host_domain + p.host_api + p.maintenance_support;
+      totalBilling += pBilling;
     });
 
-    const outstanding = totalBilling - totalCollected;
+    this.clientPayments.forEach(pay => {
+      if (pay.status === 'Confirmed') totalCollected += pay.amount;
+    });
+
+    // Approximate pre-tax outstanding for KPI
+    const outstanding = Math.max(0, (totalBilling * (1 + this.gstRate)) - totalCollected);
 
     let totalPayroll = 0;
     this.studentPayroll.forEach(pr => {
@@ -86,7 +140,9 @@ class FinanceService {
     });
 
     let totalOtherExpenses = 0;
-    this.otherExpenses.forEach(ex => totalOtherExpenses += ex.amount);
+    this.otherExpenses.forEach(ex => {
+        if(ex.status === 'Paid') totalOtherExpenses += ex.amount;
+    });
 
     const totalExpenses = totalPayroll + totalFaculty + totalOtherExpenses;
     const netPosition = totalCollected - totalExpenses;
@@ -105,11 +161,13 @@ class FinanceService {
 
   async getProjectFinances() {
     return this.projects.map(p => {
-      // Billing
-      const projInvoices = this.invoices.filter(i => i.projectId === p.id);
-      const totalBilling = projInvoices.reduce((sum, i) => sum + i.subtotal, 0); // Exclude GST from revenue calculation
-      const collected = projInvoices.filter(i => i.status === 'Paid').reduce((sum, i) => sum + i.subtotal, 0);
-      const outstanding = totalBilling - collected;
+      const subtotal = p.dev_student + p.dev_faculty + p.dev_rlabz + p.host_ssl + p.host_domain + p.host_api + p.maintenance_support;
+      const gst = subtotal * this.gstRate;
+      const totalBilling = subtotal + gst;
+      
+      const projPayments = this.clientPayments.filter(pay => pay.projectId === p.id && pay.status === 'Confirmed');
+      const collected = projPayments.reduce((sum, pay) => sum + pay.amount, 0);
+      const outstanding = Math.max(0, totalBilling - collected);
 
       // Expenses
       const projPayroll = this.studentPayroll.filter(pr => pr.projectId === p.id && pr.status === 'Paid');
@@ -118,21 +176,21 @@ class FinanceService {
       const projFaculty = this.facultyCosts.filter(fc => fc.projectId === p.id && fc.status === 'Paid');
       const facultyCost = projFaculty.reduce((sum, fc) => sum + fc.amount, 0);
 
-      const projOther = this.otherExpenses.filter(ex => ex.projectId === p.id);
-      const hostingCost = projOther.filter(ex => ex.type === 'Hosting').reduce((sum, ex) => sum + ex.amount, 0);
-      const otherCost = projOther.filter(ex => ex.type !== 'Hosting').reduce((sum, ex) => sum + ex.amount, 0);
+      const projOther = this.otherExpenses.filter(ex => ex.projectId === p.id && ex.status === 'Paid');
+      const otherCost = projOther.reduce((sum, ex) => sum + ex.amount, 0);
 
-      const totalExpenses = payrollCost + facultyCost + hostingCost + otherCost;
-      const margin = totalBilling - totalExpenses; 
+      const totalExpenses = payrollCost + facultyCost + otherCost;
+      const margin = subtotal - totalExpenses; // Margin on pre-tax revenue
 
       return {
         ...p,
+        subtotal,
+        gst,
         totalBilling,
         collected,
         outstanding,
         payrollCost,
         facultyCost,
-        hostingCost,
         otherCost,
         totalExpenses,
         margin
@@ -147,12 +205,12 @@ class FinanceService {
     
     if (!project) throw new Error('Project not found');
 
-    const invoices = this.invoices.filter(i => i.projectId === pId);
+    const payments = this.clientPayments.filter(i => i.projectId === pId);
     const payroll = this.studentPayroll.filter(pr => pr.projectId === pId);
     const faculty = this.facultyCosts.filter(fc => fc.projectId === pId);
     const expenses = this.otherExpenses.filter(ex => ex.projectId === pId);
 
-    return { project, invoices, payroll, faculty, expenses };
+    return { project, payments, payroll, faculty, expenses };
   }
 
   async getStudentPayroll() {
@@ -167,7 +225,6 @@ class FinanceService {
     if (!pr) throw new Error('Payroll record not found');
     
     return new Promise(resolve => {
-      // Simulate Processing state
       pr.status = 'Processing';
       
       setTimeout(() => {
@@ -175,7 +232,7 @@ class FinanceService {
         pr.paymentDate = new Date().toISOString().split('T')[0];
         pr.txRef = this._generateTxId('TXN-PAY');
         resolve({ success: true, record: pr });
-      }, 1500); // 1.5s delay to show processing animation
+      }, 1500);
     });
   }
 
@@ -187,32 +244,35 @@ class FinanceService {
   }
 
   async getInvoices() {
-    return this.invoices.map(inv => ({
-      ...inv,
-      projectName: this.projects.find(p => p.id === inv.projectId)?.name || 'Unknown',
-      client: this.projects.find(p => p.id === inv.projectId)?.client || 'Unknown'
-    }));
+    // Return mock invoices for now, augmented with project data
+    return this.invoices.map(inv => {
+      const p = this.projects.find(proj => proj.id === inv.projectId);
+      return {
+        ...inv,
+        projectName: p?.name || 'Unknown',
+        client: p?.client || 'Unknown',
+        projectData: p // Pass down the full project for invoice rendering
+      };
+    });
   }
 
   async getTransactions() {
     const transactions = [];
 
-    // Client Payments
-    this.invoices.filter(i => i.status === 'Paid').forEach(i => {
+    this.clientPayments.filter(i => i.status === 'Confirmed').forEach(i => {
       transactions.push({
-        id: i.txRef,
-        date: i.paymentDate,
+        id: i.ref,
+        date: i.date,
         projectId: i.projectId,
         projectName: this.projects.find(p => p.id === i.projectId)?.name,
         type: 'Client Payment',
-        desc: `Invoice Payment: ${i.id}`,
-        amount: i.grandTotal,
-        method: 'Bank Transfer',
-        status: 'Completed'
+        desc: `${i.type} Payment`,
+        amount: i.amount,
+        incomeExpense: 'Income',
+        status: i.status
       });
     });
 
-    // Student Payroll Payments
     this.studentPayroll.filter(p => p.status === 'Paid').forEach(p => {
       transactions.push({
         id: p.txRef,
@@ -220,14 +280,13 @@ class FinanceService {
         projectId: p.projectId,
         projectName: this.projects.find(proj => proj.id === p.projectId)?.name,
         type: 'Student Payroll',
-        desc: `Payroll: ${p.studentName} (${p.period})`,
+        desc: `Payroll: ${p.studentName}`,
         amount: p.grossAmount,
-        method: 'Bank Transfer',
+        incomeExpense: 'Expense',
         status: 'Completed'
       });
     });
 
-    // Faculty Payments
     this.facultyCosts.filter(f => f.status === 'Paid').forEach(f => {
       transactions.push({
         id: f.txRef,
@@ -237,14 +296,64 @@ class FinanceService {
         type: 'Faculty/Resource',
         desc: `Consultation: ${f.name}`,
         amount: f.amount,
-        method: 'Bank Transfer',
+        incomeExpense: 'Expense',
         status: 'Completed'
       });
     });
 
-    // Sort by date descending
+    this.otherExpenses.filter(e => e.status === 'Paid').forEach(e => {
+        transactions.push({
+          id: this._generateTxId('TXN-EXP'),
+          date: e.date,
+          projectId: e.projectId,
+          projectName: this.projects.find(proj => proj.id === e.projectId)?.name,
+          type: 'Other Expense',
+          desc: e.type,
+          amount: e.amount,
+          incomeExpense: 'Expense',
+          status: 'Completed'
+        });
+    });
+
     transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
     return transactions;
+  }
+  
+  // CRUD Mocks
+  async addProjectFinance(data) {
+    const newProject = {
+        id: Date.now(),
+        status: 'Draft',
+        ...data
+    };
+    this.projects.push(newProject);
+    return newProject;
+  }
+  
+  async recordClientPayment(data) {
+    const newPayment = {
+        id: `PAY-${Date.now()}`,
+        status: 'Confirmed',
+        ref: this._generateTxId('TXN-PAY'),
+        ...data
+    };
+    this.clientPayments.push(newPayment);
+    return newPayment;
+  }
+  
+  async addFacultyCost(data) {
+    const newCost = {
+        id: `FAC-${Date.now()}`,
+        status: 'Paid',
+        txRef: this._generateTxId('TXN-FAC'),
+        ...data
+    };
+    this.facultyCosts.push(newCost);
+    return newCost;
+  }
+  
+  async getProjectsList() {
+      return this.projects.map(p => ({id: p.id, name: p.name}));
   }
 }
 
