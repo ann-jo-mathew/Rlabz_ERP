@@ -21,13 +21,16 @@ export const modules = [
     title: 'Director Dashboard',
     icon: 'IconDashboard',
   },
-  {
-    name: 'coordinator',
-    path: '/coordinator',
-    sidebar: true,
-    title: 'Co-ordinator Workspace',
-    icon: 'IconCoordinator',
-  },
+
+{
+  name: 'coordinator',
+  path: '/coordinator',
+  loadRoutes: () => import('@/modules/coordinator/routes.js'),
+  sidebar: true,
+  title: 'Co-ordinator Workspace',
+  icon: 'IconCoordinator',
+},
+
   {
     name: 'faculty',
     path: '/faculty',
@@ -76,12 +79,13 @@ export const modules = [
     icon: 'IconGithub',
 },
   {
-    name: 'certificates',
-    path: '/certificates',
-    sidebar: true,
-    title: 'Certificates & Reporting',
-    icon: 'IconCertificates',
-  },
+  name: 'certificates',
+  path: '/certificates',
+  loadRoutes: () => import('@/modules/certificates/routes.js'),
+  sidebar: true,
+  title: 'Certificates & Reporting',
+  icon: 'IconCertificates',
+},
   {
     name: 'audit-notifications',
     path: '/audit-notifications',

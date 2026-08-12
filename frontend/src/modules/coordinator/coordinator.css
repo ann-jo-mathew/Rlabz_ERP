@@ -1,0 +1,588 @@
+/* ==========================================
+   COORDINATOR OVERVIEW
+   ========================================== */
+
+.coordinator-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Header */
+
+.coordinator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.coordinator-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.coordinator-header p {
+  margin: 0.3rem 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.coordinator-role-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* KPI Cards */
+
+.coordinator-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.coordinator-kpi-card {
+  background: white;
+  padding: 1.2rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.coordinator-kpi-card span {
+  display: block;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.coordinator-kpi-card strong {
+  display: block;
+  margin: 0.5rem 0;
+  font-size: 1.8rem;
+  color: #1d4ed8;
+}
+
+.coordinator-kpi-card small {
+  color: #9ca3af;
+}
+
+/* Main Panel */
+
+.coordinator-panel {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.coordinator-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.coordinator-panel-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.coordinator-panel-header p {
+  margin: 0.3rem 0 0;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+/* Button */
+
+.coord-btn {
+  border: none;
+  border-radius: 7px;
+  padding: 0.55rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.coord-btn-primary {
+  background: #2563eb;
+  color: white;
+}
+
+.coord-btn-primary:hover {
+  background: #1d4ed8;
+}
+
+/* Table */
+
+.coordinator-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.coordinator-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.coordinator-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coordinator-table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+}
+
+.coordinator-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Designation */
+
+.designation-badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.designation-badge.nova {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.designation-badge.orbit {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.designation-badge.spark {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Progress */
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-bar {
+  width: 90px;
+  height: 7px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 10px;
+}
+
+/* Priority */
+
+.priority-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.priority-badge.normal {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.priority-badge.urgent {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .coordinator-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .coordinator-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* ==========================================
+   COORDINATOR PROJECTS
+   ========================================== */
+
+.coordinator-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.coordinator-kpi-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.coordinator-kpi-card span {
+  display: block;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.coordinator-kpi-card strong {
+  display: block;
+  font-size: 1.8rem;
+  color: #111827;
+}
+
+.coordinator-kpi-card small {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.coordinator-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.coordinator-panel-header h2 {
+  margin: 0;
+  color: #111827;
+}
+
+.coordinator-panel-header p {
+  margin: 0.3rem 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.coordinator-panel-header select {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: white;
+}
+
+.coordinator-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.coordinator-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.coordinator-table th {
+  text-align: left;
+  padding: 0.8rem;
+  background: #f8fafc;
+  color: #6b7280;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coordinator-table td {
+  padding: 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+}
+
+.coordinator-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.coordinator-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coordinator-progress-bg {
+  width: 90px;
+  height: 7px;
+  background: #e5e7eb;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.coordinator-progress-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 5px;
+}
+
+.priority-badge,
+.project-status {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 15px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.priority-badge.normal {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.priority-badge.urgent {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.project-status.in-progress {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.project-status.review {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.project-status.completed {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+/* Add Project Modal */
+
+.coordinator-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.coordinator-modal {
+  background: white;
+  width: min(850px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.coordinator-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.4rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coordinator-modal-header h2 {
+  margin: 0;
+  color: #111827;
+}
+
+.coordinator-modal-header p {
+  margin: 0.3rem 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.coordinator-close-btn {
+  border: none;
+  background: #f3f4f6;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.coordinator-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.coordinator-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.coordinator-form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.coordinator-form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.coordinator-form-group input,
+.coordinator-form-group select,
+.coordinator-form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  background: white;
+}
+
+.coordinator-form-group input:focus,
+.coordinator-form-group select:focus,
+.coordinator-form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.coordinator-radio-group {
+  display: flex;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+}
+
+.coordinator-radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+}
+
+.coordinator-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.coordinator-primary-btn,
+.coordinator-secondary-btn {
+  padding: 0.6rem 1rem;
+  border-radius: 7px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.coordinator-primary-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.coordinator-primary-btn:hover {
+  background: #1d4ed8;
+}
+
+.coordinator-secondary-btn {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.coordinator-secondary-btn:hover {
+  background: #e5e7eb;
+}
+
+@media (max-width: 900px) {
+  .coordinator-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .coordinator-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coordinator-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coordinator-form-group.full-width {
+    grid-column: auto;
+  }
+}
+
+
+/* ==========================================
+   COORDINATOR STUDENTS
+   ========================================== */
+
+.student-track {
+  display: inline-block;
+  padding: 0.3rem 0.65rem;
+  border-radius: 15px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.student-track.nova {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.student-track.orbit {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.student-track.spark {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.project-status.active {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.project-status.completed {
+  background: #f0fdf4;
+  color: #16a34a;
+}
