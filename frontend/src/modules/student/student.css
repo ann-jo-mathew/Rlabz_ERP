@@ -576,3 +576,11 @@
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 24px;
 }
+
+/* Fixed sidebar and scrollable main content layout rules */
+.dashboard-layout.student-layout,
+.dashboard-layout:has(.sidebar-nav[data-portal="student"]) {
+  height: 100vh;
+  overflow: hidden;
+}
+

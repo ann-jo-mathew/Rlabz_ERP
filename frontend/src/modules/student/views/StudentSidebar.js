@@ -8,6 +8,17 @@ export function renderStudentSidebar() {
   }
 
   const sidebarNav = document.querySelector('.sidebar-nav');
+  
+  // Apply layout class for fixed sidebar and scrollable main content
+  const applyLayoutClass = () => {
+    const layout = document.querySelector('.dashboard-layout');
+    if (layout) {
+      layout.classList.add('student-layout');
+    }
+  };
+  applyLayoutClass();
+  setTimeout(applyLayoutClass, 0);
+
   if (!sidebarNav) return;
 
   // Render the student specific links only if not already done
