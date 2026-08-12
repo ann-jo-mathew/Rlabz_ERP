@@ -81,11 +81,11 @@ export async function CoordinatorLayout(contentChild, route, router) {
         path: '/coordinator/meetings',
         icon: iconMeetings
       },
-      {
-        title: 'Certificates',
-        path: '/certificates',
-        icon: iconCertificates
-      },
+    {
+  title: 'Certificates',
+  path: '/coordinator/certificates',
+  icon: iconCertificates
+},
       {
         title: 'Reports',
         path: '/coordinator/reports',

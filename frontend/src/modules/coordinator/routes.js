@@ -27,6 +27,12 @@ const routes = [
         component: () => import('./views/CoordinatorMeetings.js')
       },
       {
+  path: 'certificates',
+  name: 'coordinator-certificates',
+  component: () => import('../certificates/views/CertificatesHome.js')
+},
+
+      {
         path: 'reports',
         name: 'coordinator-reports',
         component: () => import('./views/CoordinatorReports.js')
