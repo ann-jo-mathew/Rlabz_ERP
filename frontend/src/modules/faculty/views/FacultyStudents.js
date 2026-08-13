@@ -71,7 +71,6 @@ export function FacultyStudents() {
                         <th>Email</th>
                         <th>Project</th>
                         <th>Designation</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
 
@@ -94,14 +93,6 @@ export function FacultyStudents() {
                                 <span class="faculty-designation ${student.designation.toLowerCase()}">
                                     ${student.designation}
                                 </span>
-                            </td>
-
-                            <td>
-                                <button
-                                    class="faculty-student-view"
-                                    data-student="${student.id}">
-                                    View
-                                </button>
                             </td>
 
                         </tr>
@@ -151,14 +142,6 @@ export function FacultyStudents() {
                     <span class="faculty-designation ${student.designation.toLowerCase()}">
                         ${student.designation}
                     </span>
-                </td>
-
-                <td>
-                    <button
-                        class="faculty-student-view"
-                        data-student="${student.id}">
-                        View
-                    </button>
                 </td>
 
             </tr>
