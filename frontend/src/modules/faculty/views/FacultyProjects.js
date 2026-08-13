@@ -172,10 +172,10 @@ export function FacultyProjects() {
                     <h3 style="font-size: 15px; margin: 0 0 12px; color: #475569;">Requirements Details</h3>
                     <div style="display: flex; gap: 12px;">
                         <button id="view-req-btn" class="btn-edit" style="font-size: 13px; padding: 10px 16px;">
-                            👁️ View Requirements
+                            View Requirements
                         </button>
                         <button id="download-req-btn" class="btn-verify" style="font-size: 13px; padding: 10px 16px; background: #087f5b; color: white;">
-                            📥 Download Requirements
+                            Download Requirements
                         </button>
                     </div>
                     
@@ -197,7 +197,7 @@ export function FacultyProjects() {
         viewReqBtn?.addEventListener('click', () => {
             const isHidden = reqDisplay.style.display === 'none';
             reqDisplay.style.display = isHidden ? 'block' : 'none';
-            viewReqBtn.textContent = isHidden ? '🙈 Hide Requirements' : '👁️ View Requirements';
+            viewReqBtn.textContent = isHidden ? ' Hide Requirements' : ' View Requirements';
         });
 
         // Download Requirements file generator

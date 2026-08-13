@@ -24,13 +24,13 @@ export async function FacultyLayout(contentChild, route, router) {
         const menuItems = [
             { title: 'Dashboard', path: '/faculty', icon: iconDashboard },
             { title: 'Profile', path: '/faculty/profile', icon: iconProfile },
-            { title: 'Report', path: '/faculty/reports', icon: iconReport },
             { title: 'My Project', path: '/faculty/projects', icon: iconProjects },
-            { title: 'Meetings', path: '/faculty/meetings', icon: iconMeetings },
+            { title: 'Students', path: '/faculty/students', icon: iconStudents },
             { title: 'Sprint', path: '/faculty/sprints', icon: iconSprints },
+            { title: 'Meetings', path: '/faculty/meetings', icon: iconMeetings },
             { title: 'GitHub Integration', path: '/github', icon: iconGithub },
-            { title: 'Notifications', path: '/faculty/notifications', icon: iconNotifications },
-            { title: 'Students', path: '/faculty/students', icon: iconStudents }
+            { title: 'Report', path: '/faculty/reports', icon: iconReport },        
+            { title: 'Notifications', path: '/faculty/notifications', icon: iconNotifications }
         ];
         
         sidebarNav.innerHTML = `

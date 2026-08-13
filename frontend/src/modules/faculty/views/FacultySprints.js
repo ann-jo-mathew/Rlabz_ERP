@@ -282,10 +282,7 @@ export function FacultySprints() {
                                 <option value="Verified" ${sprint.status === 'Verified' ? 'selected' : ''}>Verified</option>
                             </select>
                         </div>
-                        <div class="meeting-form-group">
-                            <label for="edit-progress">Project Progress (%)</label>
-                            <input type="number" id="edit-progress" class="meeting-form-input" value="${projectProgressMap[sprint.projectName]}" min="0" max="100" required>
-                        </div>
+                        
                         
                         <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;">
                             <button type="button" id="close-modal-btn" class="btn-edit">Cancel</button>
