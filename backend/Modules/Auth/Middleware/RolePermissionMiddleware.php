@@ -19,13 +19,6 @@ class RolePermissionMiddleware
      */
     public function handle(Request $request, Closure $next, $permission)
     {
-        // REAL IMPLEMENTATION (Using Spatie):
-        // $user = auth()->user();
-        // if (!$user || !$user->hasPermissionTo($permission)) {
-        //     return response()->json(['error' => 'Forbidden - Missing Permission: ' . $permission], 403);
-        // }
-
-        // MOCK IMPLEMENTATION:
         $authUser = $request->auth_user;
         
         if (!$authUser) {
@@ -36,7 +29,7 @@ class RolePermissionMiddleware
         
         if (!in_array($permission, $permissions)) {
             return response()->json([
-                'error' => 'Forbidden (MOCK) - Missing Permission: ' . $permission
+                'error' => 'Forbidden - Missing Permission: ' . $permission
             ], 403);
         }
 
