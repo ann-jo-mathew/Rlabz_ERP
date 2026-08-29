@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Modules\Auth\Middleware;
@@ -17,41 +16,29 @@ class JwtMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        // REAL IMPLEMENTATION (Commented out):
-        // try {
-        //     $user = JWTAuth::parseToken()->authenticate();
-        // } catch (Exception $e) {
-        //     if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException){
-        //         return response()->json(['status' => 'Token is Invalid'], 401);
-        //     } else if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException){
-        //         return response()->json(['status' => 'Token is Expired'], 401);
-        //     } else{
-        //         return response()->json(['status' => 'Authorization Token not found'], 401);
-        //     }
-        // }
-        // // Attach user, permissions, and roles to the request object for easy access
-        // $request->merge(['auth_user' => $user]);
-
-        // MOCK IMPLEMENTATION:
         $token = $request->bearerToken();
         if (!$token) {
-            return response()->json(['status' => 'Authorization Token not found (MOCK)'], 401);
+            return response()->json(['status' => 'Authorization Token not found'], 401);
         }
 
-        // Mock decoding token
-        if (str_contains($token, 'mocksignature')) {
-            $parts = explode('.', $token);
-            if (count($parts) === 3) {
-                $payload = json_decode(base64_decode($parts[1]), true);
+        $parts = explode('.', $token);
+        if (count($parts) === 3) {
+            $signature = hash_hmac('sha256', $parts[0] . "." . $parts[1], config('app.key'), true);
+            $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+            
+            if (hash_equals($base64UrlSignature, $parts[2])) {
+                $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
                 
-                // Attach mock user to request so next middleware can read it
-                $request->merge([
-                    'auth_user' => $payload
-                ]);
-                return $next($request);
+                if (isset($payload['exp']) && $payload['exp'] >= time()) {
+                    $request->merge([
+                        'auth_user' => $payload
+                    ]);
+                    return $next($request);
+                }
+                return response()->json(['status' => 'Token is Expired'], 401);
             }
         }
 
-        return response()->json(['status' => 'Token is Invalid (MOCK)'], 401);
+        return response()->json(['status' => 'Token is Invalid'], 401);
     }
 }

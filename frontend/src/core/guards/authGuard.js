@@ -19,7 +19,14 @@ export function authGuard(to, from, next) {
 
   // 3. Module permission check for authenticated users
   if (isAuthenticated && to.meta?.moduleName && to.meta.moduleName !== 'auth') {
-    const allowedModules = authStore.modules || [];
+    const allowedModules = authStore.modules;
+    
+    // Failsafe: if modules array is entirely missing (stale localStorage), force logout
+    if (!allowedModules || !Array.isArray(allowedModules)) {
+      authStore.logout();
+      return next('/login');
+    }
+
     if (!allowedModules.includes(to.meta.moduleName)) {
       return next(defaultRoute);
     }
