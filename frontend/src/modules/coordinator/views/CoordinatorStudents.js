@@ -237,16 +237,7 @@ export function CoordinatorStudents(route, router) {
                 >
               </div>
 
-              <div class="coordinator-form-group">
-                <label>Student ID *</label>
-
-                <input
-                  type="text"
-                  name="id"
-                  placeholder="e.g. RLZ006"
-                  required
-                >
-              </div>
+              <!-- Student ID removed: IDs are generated server-side -->
 
               <div class="coordinator-form-group">
                 <label>Course *</label>

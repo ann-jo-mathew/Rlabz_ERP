@@ -10,15 +10,10 @@ export function CertificatesHome(route, router) {
       project: 'Hospital Management System',
       track: 'Nova',
       date: '12 Aug 2026',
-      status: 'Issued'
-    },
-    {
-      id: 2,
-      student: 'Anjali Menon',
-      project: 'Hospital Management System',
-      track: 'Orbit',
-      date: '12 Aug 2026',
-      status: 'Issued'
+      status: 'Issued',
+      certificateNumber: 'CERT-2026-001',
+      description:
+        'Successfully completed the Student Management Module of the Hospital Management System project.'
     },
     {
       id: 3,
@@ -26,7 +21,10 @@ export function CertificatesHome(route, router) {
       project: 'Hospital Management System',
       track: 'Spark',
       date: '-',
-      status: 'Pending'
+      status: 'Pending',
+      certificateNumber: 'CERT-2026-002',
+      description:
+        'Successfully completed the UI and patient registration module of the Hospital Management System project.'
     },
     {
       id: 4,
@@ -34,7 +32,10 @@ export function CertificatesHome(route, router) {
       project: 'Campus ERP',
       track: 'Orbit',
       date: '10 Aug 2026',
-      status: 'Issued'
+      status: 'Issued',
+      certificateNumber: 'CERT-2026-003',
+      description:
+        'Successfully completed the testing and validation module of the Hospital Management System project.'
     }
   ];
 
@@ -186,7 +187,6 @@ export function CertificatesHome(route, router) {
     container
       .querySelector('#certificate-search')
       ?.addEventListener('input', (e) => {
-
         const search = e.target.value.toLowerCase();
 
         const filtered = certificates.filter(c =>
@@ -201,7 +201,6 @@ export function CertificatesHome(route, router) {
     container
       .querySelector('#report-search')
       ?.addEventListener('input', (e) => {
-
         const search = e.target.value.toLowerCase();
 
         const filtered = reports.filter(r =>
@@ -218,7 +217,6 @@ export function CertificatesHome(route, router) {
   }
 
   function renderCertificates(data) {
-
     const tbody = container.querySelector('#certificate-table-body');
 
     if (!tbody) return;
@@ -275,41 +273,28 @@ export function CertificatesHome(route, router) {
     `).join('');
 
     tbody.querySelectorAll('.cert-action').forEach(button => {
-
       button.addEventListener('click', () => {
-
         const id = Number(button.dataset.id);
-
         const certificate = certificates.find(c => c.id === id);
-
-        if (certificate) {
-          showCertificateDetails(certificate);
-        }
-
+        if (certificate) showCertificateDetails(certificate);
       });
-
     });
   }
 
   function renderReports(data) {
-
     const reportList = container.querySelector('#report-list');
-
     if (!reportList) return;
 
     if (data.length === 0) {
-
       reportList.innerHTML = `
         <div style="padding:2rem; text-align:center; color:#6b7280;">
           No reports found.
         </div>
       `;
-
       return;
     }
 
     reportList.innerHTML = data.map(report => `
-
       <div class="report-item">
 
         <div>
@@ -332,55 +317,78 @@ export function CertificatesHome(route, router) {
         </button>
 
       </div>
-
     `).join('');
 
     reportList.querySelectorAll('.cert-action').forEach(button => {
-
       button.addEventListener('click', () => {
-
         const id = Number(button.dataset.reportId);
-
         const report = reports.find(r => r.id === id);
-
-        if (report) {
-          showReportDetails(report);
-        }
-
+        if (report) showReportDetails(report);
       });
-
     });
   }
 
   function showCertificateDetails(certificate) {
-
     const modalRoot =
       container.querySelector('#certificate-modal-root');
 
     modalRoot.innerHTML = `
+    <div class="director-modal-overlay">
+      <div class="director-modal">
 
-      <div class="director-modal-overlay">
+        <div class="director-modal-header">
+          <h3>Certificate Preview</h3>
 
-        <div class="director-modal">
+          <button
+            class="btn-director btn-director-outline"
+            id="close-cert-modal"
+          >
+            ✕
+          </button>
+        </div>
 
-          <div class="director-modal-header">
+        <div class="director-modal-body">
 
-            <h3>Certificate Details</h3>
+          <div
+            style="
+              background: white;
+              border: 6px solid #1e3a8a;
+              padding: 40px;
+              text-align: center;
+              margin: 10px;
+            "
+          >
 
-            <button
-              class="btn-director btn-director-outline"
-              id="close-cert-modal"
+            <p
+              style="
+                letter-spacing: 4px;
+                font-weight: bold;
+              "
             >
-              ✕
-            </button>
+              RLABZ
+            </p>
 
-          </div>
+            <h1>
+              CERTIFICATE
+            </h1>
 
-          <div class="director-modal-body">
+            <h2>
+              OF PROJECT COMPLETION
+            </h2>
 
             <p>
-              <strong>Student:</strong>
+              This is to certify that
+            </p>
+
+            <h2>
               ${certificate.student}
+            </h2>
+
+            <p>
+              ${
+                certificate.description ||
+                'Successfully completed the assigned project module.'
+              }
             </p>
 
             <p>
@@ -389,13 +397,11 @@ export function CertificatesHome(route, router) {
             </p>
 
             <p>
-              <strong>Track:</strong>
-              ${certificate.track}
-            </p>
-
-            <p>
-              <strong>Status:</strong>
-              ${certificate.status}
+              <strong>Certificate No:</strong>
+              ${
+                certificate.certificateNumber ||
+                'CERT-2026-001'
+              }
             </p>
 
             <p>
@@ -403,36 +409,39 @@ export function CertificatesHome(route, router) {
               ${certificate.date}
             </p>
 
-          </div>
+            <br>
 
-          <div class="director-modal-footer">
-
-            ${
-              certificate.status === 'Pending'
-                ? `
-                  <button
-                    class="cert-primary-btn"
-                    id="approve-certificate"
-                  >
-                    Issue Certificate
-                  </button>
-                `
-                : `
-                  <button
-                    class="cert-primary-btn"
-                    id="download-certificate"
-                  >
-                    Download Certificate
-                  </button>
-                `
-            }
+            <p>
+              <strong>Coordinator</strong>
+              <br>
+              Authorized Signatory
+            </p>
 
           </div>
 
         </div>
 
+        <div class="director-modal-footer">
+
+          <button
+            class="cert-primary-btn"
+            id="download-certificate"
+          >
+            Print Certificate
+          </button>
+
+          <button
+            class="btn-director btn-director-outline"
+            id="close-cert-footer"
+          >
+            Close
+          </button>
+
+        </div>
+
       </div>
-    `;
+    </div>
+  `;
 
     modalRoot
       .querySelector('#close-cert-modal')
@@ -441,31 +450,22 @@ export function CertificatesHome(route, router) {
       });
 
     modalRoot
-      .querySelector('#approve-certificate')
+      .querySelector('#close-cert-footer')
       ?.addEventListener('click', () => {
-
-        alert(
-          `Certificate issued to ${certificate.student}.`
-        );
-
         modalRoot.innerHTML = '';
       });
 
     modalRoot
       .querySelector('#download-certificate')
       ?.addEventListener('click', () => {
-
-        alert(
-          `Certificate for ${certificate.student} is ready for download.`
-        );
-
+      alert(
+  'Certificate for ' + certificate.student + ' is ready for printing.'
+);
       });
   }
 
   function showReportDetails(report) {
-
-    const modalRoot =
-      container.querySelector('#certificate-modal-root');
+    const modalRoot = container.querySelector('#certificate-modal-root');
 
     modalRoot.innerHTML = `
 
@@ -542,9 +542,7 @@ export function CertificatesHome(route, router) {
   }
 
   function showIssueModal() {
-
-    const modalRoot =
-      container.querySelector('#certificate-modal-root');
+    const modalRoot = container.querySelector('#certificate-modal-root');
 
     modalRoot.innerHTML = `
 
@@ -636,7 +634,6 @@ export function CertificatesHome(route, router) {
     modalRoot
       .querySelector('#confirm-issue')
       ?.addEventListener('click', () => {
-
         const project =
           modalRoot.querySelector('#certificate-project').value;
 
@@ -645,9 +642,7 @@ export function CertificatesHome(route, router) {
           return;
         }
 
-        alert(
-          `Certificates issued to all eligible students on "${project}".`
-        );
+        alert(`Certificates issued to all eligible students on "${project}".`);
 
         modalRoot.innerHTML = '';
       });

@@ -36,6 +36,12 @@ const routes = [
         path: 'reports',
         name: 'coordinator-reports',
         component: () => import('./views/CoordinatorReports.js')
+      },
+
+      {
+        path: 'finance',
+        name: 'coordinator-finance',
+        component: () => import('./views/CoordinatorFinances.js')
       }
     ]
   }
