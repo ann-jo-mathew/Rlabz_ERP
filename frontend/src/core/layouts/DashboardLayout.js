@@ -33,17 +33,6 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
             </a>
           </li>
           <li>
-            <a href="/student/proposals">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-              </svg>
-              <span>Project Proposals</span>
-            </a>
-          </li>
-          <li>
             <a href="/student/reports">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="9" y1="18" x2="15" y2="18"></line>
@@ -51,6 +40,15 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
                 <path d="M21 16V8a2 2 0 0 0-1.95-2H20a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2h.05A2 2 0 0 0 2 8v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"></path>
               </svg>
               <span>Reports & Work Logs</span>
+            </a>
+          </li>
+          <li>
+            <a href="/student/certificates">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="7"></circle>
+                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+              </svg>
+              <span>Certificates</span>
             </a>
           </li>
           <li>
@@ -180,11 +178,44 @@ export async function DashboardLayout(contentChild, route, router) {
     <div class="main-wrapper">
       <header class="topbar">
         <div class="topbar-title">${route.name ? route.name.toUpperCase().replace('-', ' ') : 'RLABZ ERP'}</div>
-        <div class="user-profile">
+        <div class="user-profile" id="user-profile-header">
           <div class="avatar">${initial}</div>
           <div class="user-details">
             <span class="user-name">${displayName}</span>
             <span class="user-role" style="color: var(--primary-accent); font-weight: 600;">${roleName}</span>
+          </div>
+          
+          <!-- Floating Profile Popover -->
+          <div class="profile-popover" id="profile-popover">
+            <div class="profile-popover-header">
+              <div class="profile-popover-avatar">${initial}</div>
+              <div class="profile-popover-meta">
+                <span class="profile-popover-name">${displayName}</span>
+                <span class="profile-popover-role">${roleName}</span>
+              </div>
+            </div>
+            <div class="profile-popover-body">
+              <div class="profile-popover-row">
+                <span class="profile-popover-label">Designation:</span>
+                <span class="profile-popover-value" style="font-weight: 700;">Nova</span>
+              </div>
+              <div class="profile-popover-row">
+                <span class="profile-popover-label">Email:</span>
+                <span class="profile-popover-value">student@rajagiri.edu</span>
+              </div>
+              <div class="profile-popover-row">
+                <span class="profile-popover-label">Department:</span>
+                <span class="profile-popover-value">Computer Applications</span>
+              </div>
+              <div class="profile-popover-row">
+                <span class="profile-popover-label">Course:</span>
+                <span class="profile-popover-value">MCA</span>
+              </div>
+              <div class="profile-popover-row">
+                <span class="profile-popover-label">Semester:</span>
+                <span class="profile-popover-value">2nd Year / 3rd Semester</span>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -214,6 +245,27 @@ export async function DashboardLayout(contentChild, route, router) {
     authStore.logout();
     router.push('/auth/login');
   });
+
+  // Bind User Profile Popover Click
+  const userProfileHeader = wrapper.querySelector('#user-profile-header');
+  const profilePopover = wrapper.querySelector('#profile-popover');
+  if (userProfileHeader && profilePopover && authStore.role === 'student') {
+    userProfileHeader.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = window.getComputedStyle(profilePopover).display === 'block';
+      profilePopover.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Close popover when clicking anywhere else
+    document.addEventListener('click', () => {
+      profilePopover.style.display = 'none';
+    });
+
+    // Prevent popover inside click from closing it
+    profilePopover.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
 
   return wrapper;
 }

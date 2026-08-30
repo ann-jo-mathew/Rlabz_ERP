@@ -1,28 +1,33 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
-import { getProjects, getProposals, getMeetings } from './mockStore.js';
+import { getProjects, getMeetings, ensureDataLoaded } from './studentStore.js';
+import { useAuthStore } from '@/core/stores/auth.js';
 import '../student.css';
 
-export function StudentDashboard(route, router) {
+export async function StudentDashboard(route, router) {
+  await ensureDataLoaded();
   // 1. Rewrite sidebar for student portal
   renderStudentSidebar();
+
+  const authStore = useAuthStore();
+  const currentUser = authStore.user;
 
   const container = document.createElement('div');
   container.className = 'student-portal-container animate-fade-in';
 
   // 2. Fetch mock data
-  const projects = getProjects();
-  const proposals = getProposals();
+  const projects = getProjects() || [];
+  projects.forEach(p => {
+    p.designation = currentUser?.designation || p.designation;
+  });
   const meetings = getMeetings();
 
   // 3. Count KPIs
   const activeProjectsCount = projects.filter(p => p.status === 'In Progress').length;
-  const pendingProposalsCount = proposals.filter(p => p.status === 'Pending').length;
   const upcomingMeetingsCount = meetings.filter(m => m.status === 'Scheduled').length;
 
   // 4. Mock notifications based on actual stored items
   const notifications = [
     { title: "Weekly Progress Review meeting scheduled for Aug 11", time: "2 hours ago" },
-    { title: "Project Proposal 'AI-Driven Placement Predictor' was Approved by faculty", time: "1 day ago" },
     { title: "Daily Work Log for Aug 8 successfully submitted", time: "1 day ago" },
     { title: "GitHub repository URL updated for RLabZ ERP - Student Portal", time: "2 days ago" }
   ];
@@ -54,11 +59,6 @@ export function StudentDashboard(route, router) {
       <p>Manage your academic projects, submissions, logs, and communication.</p>
     </div>
 
-    <!-- Welcome Banner -->
-    <div class="student-welcome-banner">
-      <h2>Welcome back, Rosha Thankachan!</h2>
-      <p>You are currently logged in as a Student. View your active projects, submit weekly logs, coordinate meetings with your supervisor, and keep your GitHub repository URLs up to date.</p>
-    </div>
 
     <!-- KPI Strip -->
     <div class="student-kpi-grid">
@@ -71,15 +71,7 @@ export function StudentDashboard(route, router) {
           <span class="student-kpi-label">Active Projects</span>
         </div>
       </div>
-      <div class="student-kpi-card" id="kpi-proposals">
-        <div class="student-kpi-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-        </div>
-        <div class="student-kpi-info">
-          <span class="student-kpi-value">${pendingProposalsCount}</span>
-          <span class="student-kpi-label">Pending Proposals</span>
-        </div>
-      </div>
+
       <div class="student-kpi-card" id="kpi-meetings">
         <div class="student-kpi-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -141,9 +133,7 @@ export function StudentDashboard(route, router) {
     router.push('/student/projects');
   });
 
-  container.querySelector('#kpi-proposals').addEventListener('click', () => {
-    router.push('/student/proposals');
-  });
+
 
   container.querySelector('#kpi-meetings').addEventListener('click', () => {
     router.push('/student/meetings');

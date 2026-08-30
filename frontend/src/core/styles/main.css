@@ -341,6 +341,109 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease;
+}
+
+.user-profile:hover {
+  background-color: #f1f5f9;
+}
+
+/* Floating Profile Popover */
+.profile-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  z-index: 2000;
+  cursor: default;
+  animation: popoverFade 0.2s ease-out;
+  display: none;
+}
+
+@keyframes popoverFade {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-popover-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.profile-popover-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-accent), var(--sidebar-bg));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.profile-popover-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-popover-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-main);
+  text-align: left;
+}
+
+.profile-popover-role {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-align: left;
+}
+
+.profile-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-popover-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
+  padding-bottom: 6px;
+}
+
+.profile-popover-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.profile-popover-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.profile-popover-value {
+  color: var(--text-main);
+  font-weight: 600;
+  text-align: right;
 }
 
 .avatar {

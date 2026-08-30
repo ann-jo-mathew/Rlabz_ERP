@@ -584,3 +584,573 @@
   overflow: hidden;
 }
 
+
+/* Certificates Section */
+.cert-grid-student {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.cert-card-premium {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cert-card-premium:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-accent);
+}
+
+.cert-card-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-accent));
+}
+
+.cert-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.cert-badge-type {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.cert-project-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 4px 0;
+  line-height: 1.3;
+}
+
+.cert-details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px dashed var(--border-color);
+  border-bottom: 1px dashed var(--border-color);
+  margin-bottom: 8px;
+}
+
+.cert-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.cert-detail-lbl {
+  color: var(--text-muted);
+}
+
+.cert-detail-val {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.cert-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.cert-actions-row button {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Modal */
+.cert-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cert-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.cert-modal-content {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 95%;
+  max-width: 720px;
+  max-height: 95vh;
+  box-shadow: var(--shadow-lg);
+  z-index: 1001;
+  animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.cert-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  z-index: 1002;
+}
+
+.cert-modal-close:hover {
+  color: var(--text-main);
+}
+
+.cert-modal-body {
+  width: 100%;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  padding-right: 4px;
+}
+
+/* Framed Certificate Document */
+.cert-framed-document {
+  width: 100%;
+  background: #fdfdfa;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.cert-border-outer {
+  border: 6px solid #1e293b;
+  padding: 4px;
+}
+
+.cert-border-inner {
+  border: 2px solid #b45309;
+  padding: 16px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.cert-logo {
+  font-size: 0.75rem;
+  letter-spacing: 4px;
+  font-weight: 700;
+  color: #b45309;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+.cert-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+  font-family: inherit;
+}
+
+.cert-subtitle {
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: #64748b;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+.cert-recipient {
+  font-size: 1.35rem;
+  font-style: italic;
+  font-weight: 700;
+  color: #10b981;
+  border-bottom: 2px solid #cbd5e1;
+  padding-bottom: 2px;
+  margin-bottom: 12px;
+  min-width: 220px;
+  font-family: inherit;
+}
+
+.cert-text {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #475569;
+  max-width: 480px;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+.cert-project-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+.cert-footer-signatures {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 16px;
+}
+
+.cert-signature-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 180px;
+  font-family: inherit;
+}
+
+.cert-sig-line {
+  width: 100%;
+  border-top: 1px solid #94a3b8;
+  margin-bottom: 6px;
+}
+
+.cert-signature-box span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  font-family: inherit;
+}
+
+.cert-signature-box label {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 2px;
+  font-family: inherit;
+}
+
+/* Toast */
+.cert-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1e293b;
+  color: white;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+  z-index: 2000;
+}
+
+.cert-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Project Details Tabs Navigation */
+.project-tabs-nav {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.project-tab-btn {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.project-tab-btn:hover {
+  color: var(--text-main);
+  border-bottom-color: var(--border-color);
+}
+
+.project-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.project-tab-content {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Project Team Layout */
+.project-members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.team-member-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  transition: var(--transition);
+}
+
+.team-member-card:hover {
+  border-color: var(--primary-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.team-lead-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #fef3c7;
+  color: #d97706;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.member-name {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+.member-designation {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.member-role {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Sprint Visual Workflows */
+.sprint-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sprint-block-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sprint-block-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.sprint-block-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.sprint-date-span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Visual Workflow Step Strip */
+.workflow-strip-outer {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 16px 12px;
+  margin: 8px 0;
+  overflow-x: auto;
+}
+
+.workflow-title-lbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.workflow-steps-flex {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 600px;
+}
+
+.workflow-step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+
+.workflow-node-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.workflow-node-lbl {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 6px;
+  white-space: nowrap;
+}
+
+/* Node States */
+.workflow-step-node.completed .workflow-node-circle {
+  background: #d1fae5;
+  color: #065f46;
+}
+.workflow-step-node.completed .workflow-node-lbl {
+  color: #065f46;
+}
+
+.workflow-step-node.active .workflow-node-circle {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+.workflow-step-node.active .workflow-node-lbl {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.workflow-step-node.requested .workflow-node-circle {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.workflow-step-node.requested .workflow-node-lbl {
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.workflow-connector-line {
+  flex: 0.5;
+  height: 2px;
+  background: #e2e8f0;
+}
+.workflow-connector-line.passed {
+  background: #10b981;
+}
+
+/* Sprint Tasks list */
+.sprint-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sprint-task-item {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sprint-task-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sprint-task-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.sprint-task-assignee {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
