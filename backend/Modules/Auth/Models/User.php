@@ -2,46 +2,45 @@
 
 namespace Modules\Auth\Models;
 
-// use Illuminate\Foundation\Auth\User as Authenticatable;
-// use Tymon\JWTAuth\Contracts\JWTSubject;
-// use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-// REAL IMPLEMENTATION (Commented out):
-/*
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
-    use HasRoles;
+    use HasFactory, Notifiable;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'username', 'password', 'role', 'modules', 'category'
+        'name',
+        'email',
+        'password',
+        'phone',
+        'role',
+        'permissions',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
-        'modules' => 'array',
+        'permissions' => 'array',
+        'password' => 'hashed',
     ];
-
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    public function getJWTCustomClaims()
-    {
-        return [
-            'role' => $this->role,
-            'modules' => $this->modules,
-            'permissions' => $this->getAllPermissions()->pluck('name')->toArray()
-        ];
-    }
-}
-*/
-
-// MOCK IMPLEMENTATION (Just a placeholder class)
-class User {
-    // This file is ready for when you run Laravel and migrate the DB.
-    // Uncomment the real implementation above.
 }
