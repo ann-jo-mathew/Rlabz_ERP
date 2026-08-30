@@ -4,8 +4,7 @@ export function DirectorHome(route, router) {
   const container = document.createElement('div');
   container.className = 'director-dashboard';
 
-  function render() {
-    const stats = DirectorService.getOverview();
+  function render(stats = DirectorService.getOverview()) {
     const proposals = DirectorService.getProposals();
     const pendingProposals = proposals.filter(p => p.status === 'pending');
     const projects = DirectorService.getProjects();
@@ -199,22 +198,25 @@ export function DirectorHome(route, router) {
     `;
 
     modalHost.querySelector('.btn-close-modal').addEventListener('click', () => { modalHost.innerHTML = ''; });
-    modalHost.querySelector('.btn-accept-prop').addEventListener('click', () => {
+    modalHost.querySelector('.btn-accept-prop').addEventListener('click', async () => {
       const facId = modalHost.querySelector('#modal-select-faculty').value;
       const notes = modalHost.querySelector('#modal-review-notes').value;
-      DirectorService.updateProposalStatus(proposal.id, 'accepted', notes, facId);
+      await DirectorService.updateProposalStatusAsync(proposal.id, 'accepted', notes, facId);
       modalHost.innerHTML = '';
-      render();
+      await render();
     });
-    modalHost.querySelector('.btn-reject-prop').addEventListener('click', () => {
+    modalHost.querySelector('.btn-reject-prop').addEventListener('click', async () => {
       const notes = modalHost.querySelector('#modal-review-notes').value;
-      DirectorService.updateProposalStatus(proposal.id, 'rejected', notes);
+      await DirectorService.updateProposalStatusAsync(proposal.id, 'rejected', notes);
       modalHost.innerHTML = '';
-      render();
+      await render();
     });
   }
 
   render();
+  DirectorService.getOverviewAsync().then(liveStats => {
+    if (liveStats) render(liveStats);
+  });
   return container;
 }
 
