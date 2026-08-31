@@ -1,6 +1,6 @@
 {
     "Auth": true,
-    "ProjectClient": true,
+    "Project": true,
     "Dashboard": true,
     "Coordinator": true,
     "Faculty": true,

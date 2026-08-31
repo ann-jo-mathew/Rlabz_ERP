@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Auth\Models\User;
 use Modules\Coordinator\Models\ProjectStudent;
-use Modules\ProjectClient\Models\Task;
+use Modules\Project\Models\Task;
 
 class StudentWorkLog extends Model
 {

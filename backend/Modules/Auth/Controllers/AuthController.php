@@ -102,6 +102,26 @@ class AuthController extends Controller
     }
 
     /**
+     * @route GET /api/auth/users
+     */
+    public function searchUsers(Request $request)
+    {
+        $role = $request->query('role');
+        $search = $request->query('search');
+
+        $query = DB::table('users');
+        if ($role) {
+            $query->where('role', $role);
+        }
+        if ($search) {
+            $query->where('name', 'LIKE', '%' . $search . '%');
+        }
+
+        $users = $query->select('id', 'name', 'email', 'role')->limit(10)->get();
+        return response()->json(['status' => 'success', 'data' => $users]);
+    }
+
+    /**
      * Helper to format token response.
      */
     protected function respondWithToken($token, $user)
@@ -118,11 +138,11 @@ class AuthController extends Controller
         ];
         
         $modules = [
-            'director' => ['dashboard', 'project-client', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication'],
-            'coordinator' => ['coordinator', 'project-client', 'student', 'communication', 'github', 'certificates'],
-            'finance' => ['finance', 'project-client'],
-            'faculty' => ['faculty', 'project-client', 'communication', 'github'],
-            'student' => ['student', 'project-client', 'communication', 'github', 'certificates']
+            'director' => ['dashboard', 'project', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication'],
+            'coordinator' => ['coordinator', 'project', 'student', 'communication', 'github', 'certificates'],
+            'finance' => ['finance', 'project'],
+            'faculty' => ['faculty', 'project', 'communication', 'github'],
+            'student' => ['student', 'project', 'communication', 'github', 'certificates']
         ];
         
         // Convert stdClass to array for mutation if using DB facade
