@@ -33,17 +33,24 @@ export async function FinanceDashboard(route, router) {
     : 0;
 
   // Build project rows (Top 3 for dashboard)
-  const projectRows = projects.slice(0, 3).map(p => {
-    const pct = p.totalBilling > 0 ? Math.round((p.collected / p.totalBilling) * 100) : 0;
+  const projectRows = (projects || []).slice(0, 3).map(p => {
+    const pf = p.project_finance || {};
+    // Calculate total invoiced and total collected manually here or use backend accessors
+    // We'll approximate based on what we have, or assume backend appends it.
+    // For now let's safely default to 0 if not provided.
+    const totalBilling = pf.total_development_amount || p.estimated_cost || p.budget || 0;
+    const collected = pf.total_collected || 0;
+    const pct = totalBilling > 0 ? Math.round((collected / totalBilling) * 100) : 0;
+    
     return `
       <tr>
         <td>
-          <div style="font-weight:600">${p.name}</div>
+          <div style="font-weight:600">${p.title || p.name}</div>
           <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">PROJ-${p.id}</div>
         </td>
-        <td><span class="fin-badge ${p.status === 'Completed' ? 'success' : 'info'}">${p.status}</span></td>
-        <td>${fmt(p.estimated_cost)}</td>
-        <td style="font-weight:700">${fmt(p.totalBilling)}</td>
+        <td><span class="fin-badge ${p.status === 'completed' || p.status === 'closed' ? 'success' : 'info'}">${p.status || 'Active'}</span></td>
+        <td>${fmt(p.budget || p.estimated_cost || 0)}</td>
+        <td style="font-weight:700">${fmt(totalBilling)}</td>
         <td>
           <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:3px">${pct}% collected</div>
           <div class="fin-progress-bg" style="width:120px">
@@ -238,9 +245,12 @@ export async function FinanceDashboard(route, router) {
   });
 
   // Bar chart (Collections)
-  const projLabels   = projects.map(p => p.name.length > 18 ? p.name.slice(0, 18) + '…' : p.name);
-  const projReceived = projects.map(p => p.collected);
-  const projPending  = projects.map(p => p.outstanding);
+  const projLabels   = (projects || []).map(p => {
+      const name = p.title || p.name || 'Project';
+      return name.length > 18 ? name.slice(0, 18) + '…' : name;
+  });
+  const projReceived = (projects || []).map(p => (p.project_finance?.total_collected || 0));
+  const projPending  = (projects || []).map(p => (p.project_finance?.pending_amount || p.budget || 0));
 
   new Chart(container.querySelector('#bar-chart'), {
     type: 'bar',

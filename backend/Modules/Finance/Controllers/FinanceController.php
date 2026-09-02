@@ -44,6 +44,47 @@ class FinanceController extends Controller
         return response()->json($payments);
     }
 
+    public function getFacultyPayments()
+    {
+        $payments = $this->financeService->getAllFacultyPayments();
+        return response()->json($payments);
+    }
+
+    public function getInvoices()
+    {
+        $invoices = $this->financeService->getAllInvoices();
+        return response()->json($invoices);
+    }
+
+    public function getTransactions()
+    {
+        $transactions = $this->financeService->getAllTransactions();
+        return response()->json($transactions);
+    }
+
+    public function updateAllocations(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'student_allocation' => 'required|numeric|min:0',
+            'faculty_allocation' => 'required|numeric|min:0',
+            'rlabz_allocation' => 'required|numeric|min:0'
+        ]);
+
+        $projectFinance = \Modules\Finance\Models\ProjectFinance::where('project_id', $id)->firstOrFail();
+        
+        // Remove existing allocations
+        \DB::table('development_allocations')->where('project_finance_id', $projectFinance->id)->delete();
+        
+        // Insert new allocations
+        \DB::table('development_allocations')->insert([
+            ['project_finance_id' => $projectFinance->id, 'category' => 'student', 'amount' => $validated['student_allocation'], 'created_at' => now(), 'updated_at' => now()],
+            ['project_finance_id' => $projectFinance->id, 'category' => 'faculty', 'amount' => $validated['faculty_allocation'], 'created_at' => now(), 'updated_at' => now()],
+            ['project_finance_id' => $projectFinance->id, 'category' => 'rlabz', 'amount' => $validated['rlabz_allocation'], 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        return response()->json(['message' => 'Allocations updated successfully']);
+    }
+
     // Mock endpoints for recording payments (Frontend validation/testing only)
     public function recordClientPayment(Request $request)
     {
@@ -54,11 +95,20 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function recordStudentPayment(Request $request)
+    public function recordStudentPayment(Request $request, $id)
     {
         // For now, this is a mock endpoint that just returns success
         return response()->json([
             'message' => 'Student payment processed successfully (Mock)',
+            'data' => $request->all(),
+            'id' => $id
+        ]);
+    }
+
+    public function recordFacultyPayment(Request $request)
+    {
+        return response()->json([
+            'message' => 'Faculty payment processed successfully (Mock)',
             'data' => $request->all()
         ]);
     }

@@ -11,14 +11,13 @@ return new class extends Migration
         Schema::create('project_finances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->unique()->constrained('projects')->onDelete('cascade');
-            $table->decimal('estimated_cost', 12, 2);
-            $table->decimal('subtotal', 12, 2);
-            $table->decimal('gst_amount', 12, 2)->nullable();
-            $table->decimal('total_amount', 12, 2);
+            // Retaining explicit amount field since projects.budget is a generic proposal value
+            $table->decimal('total_development_amount', 12, 2)->nullable();
+            $table->decimal('gst_percentage', 5, 2)->default(18.00);
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('approved_by')->nullable()->constrained('users');
             $table->timestamp('approved_at')->nullable();
-            $table->enum('status', ['draft', 'pending_approval', 'approved', 'rejected']);
+            $table->enum('status', ['draft', 'pending_approval', 'approved', 'rejected'])->default('draft');
             $table->timestamps();
         });
     }

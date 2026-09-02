@@ -7,6 +7,11 @@ export async function Transactions(route, router) {
   setTimeout(updateFinanceSidebar, 0);
 
   const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+  const fmtDate = (d) => {
+    if (!d) return '-';
+    const dt = new Date(d);
+    return isNaN(dt) ? d : dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
 
   let transactions = [];
   let allProjects = [];
@@ -44,7 +49,7 @@ export async function Transactions(route, router) {
         return `
           <tr>
             <td style="font-family:monospace;font-size:0.8rem;color:var(--primary);font-weight:600;">${t.id || '—'}</td>
-            <td style="white-space:nowrap;color:var(--text-muted)">${t.date}</td>
+            <td style="white-space:nowrap;color:var(--text-muted)">${fmtDate(t.date)}</td>
             <td><div style="font-weight:600">${t.projectName}</div></td>
             <td><span class="fin-badge neutral" style="font-size:0.72rem">${t.type}</span></td>
             <td style="font-size:0.825rem;color:var(--text-muted);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.desc}</td>

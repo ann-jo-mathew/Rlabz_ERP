@@ -21,6 +21,11 @@ const routes = [
         component: () => import('./views/ProjectFinance.js')
       },
       {
+        path: 'cost-distribution',
+        name: 'finance-cost-distribution',
+        component: () => import('./views/CostDistribution.js').then(m => m.CostDistribution)
+      },
+      {
         path: 'student-payroll',
         name: 'finance-student-payroll',
         component: () => import('./views/StudentPayroll.js')

@@ -11,12 +11,22 @@ export async function ProjectFinance(route, router) {
   if (route.params && route.params.id) {
     // ── PROJECT DETAIL VIEW ───────────────────────────────────────
     try {
-      const details = await financeService.getProjectDetails(route.params.id);
-      const { project, payments, payroll, faculty } = details;
-
-      const recvPct = project.totalBilling > 0 ? Math.round((project.collected / project.totalBilling) * 100) : 0;
-      const devTotal = project.dev_student + project.dev_faculty + project.dev_rlabz;
-      const hostTotal = project.host_ssl + project.host_domain + project.host_api;
+      const projectData = await financeService.getProjectDetails(route.params.id);
+      if (!projectData) throw new Error('Project finance details not found');
+      
+      const project = projectData.project || {};
+      const payments = (projectData.invoices || []).flatMap(inv => (inv.client_payments || []).map(cp => ({
+        date: cp.payment_date,
+        type: 'Bank Transfer',
+        amount: cp.amount,
+        status: 'Confirmed'
+      })));
+      const allResources = projectData.assigned_resources || [];
+      const payroll = allResources.filter(r => r.type === 'Student');
+      const faculty = allResources.filter(r => r.type === 'Faculty');
+      const recvPct = projectData.total_invoiced > 0 ? Math.round((projectData.total_collected / projectData.total_invoiced) * 100) : 0;
+      const devTotal = projectData.development_allocations ? (projectData.development_allocations.reduce((sum, a) => sum + parseFloat(a.amount), 0)) : 0;
+      const hostTotal = projectData.hosting_charges ? (projectData.hosting_charges.reduce((sum, h) => sum + parseFloat(h.amount), 0)) : 0;
 
       container.innerHTML = `
         <div class="fin-page-header">
@@ -25,30 +35,30 @@ export async function ProjectFinance(route, router) {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
               Back to Projects
             </button>
-            <h1>${project.name}</h1>
-            <p>Client: ${project.client}&nbsp;&nbsp;|&nbsp;&nbsp;Status: <span class="fin-badge ${project.status === 'Closed' ? 'success' : 'info'}">${project.status}</span></p>
+            <h1>${project.title || 'Unknown Project'}</h1>
+            <p>Client: ${project.client_name || '-'}&nbsp;&nbsp;|&nbsp;&nbsp;Status: <span class="fin-badge ${project.status === 'closed' ? 'success' : 'info'}">${project.status || 'Active'}</span></p>
           </div>
         </div>
 
         <div class="fin-kpi-strip">
           <div class="fin-kpi-card teal">
             <div class="kpi-label">Amount Collected</div>
-            <div class="kpi-value">${fmt(project.collected)}</div>
+            <div class="kpi-value">${fmt(projectData.total_collected || 0)}</div>
             <div class="kpi-sub">${recvPct}% of billed revenue</div>
           </div>
-          <div class="fin-kpi-card ${project.outstanding > 0 ? 'warning' : 'primary'}">
+          <div class="fin-kpi-card ${projectData.pending_amount > 0 ? 'warning' : 'primary'}">
             <div class="kpi-label">Amount Outstanding</div>
-            <div class="kpi-value">${fmt(project.outstanding)}</div>
-            <div class="kpi-sub">${project.outstanding > 0 ? 'Pending from client' : 'Fully collected ✓'}</div>
+            <div class="kpi-value">${fmt(projectData.pending_amount || 0)}</div>
+            <div class="kpi-sub">${projectData.pending_amount > 0 ? 'Pending from client' : 'Fully collected ✓'}</div>
           </div>
           <div class="fin-kpi-card indigo">
             <div class="kpi-label">Total Expenses</div>
-            <div class="kpi-value">${fmt(project.totalExpenses)}</div>
+            <div class="kpi-value">${fmt(0)}</div>
             <div class="kpi-sub">Across all resource types</div>
           </div>
           <div class="fin-kpi-card primary">
             <div class="kpi-label">Project Margin</div>
-            <div class="kpi-value">${fmt(project.margin)}</div>
+            <div class="kpi-value">${fmt(projectData.total_development_amount - 0)}</div>
             <div class="kpi-sub">Pre-tax margin</div>
           </div>
         </div>
@@ -62,32 +72,27 @@ export async function ProjectFinance(route, router) {
             <div style="padding: 0 0.25rem;">
               <div class="fin-cost-section">
                 <div class="fin-cost-section-title">Development Charges</div>
-                <div class="fin-cost-item"><span class="label">Student</span><span class="value">${fmt(project.dev_student)}</span></div>
-                <div class="fin-cost-item"><span class="label">Faculty</span><span class="value">${fmt(project.dev_faculty)}</span></div>
-                <div class="fin-cost-item"><span class="label">RLabZ</span><span class="value">${fmt(project.dev_rlabz)}</span></div>
+                <div class="fin-cost-item"><span class="label">Total Dev</span><span class="value">${fmt(devTotal)}</span></div>
                 <div class="fin-cost-total" style="font-size:0.82rem;"><span>Dev. Subtotal</span><span>${fmt(devTotal)}</span></div>
               </div>
 
               <div class="fin-cost-section" style="margin-top:0.75rem;">
                 <div class="fin-cost-section-title">Hosting Charges</div>
-                <div class="fin-cost-item"><span class="label">SSL</span><span class="value">${fmt(project.host_ssl)}</span></div>
-                <div class="fin-cost-item"><span class="label">Domain</span><span class="value">${fmt(project.host_domain)}</span></div>
-                <div class="fin-cost-item"><span class="label">API</span><span class="value">${project.host_api > 0 ? fmt(project.host_api) : '<span style="color:var(--text-muted);font-weight:400;">Not applicable</span>'}</span></div>
+                <div class="fin-cost-item"><span class="label">Total Hosting</span><span class="value">${fmt(hostTotal)}</span></div>
                 <div class="fin-cost-total" style="font-size:0.82rem;"><span>Hosting Subtotal</span><span>${fmt(hostTotal)}</span></div>
               </div>
 
               <div class="fin-cost-section" style="margin-top:0.75rem;">
                 <div class="fin-cost-section-title">Maintenance & Support</div>
-                ${project.maintenance_support > 0
-                  ? `<div class="fin-cost-item"><span class="label">Annual Support</span><span class="value">${fmt(project.maintenance_support)}</span></div>`
+                ${projectData.maintenance_support_charges?.length > 0
+                  ? `<div class="fin-cost-item"><span class="label">Annual Support</span><span class="value">${fmt(projectData.maintenance_support_charges.reduce((s,c)=>s+parseFloat(c.cost),0))}</span></div>`
                   : `<div class="fin-cost-item"><span class="label" style="font-style:italic;">Not included</span><span class="value">–</span></div>`
                 }
               </div>
 
               <div style="margin-top: 1rem; border-top: 2px solid var(--border-color); padding-top: 0.75rem;">
-                <div class="fin-cost-item"><span class="label">Subtotal (Ex. GST)</span><span class="value">${fmt(project.subtotal)}</span></div>
-                <div class="fin-cost-item"><span class="label">GST (${(financeService.gstRate * 100)}% — mock)</span><span class="value">${fmt(project.gst)}</span></div>
-                <div class="fin-cost-total"><span>Total Project Billing</span><span style="color:var(--primary)">${fmt(project.totalBilling)}</span></div>
+                <div class="fin-cost-item"><span class="label">Subtotal (Ex. GST)</span><span class="value">${fmt(projectData.total_development_amount || 0)}</span></div>
+                <div class="fin-cost-total"><span>Total Project Billing</span><span style="color:var(--primary)">${fmt(projectData.total_invoiced || 0)}</span></div>
               </div>
             </div>
           </div>
@@ -133,22 +138,22 @@ export async function ProjectFinance(route, router) {
                 ${payroll.map(pr => `
                   <tr>
                     <td>
-                      <div style="font-weight:600">${pr.studentName}</div>
-                      <div style="font-size:0.75rem;color:var(--text-muted)">${pr.id}</div>
+                      <div style="font-weight:600">${pr.resource_name}</div>
+                      <div style="font-size:0.75rem;color:var(--text-muted)">ID: ${pr.project_student_id}</div>
                     </td>
-                    <td><span class="fin-badge ${pr.designation === 'Nova' ? 'nova' : pr.designation === 'Orbit' ? 'orbit' : 'spark'}">${pr.designation}</span></td>
+                    <td><span class="fin-badge ${String(pr.designation).toLowerCase() === 'nova' ? 'nova' : String(pr.designation).toLowerCase() === 'orbit' ? 'orbit' : 'spark'}">${pr.designation}</span></td>
                     <td><span class="fin-badge indigo">Student</span></td>
-                    <td style="font-weight:700">${fmt(pr.grossAmount)}</td>
+                    <td style="font-weight:700">${fmt(pr.amount)}</td>
                     <td><span class="fin-badge ${pr.status === 'Paid' ? 'success' : 'warning'}">${pr.status}</span></td>
                   </tr>
                 `).join('')}
                 ${faculty.map(fc => `
                   <tr>
                     <td>
-                      <div style="font-weight:600">${fc.name}</div>
-                      <div style="font-size:0.75rem;color:var(--text-muted)">${fc.id}</div>
+                      <div style="font-weight:600">${fc.resource_name}</div>
+                      <div style="font-size:0.75rem;color:var(--text-muted)">ID: ${fc.project_faculty_id}</div>
                     </td>
-                    <td>${fc.role}</td>
+                    <td>${fc.designation}</td>
                     <td><span class="fin-badge neutral">Faculty</span></td>
                     <td style="font-weight:700">${fmt(fc.amount)}</td>
                     <td><span class="fin-badge ${fc.status === 'Paid' ? 'success' : 'warning'}">${fc.status}</span></td>
@@ -162,7 +167,10 @@ export async function ProjectFinance(route, router) {
       `;
 
       container.querySelector('#back-btn').addEventListener('click', () => router.push('/finance/projects'));
-      container.querySelector('#add-payment-btn').addEventListener('click', () => alert('Record Payment — requires final DB/API mapping.'));
+      container.querySelector('#add-payment-btn').addEventListener('click', () => {
+        alert('Please record client payments via the Invoices Ledger.');
+        router.push('/finance/invoices');
+      });
 
     } catch (e) {
       container.innerHTML = `<div class="alert-error">Failed to load project details: ${e.message}</div>`;
@@ -215,15 +223,17 @@ export async function ProjectFinance(route, router) {
           <div>
             <div class="fin-form-group">
               <label>Project Name</label>
-              <input type="text" class="fin-input" id="new-p-name" placeholder="e.g. Library Portal">
+              <select class="fin-input" id="new-p-name">
+                <option value="">Select Project</option>
+              </select>
             </div>
             <div class="fin-form-group">
               <label>Client / Source</label>
-              <input type="text" class="fin-input" id="new-p-client" placeholder="e.g. Rajagiri College">
+              <input type="text" class="fin-input" id="new-p-client" readonly style="background-color:var(--bg-light); cursor:not-allowed;">
             </div>
             <div class="fin-form-group">
               <label>Estimated Cost (₹)</label>
-              <input type="number" class="fin-input" id="new-p-est" placeholder="0">
+              <input type="number" class="fin-input" id="new-p-est" placeholder="0" readonly style="background-color:var(--bg-light); cursor:not-allowed;">
             </div>
             <div class="fin-form-subhead">Development Charges</div>
             <div class="fin-form-group">
@@ -306,8 +316,12 @@ export async function ProjectFinance(route, router) {
       const countEl = container.querySelector('#results-count');
       
       const filtered = allProjects.filter(p => {
-        const matchName = p.name.toLowerCase().includes(searchTerm) || p.client.toLowerCase().includes(searchTerm);
-        const matchStatus = statusFilter === 'All' || p.status === statusFilter;
+        const pName = p.title || 'Unknown Project';
+        const client = p.client_name || 'Unknown Client';
+        const status = p.status || 'Active';
+
+        const matchName = pName.toLowerCase().includes(searchTerm) || client.toLowerCase().includes(searchTerm);
+        const matchStatus = statusFilter === 'All' || status === statusFilter;
         return matchName && matchStatus;
       });
 
@@ -318,24 +332,31 @@ export async function ProjectFinance(route, router) {
         noResults.style.display = 'block';
       } else {
         noResults.style.display = 'none';
-        tbody.innerHTML = filtered.map(p => `
+        tbody.innerHTML = filtered.map(p => {
+          const pf = p.project_finance || {};
+          const pName = p.title || 'Unknown Project';
+          const client = p.client_name || 'Unknown Client';
+          const status = p.status || 'Active';
+          const billing = pf.total_development_amount || p.budget || p.estimated_cost || 0;
+          
+          return `
           <tr>
             <td>
-              <div style="font-weight:600">${p.name}</div>
-              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${p.client}</div>
+              <div style="font-weight:600">${pName}</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${client}</div>
             </td>
-            <td><span class="fin-badge ${p.status === 'Closed' ? 'success' : p.status === 'Active' ? 'info' : 'neutral'}">${p.status}</span></td>
-            <td>${fmt(p.estimated_cost)}</td>
-            <td style="font-weight:600">${fmt(p.totalBilling)}</td>
-            <td style="color:var(--primary);font-weight:700">${fmt(p.collected)}</td>
-            <td style="color:#d97706;font-weight:700">${fmt(p.outstanding)}</td>
-            <td>${fmt(p.totalExpenses)}</td>
-            <td style="font-weight:700;color:${p.margin > 0 ? 'var(--primary)' : '#ef4444'}">${fmt(p.margin)}</td>
+            <td><span class="fin-badge ${status === 'closed' || status === 'completed' ? 'success' : 'info'}">${status}</span></td>
+            <td>${fmt(p.estimated_cost || p.budget || 0)}</td>
+            <td style="font-weight:600">${fmt(billing)}</td>
+            <td style="color:var(--primary);font-weight:700">${fmt(pf.total_collected || 0)}</td>
+            <td style="color:#d97706;font-weight:700">${fmt(pf.pending_amount || 0)}</td>
+            <td>${fmt(pf.total_expenses || 0)}</td>
+            <td style="font-weight:700;color:${(billing - (pf.total_expenses || 0)) > 0 ? 'var(--primary)' : '#ef4444'}">${fmt(billing - (pf.total_expenses || 0))}</td>
             <td>
               <button class="fin-btn outline sm view-details-btn" data-id="${p.id}">View Details</button>
             </td>
           </tr>
-        `).join('');
+        `}).join('');
 
         container.querySelectorAll('.view-details-btn').forEach(btn => {
           btn.addEventListener('click', () => router.push(`/finance/projects/${btn.dataset.id}`));
@@ -346,6 +367,21 @@ export async function ProjectFinance(route, router) {
     const loadProjects = async () => {
       allProjects = await financeService.getProjectFinances();
       renderProjects();
+      
+      const availableProjects = allProjects.filter(p => !p.project_finance);
+      const select = container.querySelector('#new-p-name');
+      select.innerHTML = '<option value="">Select Project</option>' + availableProjects.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+      
+      select.addEventListener('change', (e) => {
+        const p = availableProjects.find(proj => proj.id == e.target.value);
+        if (p) {
+          container.querySelector('#new-p-client').value = p.client_name || '';
+          container.querySelector('#new-p-est').value = p.budget || p.estimated_cost || 0;
+        } else {
+          container.querySelector('#new-p-client').value = '';
+          container.querySelector('#new-p-est').value = 0;
+        }
+      });
     };
 
     container.querySelector('#search-input').addEventListener('input', renderProjects);
@@ -360,8 +396,14 @@ export async function ProjectFinance(route, router) {
     container.querySelector('#add-project-btn').addEventListener('click', () => addForm.classList.add('visible'));
     container.querySelector('#cancel-new-project').addEventListener('click', () => addForm.classList.remove('visible'));
     container.querySelector('#save-new-project').addEventListener('click', async () => {
+      const projSelect = container.querySelector('#new-p-name');
+      if (!projSelect.value) {
+        alert("Please select a project.");
+        return;
+      }
       const data = {
-        name: container.querySelector('#new-p-name').value.trim() || 'New Project',
+        project_id: projSelect.value,
+        name: projSelect.options[projSelect.selectedIndex].text,
         client: container.querySelector('#new-p-client').value.trim() || 'Unknown',
         estimated_cost: parseFloat(container.querySelector('#new-p-est').value) || 0,
         dev_student: parseFloat(container.querySelector('#new-p-dev-stu').value) || 0,
