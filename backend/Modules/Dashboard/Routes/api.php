@@ -8,4 +8,6 @@ Route::group(['prefix' => 'dashboard', 'middleware' => [JwtMiddleware::class]], 
     Route::get('/overview', [DashboardController::class, 'getOverview']);
     Route::get('/audit-logs', [DashboardController::class, 'getAuditLogs']);
     Route::get('/faculties', [DashboardController::class, 'getFaculties']);
+    Route::get('/client-requirements', [DashboardController::class, 'getClientRequirements']);
+    Route::get('/students', [DashboardController::class, 'getStudents']);
 });

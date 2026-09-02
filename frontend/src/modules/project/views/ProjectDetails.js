@@ -20,42 +20,53 @@ export async function ProjectDetails(route, router) {
     </div>
     <div class="dashboard-content">
       <div id="project-info" class="card-panel" style="margin-bottom: 2rem; display: none;">
-        <div class="project-form-grid" style="row-gap: 2rem;">
+        <div class="project-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; row-gap: 2rem;">
           <div>
             <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Type</span>
             <strong id="val-type" style="font-size: 1.1rem; color: var(--text-main);"></strong>
           </div>
           <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client</span>
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client Name</span>
             <strong id="val-client" style="font-size: 1.1rem; color: var(--text-main);"></strong>
           </div>
           <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Status</span>
-            <span id="val-status"></span>
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Status & Priority</span>
+            <span id="val-status"></span> <span id="val-priority"></span>
           </div>
           <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Budget</span>
-            <strong style="font-size: 1.1rem; color: var(--text-main);">$<span id="val-budget"></span></strong>
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Allocated Budget</span>
+            <strong style="font-size: 1.1rem; color: var(--text-main);">₹<span id="val-budget"></span></strong>
           </div>
           <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Start Date</span>
-            <strong id="val-start" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Brought By / Source</span>
+            <strong id="val-source" style="font-size: 1.1rem; color: var(--text-main);"></strong>
           </div>
           <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">End Date</span>
-            <strong id="val-end" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Target Timeline</span>
+            <strong id="val-timeline" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+          </div>
+          <div>
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client Contact</span>
+            <strong id="val-contact" style="font-size: 1.1rem; color: var(--text-main);"></strong>
           </div>
         </div>
-        <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-          <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Description</span>
-          <p id="val-desc" style="font-size: 1rem; color: var(--text-main); line-height: 1.6;"></p>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+          <div>
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Project Requirements</span>
+            <p id="val-requirements" style="font-size: 1rem; color: var(--text-main); line-height: 1.6; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></p>
+          </div>
+          <div>
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Expected Deliverables</span>
+            <p id="val-deliverables" style="font-size: 1rem; color: var(--text-main); line-height: 1.6; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></p>
+          </div>
         </div>
       </div>
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;" id="assignment-section">
         ${permissions.includes('project.assign_faculty') ? `
         <div class="card-panel">
-          <h3 style="margin-bottom: 1.25rem; font-size: 1.2rem;">Assign Faculty</h3>
+          <h3 style="margin-bottom: 1.25rem; font-size: 1.2rem;">Assign Lead Faculty</h3>
           <form id="form-assign-faculty" style="display: flex; flex-direction: column; gap: 1rem;">
             <div class="autocomplete-container">
               <input type="text" id="faculty-search" placeholder="Type faculty name..." class="premium-input" autocomplete="off" />
@@ -70,14 +81,14 @@ export async function ProjectDetails(route, router) {
         
         ${permissions.includes('project.assign_students') ? `
         <div class="card-panel">
-          <h3 style="margin-bottom: 1.25rem; font-size: 1.2rem;">Assign Student</h3>
+          <h3 style="margin-bottom: 1.25rem; font-size: 1.2rem;">Assign Student Track Member</h3>
           <form id="form-assign-student" style="display: flex; flex-direction: column; gap: 1rem;">
             <div class="autocomplete-container">
               <input type="text" id="student-search" placeholder="Type student name..." class="premium-input" autocomplete="off" />
               <input type="hidden" name="student_id" id="student-id" required />
               <div id="student-results" class="autocomplete-results"></div>
             </div>
-            <input type="text" name="designation" placeholder="Designation (optional)" class="premium-input" />
+            <input type="text" name="designation" placeholder="Designation (e.g. Nova Lead / Orbit Developer)" class="premium-input" />
             <button type="submit" class="btn btn-primary shadow-hover" style="align-self: flex-start; padding: 0.6rem 1.5rem;">Assign Student</button>
           </form>
           <p id="msg-student" style="margin-top: 1rem; font-size: 0.95rem; font-weight: 500;"></p>
@@ -90,7 +101,6 @@ export async function ProjectDetails(route, router) {
   const btnBack = container.querySelector('#btn-back');
   if (btnBack) {
     btnBack.addEventListener('click', () => {
-      // Remove the /:id from the end of the path
       const pathParts = route.path.split('/');
       pathParts.pop(); 
       const basePath = pathParts.join('/');
@@ -111,13 +121,23 @@ export async function ProjectDetails(route, router) {
         container.querySelector('#project-title').textContent = p.title || 'Project Details';
         container.querySelector('#val-type').textContent = p.project_type || 'N/A';
         container.querySelector('#val-client').textContent = p.client_name || 'N/A';
+        
         const statusSpan = container.querySelector('#val-status');
-        statusSpan.textContent = p.status || 'N/A';
+        statusSpan.textContent = (p.status || 'N/A').toUpperCase();
         statusSpan.className = `status-badge ${p.status || 'active'}`;
-        container.querySelector('#val-budget').textContent = p.budget || '0.00';
-        container.querySelector('#val-start').textContent = p.start_date || 'N/A';
-        container.querySelector('#val-end').textContent = p.end_date || 'N/A';
-        container.querySelector('#val-desc').textContent = p.description || 'No description provided.';
+        
+        const prioritySpan = container.querySelector('#val-priority');
+        prioritySpan.textContent = p.priority ? p.priority.toUpperCase() + ' PRIORITY' : 'NORMAL PRIORITY';
+        prioritySpan.className = `status-badge ${p.priority === 'urgent' ? 'rejected' : 'in_progress'}`;
+
+        container.querySelector('#val-budget').textContent = p.budget ? Number(p.budget).toLocaleString('en-IN') : '0.00';
+        container.querySelector('#val-source').textContent = (p.brought_by ? p.brought_by + ' (' + (p.source_type || 'External') + ')' : (p.source_type || 'N/A'));
+        container.querySelector('#val-timeline').textContent = p.expected_timeline || 'N/A';
+        container.querySelector('#val-contact').textContent = (p.contact_email || '') + (p.contact_phone ? ' • ' + p.contact_phone : '');
+        container.querySelector('#val-requirements').textContent = p.requirements || 'No specific requirements listed.';
+        container.querySelector('#val-deliverables').textContent = p.deliverables || 'No deliverables specified.';
+        
+        container.querySelector('#project-info').style.display = 'block';
         
         container.querySelector('#project-info').style.display = 'block';
         

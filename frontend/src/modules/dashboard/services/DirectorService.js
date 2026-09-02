@@ -225,7 +225,14 @@ export class DirectorService {
       pendingProposals,
       studentCounts: { nova: novaCount, orbit: orbitCount, spark: sparkCount, total: data.students.length },
       facultyCount: data.faculties.length,
-      finance: data.financeSummary
+      finance: data.financeSummary,
+      activeProjectHealth: (data.projects || []).slice(0, 5).map(p => ({
+        id: p.id,
+        title: p.title,
+        facultyName: p.facultyName || 'Faculty Member',
+        status: p.status,
+        progress: p.progress || 65
+      }))
     };
   }
 
@@ -283,9 +290,25 @@ export class DirectorService {
             totalProjects: d.total_projects,
             activeProjects: d.active_projects,
             pendingProposals: d.pending_proposals,
+            pendingProposalsList: (d.pending_proposals_list || []).map(p => ({
+              id: String(p.id),
+              title: p.title,
+              clientName: p.client_name,
+              estimatedBudget: p.budget,
+              description: p.description,
+              status: p.status,
+              priority: p.priority
+            })),
             studentCounts: d.student_counts,
             facultyCount: d.faculty_count,
-            finance: d.finance_summary
+            finance: d.finance_summary,
+            activeProjectHealth: (d.active_project_health || []).map(p => ({
+              id: p.id,
+              title: p.title,
+              facultyName: p.faculty_name,
+              status: p.status,
+              progress: p.progress
+            }))
           };
         }
       }
@@ -395,6 +418,95 @@ export class DirectorService {
           data.auditLogs = logs;
           saveState(data);
           return logs;
+        }
+      }
+    } catch (e) {
+      // Fallback silently
+    }
+    return null;
+  }
+
+  static async getClientRequirementsAsync() {
+    const fresh = await this.fetchClientRequirementsRemote();
+    if (fresh) {
+      return fresh;
+    }
+    return this.getClientRequirements();
+  }
+
+  static async fetchClientRequirementsRemote() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      let headers = await getAuthHeadersAsync();
+      let response = await fetch(`${API_BASE}/client-requirements`, { headers, signal: controller.signal });
+      if (response.status === 401) {
+        headers = await getAuthHeadersAsync(true);
+        response = await fetch(`${API_BASE}/client-requirements`, { headers, signal: controller.signal });
+      }
+      clearTimeout(timeoutId);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data && result.data.length > 0) {
+          return result.data.map(r => ({
+            id: r.id,
+            title: r.title,
+            type: r.type,
+            source: r.source,
+            sourceName: r.sourceName,
+            clientName: r.clientName,
+            clientContact: r.clientContact,
+            budget: r.budget,
+            timeline: r.timeline,
+            requirements: r.requirements,
+            deliverables: r.deliverables,
+            docs: r.docs
+          }));
+        }
+      }
+    } catch (e) {
+      // Fallback silently
+    }
+    return null;
+  }
+
+  static async getStudentsAsync(trackFilter = 'All') {
+    const fresh = await this.fetchStudentsRemote();
+    if (fresh) {
+      if (trackFilter === 'All') return fresh;
+      return fresh.filter(s => s.track.toLowerCase() === trackFilter.toLowerCase());
+    }
+    return this.getStudents(trackFilter);
+  }
+
+  static async fetchStudentsRemote() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      let headers = await getAuthHeadersAsync();
+      let response = await fetch(`${API_BASE}/students`, { headers, signal: controller.signal });
+      if (response.status === 401) {
+        headers = await getAuthHeadersAsync(true);
+        response = await fetch(`${API_BASE}/students`, { headers, signal: controller.signal });
+      }
+      clearTimeout(timeoutId);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data && result.data.length > 0) {
+          const students = result.data.map(s => ({
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            track: s.track,
+            project: s.project,
+            status: s.status,
+            gpa: s.gpa,
+            github: s.github
+          }));
+          const data = loadState();
+          data.students = students;
+          saveState(data);
+          return students;
         }
       }
     } catch (e) {

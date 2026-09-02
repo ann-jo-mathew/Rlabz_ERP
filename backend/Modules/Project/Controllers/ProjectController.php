@@ -28,29 +28,28 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
         $permissions = $user['permissions'] ?? [];
         
         $query = Project::query();
 
-        if (in_array('project.view_global', $permissions)) {
+        if ($role === 'director' || $role === 'coordinator' || in_array('project.view_global', $permissions)) {
             // Can see all projects
-        } elseif (in_array('project.view_assigned', $permissions)) {
+        } elseif ($role === 'faculty' || $role === 'student' || in_array('project.view_assigned', $permissions)) {
             $userId = $this->getUserId($request);
-            $role = $user['role'] ?? '';
-            
             if ($role === 'faculty') {
-                $query->whereHas('faculty', function($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })->orWhere('faculty_id', $userId);
+                $query->where(function($q) use ($userId) {
+                    $q->whereHas('faculty', function($sub) use ($userId) {
+                        $sub->where('user_id', $userId);
+                    })->orWhere('faculty_id', $userId);
+                });
             } elseif ($role === 'student') {
                 $query->whereHas('students', function($q) use ($userId) {
                     $q->where('user_id', $userId);
                 });
-            } else {
-                return response()->json(['status' => 'success', 'data' => []]);
             }
         } else {
-            return response()->json(['error' => 'Forbidden'], 403);
+            return response()->json(['status' => 'success', 'data' => []]);
         }
 
         $projects = $query->orderBy('created_at', 'desc')->get();
@@ -67,13 +66,13 @@ class ProjectController extends Controller
             return response()->json(['error' => 'Project not found'], 404);
         }
 
-        if (!in_array('project.view_global', $permissions)) {
-            if (!in_array('project.view_assigned', $permissions)) {
+        $role = $user['role'] ?? '';
+        if ($role !== 'director' && $role !== 'coordinator' && !in_array('project.view_global', $permissions)) {
+            if (!in_array('project.view_assigned', $permissions) && $role !== 'faculty' && $role !== 'student') {
                 return response()->json(['error' => 'Forbidden'], 403);
             }
             
             $userId = $this->getUserId($request);
-            $role = $user['role'] ?? '';
             $hasAccess = false;
             
             if ($role === 'faculty') {
