@@ -44,16 +44,42 @@ class AuthController extends Controller
         $password = $request->input('password');
 
         if (!$email || !str_contains($email, '@rajagiri.edu')) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+                DB::table('audit_logs')->insert([
+                    'user_id' => 1,
+                    'action' => 'Login Failed - Invalid Domain',
+                    'description' => "Failed login attempt for '{$email}'. Email must contain @rajagiri.edu.",
+                    'created_at' => now()
+                ]);
+            }
             return response()->json(['error' => 'Email must contain @rajagiri.edu'], 401);
         }
 
         $user = DB::table('users')->where('email', $email)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+                DB::table('audit_logs')->insert([
+                    'user_id' => $user->id ?? 1,
+                    'action' => 'Login Failed - Invalid Credentials',
+                    'description' => "Failed login attempt for '{$email}'. Invalid credentials.",
+                    'created_at' => now()
+                ]);
+            }
             return response()->json(['error' => 'Invalid email or password.'], 401);
         }
 
         $token = $this->generateJwt($user);
+
+        // Record authentication login event in audit_logs table
+        if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+            DB::table('audit_logs')->insert([
+                'user_id' => $user->id,
+                'action' => 'System Login',
+                'description' => "User {$user->name} ({$user->role}) logged in successfully.",
+                'created_at' => now()
+            ]);
+        }
 
         return $this->respondWithToken($token, $user);
     }
@@ -76,6 +102,26 @@ class AuthController extends Controller
     }
 
     /**
+     * @route GET /api/auth/users
+     */
+    public function searchUsers(Request $request)
+    {
+        $role = $request->query('role');
+        $search = $request->query('search');
+
+        $query = DB::table('users');
+        if ($role) {
+            $query->where('role', $role);
+        }
+        if ($search) {
+            $query->where('name', 'LIKE', '%' . $search . '%');
+        }
+
+        $users = $query->select('id', 'name', 'email', 'role')->limit(10)->get();
+        return response()->json(['status' => 'success', 'data' => $users]);
+    }
+
+    /**
      * Helper to format token response.
      */
     protected function respondWithToken($token, $user)
@@ -92,11 +138,11 @@ class AuthController extends Controller
         ];
         
         $modules = [
-            'director' => ['dashboard', 'project-client', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication'],
-            'coordinator' => ['coordinator', 'project-client', 'student', 'communication', 'github', 'certificates'],
-            'finance' => ['finance', 'project-client'],
-            'faculty' => ['faculty', 'project-client', 'communication', 'github'],
-            'student' => ['student', 'project-client', 'communication', 'github', 'certificates']
+            'director' => ['dashboard', 'project', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication'],
+            'coordinator' => ['coordinator', 'project', 'student', 'communication', 'github', 'certificates'],
+            'finance' => ['finance', 'project'],
+            'faculty' => ['faculty', 'project', 'communication', 'github'],
+            'student' => ['student', 'project', 'communication', 'github', 'certificates']
         ];
         
         // Convert stdClass to array for mutation if using DB facade

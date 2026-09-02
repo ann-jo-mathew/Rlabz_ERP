@@ -57,10 +57,11 @@ export const modules = [
     allowedRoles: ['student'],
   },
   {
-    name: 'project-client',
+    name: 'project',
     path: '/projects',
-    sidebar: true,
-    title: 'Projects & Clients',
+    loadRoutes: () => import('@/modules/project/routes.js'),
+    sidebar: false,
+    title: 'Projects',
     icon: 'IconProjects',
   },
   {

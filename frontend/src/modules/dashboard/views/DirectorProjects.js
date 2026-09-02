@@ -1,5 +1,10 @@
 import { DirectorService } from '../services/DirectorService.js';
 
+function formatMoney(amount) {
+  if (amount === undefined || amount === null || isNaN(Number(amount))) return '0';
+  return Number(amount).toLocaleString();
+}
+
 export function DirectorProjects(route, router) {
   const container = document.createElement('div');
   container.className = 'director-dashboard';
@@ -7,10 +12,9 @@ export function DirectorProjects(route, router) {
   let currentTab = 'proposals'; // 'proposals', 'active', 'all'
   let selectedProposal = null;
 
-  function render() {
-    const proposals = DirectorService.getProposals();
-    const projects = DirectorService.getProjects();
-    const faculties = DirectorService.getFaculties();
+  function render(faculties = DirectorService.getFaculties()) {
+    const proposals = DirectorService.getProposals() || [];
+    const projects = DirectorService.getProjects() || [];
 
     const pendingProposals = proposals.filter(p => p.status === 'pending');
     const activeProjects = projects.filter(p => p.status === 'in_progress');
@@ -45,9 +49,9 @@ export function DirectorProjects(route, router) {
     `;
 
     // Attach Tab Events
-    container.querySelector('#tab-proposals')?.addEventListener('click', () => { currentTab = 'proposals'; render(); });
-    container.querySelector('#tab-active')?.addEventListener('click', () => { currentTab = 'active'; render(); });
-    container.querySelector('#tab-all')?.addEventListener('click', () => { currentTab = 'all'; render(); });
+    container.querySelector('#tab-proposals')?.addEventListener('click', async () => { currentTab = 'proposals'; await render(); });
+    container.querySelector('#tab-active')?.addEventListener('click', async () => { currentTab = 'active'; await render(); });
+    container.querySelector('#tab-all')?.addEventListener('click', async () => { currentTab = 'all'; await render(); });
 
     attachActionEvents(faculties);
   }
@@ -84,19 +88,19 @@ export function DirectorProjects(route, router) {
                 ${pendingProposals.map(p => `
                   <tr>
                     <td>
-                      <strong>${p.title}</strong><br>
-                      <small style="color:#6b7280">${p.type}</small>
+                      <strong>${p.title || 'Untitled Proposal'}</strong><br>
+                      <small style="color:#6b7280">${p.type || 'General'}</small>
                     </td>
                     <td>
-                      ${p.clientName}<br>
-                      <small style="color:#6b7280">${p.source} (${p.sourceName})</small>
+                      ${p.clientName || 'Client'}<br>
+                      <small style="color:#6b7280">${p.source || 'Direct'} (${p.sourceName || 'Submission'})</small>
                     </td>
-                    <td>${p.submittedDate}</td>
-                    <td>₹${p.estimatedBudget.toLocaleString()}</td>
-                    <td>${p.expectedTimeline}</td>
+                    <td>${p.submittedDate || 'Recent'}</td>
+                    <td>₹${formatMoney(p.estimatedBudget)}</td>
+                    <td>${p.expectedTimeline || 'Flexible'}</td>
                     <td>
                       <span class="status-badge ${p.priority === 'urgent' ? 'rejected' : 'in_progress'}">
-                        ${p.priority.toUpperCase()}
+                        ${(p.priority || 'NORMAL').toUpperCase()}
                       </span>
                     </td>
                     <td>
@@ -139,23 +143,23 @@ export function DirectorProjects(route, router) {
               ${activeProjects.map(p => `
                 <tr>
                   <td>
-                    <strong>${p.title}</strong><br>
-                    <small style="color:#6b7280">${p.id} • ${p.type}</small>
+                    <strong>${p.title || 'Untitled Project'}</strong><br>
+                    <small style="color:#6b7280">${p.id} • ${p.type || 'Web'}</small>
                   </td>
-                  <td>${p.clientName}</td>
-                  <td><strong>${p.facultyName}</strong></td>
+                  <td>${p.clientName || 'N/A'}</td>
+                  <td><strong>${p.facultyName || 'Unassigned'}</strong></td>
                   <td>
-                    ${p.assignedStudents.length === 0 ? '<small style="color:#9ca3af">None</small>' : 
-                      p.assignedStudents.map(s => `<span class="track-badge ${s.track.toLowerCase()}" style="margin:2px;">${s.name} (${s.track})</span>`).join('')}
+                    ${(!p.assignedStudents || p.assignedStudents.length === 0) ? '<small style="color:#9ca3af">None</small>' : 
+                      p.assignedStudents.map(s => `<span class="track-badge ${(s.track || 'nova').toLowerCase()}" style="margin:2px;">${s.name} (${s.track || 'Nova'})</span>`).join('')}
                   </td>
                   <td>
                     <div class="director-progress-bar-bg">
-                      <div class="director-progress-bar-fill" style="width: ${p.progress}%"></div>
+                      <div class="director-progress-bar-fill" style="width: ${p.progress || 0}%"></div>
                     </div>
-                    <strong>${p.progress}%</strong>
+                    <strong>${p.progress || 0}%</strong>
                   </td>
                   <td>
-                    ₹${p.spent.toLocaleString()} / ₹${p.budget.toLocaleString()}
+                    ₹${formatMoney(p.spent)} / ₹${formatMoney(p.budget)}
                   </td>
                   <td>
                     <button class="btn-director btn-director-outline btn-assign-faculty" data-id="${p.id}">
@@ -192,12 +196,12 @@ export function DirectorProjects(route, router) {
             <tbody>
               ${projects.map(p => `
                 <tr>
-                  <td><strong>${p.title}</strong><br><small style="color:#6b7280">${p.id}</small></td>
-                  <td><span class="status-badge ${p.status}">${p.status.replace('_', ' ')}</span></td>
-                  <td>${p.clientName}</td>
-                  <td>${p.facultyName}</td>
-                  <td>${p.progress}%</td>
-                  <td>₹${p.budget.toLocaleString()}</td>
+                  <td><strong>${p.title || 'Untitled'}</strong><br><small style="color:#6b7280">${p.id}</small></td>
+                  <td><span class="status-badge ${p.status || 'pending'}">${(p.status || 'pending').replace('_', ' ')}</span></td>
+                  <td>${p.clientName || 'N/A'}</td>
+                  <td>${p.facultyName || 'Unassigned'}</td>
+                  <td>${p.progress || 0}%</td>
+                  <td>₹${formatMoney(p.budget)}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -259,19 +263,19 @@ export function DirectorProjects(route, router) {
 
     modalHost.querySelector('.btn-close-modal').addEventListener('click', () => { modalHost.innerHTML = ''; });
 
-    modalHost.querySelector('.btn-accept-prop').addEventListener('click', () => {
+    modalHost.querySelector('.btn-accept-prop').addEventListener('click', async () => {
       const facId = modalHost.querySelector('#modal-select-faculty').value;
       const notes = modalHost.querySelector('#modal-review-notes').value;
-      DirectorService.updateProposalStatus(proposal.id, 'accepted', notes, facId);
+      await DirectorService.updateProposalStatusAsync(proposal.id, 'accepted', notes, facId);
       modalHost.innerHTML = '';
-      render();
+      await render();
     });
 
-    modalHost.querySelector('.btn-reject-prop').addEventListener('click', () => {
+    modalHost.querySelector('.btn-reject-prop').addEventListener('click', async () => {
       const notes = modalHost.querySelector('#modal-review-notes').value;
-      DirectorService.updateProposalStatus(proposal.id, 'rejected', notes);
+      await DirectorService.updateProposalStatusAsync(proposal.id, 'rejected', notes);
       modalHost.innerHTML = '';
-      render();
+      await render();
     });
   }
 
@@ -301,15 +305,18 @@ export function DirectorProjects(route, router) {
 
     modalHost.querySelectorAll('.btn-close-modal').forEach(b => b.addEventListener('click', () => { modalHost.innerHTML = ''; }));
 
-    modalHost.querySelector('.btn-save-faculty').addEventListener('click', () => {
+    modalHost.querySelector('.btn-save-faculty').addEventListener('click', async () => {
       const facId = modalHost.querySelector('#modal-reassign-faculty').value;
-      DirectorService.assignFaculty(project.id, facId);
+      await DirectorService.assignFacultyAsync(project.id, facId);
       modalHost.innerHTML = '';
-      render();
+      await render();
     });
   }
 
   render();
+  DirectorService.getFacultiesAsync().then(liveFaculties => {
+    if (liveFaculties) render(liveFaculties);
+  });
   return container;
 }
 
