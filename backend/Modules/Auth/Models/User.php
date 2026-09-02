@@ -41,6 +41,6 @@ class User extends Authenticatable
      */
     protected $casts = [
         'permissions' => 'array',
-        'password' => 'hashed',
+        
     ];
 }

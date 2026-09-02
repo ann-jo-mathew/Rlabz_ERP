@@ -5,6 +5,7 @@ namespace Modules\Coordinator\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Modules\Auth\Models\User;
 use Modules\Coordinator\Models\ClientRequirement;
 use Modules\Coordinator\Models\ProjectClosure;
@@ -22,6 +23,11 @@ class CoordinatorController extends Controller
 
     protected function isAuthorized(Request $request, array $requiredPermissions = ['view-coordinator']): bool
     {
+        $role = $request->auth_user['role'] ?? null;
+        if ($role === 'coordinator') {
+            return true;
+        }
+
         $permissions = $request->auth_user['permissions'] ?? [];
         if (!is_array($permissions)) {
             return false;
@@ -78,6 +84,10 @@ class CoordinatorController extends Controller
             'closure',
         ])->latest()->get();
 
+        $projects->each(function (Project $project) {
+            $project->requirements_text = $project->getOriginal('requirements');
+        });
+
         return response()->json([
             'data' => $projects,
             'count' => $projects->count(),
@@ -100,6 +110,8 @@ class CoordinatorController extends Controller
             'closure.closer',
             'certificates.student',
         ]);
+
+        $project->requirements_text = $project->getOriginal('requirements');
 
         return response()->json([
             'data' => [
@@ -361,5 +373,228 @@ class CoordinatorController extends Controller
             'message' => 'Project closed successfully',
             'data' => $closure->load('closer'),
         ]);
+    }
+
+    public function students(Request $request)
+    {
+        if (!$this->isAuthorized($request, ['view-coordinator', 'view-student'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $users = DB::table('users')->where('role', 'student')->orderBy('id', 'desc')->get();
+
+        $students = $users->map(function ($user) {
+            $profile = DB::table('student_profiles')->where('student_id', $user->id)->first();
+            $assignment = DB::table('project_student')
+                ->join('projects', 'projects.id', '=', 'project_student.project_id')
+                ->where('project_student.student_id', $user->id)
+                ->select('projects.title')
+                ->first();
+
+            return [
+                'id' => 'RLZ' . str_pad($user->id, 3, '0', STR_PAD_LEFT),
+                'db_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'course' => $profile->course ?? 'MCA',
+                'designation' => ucfirst($profile->designation ?? 'Nova'),
+                'project' => $assignment->title ?? 'Not assigned',
+                'status' => 'Active',
+            ];
+        });
+
+        return response()->json(['data' => $students]);
+    }
+
+    public function faculty(Request $request)
+    {
+        if (!$this->isAuthorized($request, ['view-coordinator', 'view-projects'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $users = DB::table('users')
+            ->whereIn('role', ['faculty', 'director', 'coordinator'])
+            ->orderBy('name')
+            ->get();
+
+        $faculty = $users->map(function ($user) {
+            $profile = DB::table('faculty_profiles')->where('faculty_id', $user->id)->first();
+
+            return [
+                'id' => $user->id,
+                'db_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'department' => $profile->department ?? null,
+                'designation' => $profile->designation ?? null,
+            ];
+        });
+
+        return response()->json(['data' => $faculty]);
+    }
+
+    public function storeStudent(Request $request)
+    {
+        if (!$this->isAuthorized($request, ['view-coordinator', 'view-student'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:150',
+            'course' => 'required|string|max:100',
+            'designation' => 'required|string|in:Nova,Orbit,Spark,nova,orbit,spark',
+            'project' => 'nullable|string',
+            'email' => 'nullable|email',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $email = $validated['email'] ?? (strtolower(str_replace(' ', '.', trim($validated['name']))) . '@rajagiri.edu');
+        $count = 1;
+        $baseEmail = $email;
+        while (DB::table('users')->where('email', $email)->exists()) {
+            $parts = explode('@', $baseEmail);
+            $email = $parts[0] . $count . '@' . ($parts[1] ?? 'rajagiri.edu');
+            $count++;
+        }
+
+        $password = Hash::make($validated['password'] ?? 'student123');
+
+        $userId = DB::table('users')->insertGetId([
+            'name' => $validated['name'],
+            'email' => $email,
+            'password' => $password,
+            'role' => 'student',
+            'permissions' => json_encode(['view-student', 'view-projects', 'view-communication', 'view-github', 'view-certificates-read']),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('student_profiles')->updateOrInsert(
+            ['student_id' => $userId],
+            [
+                'course' => $validated['course'],
+                'batch' => '2026',
+                'semester' => 1,
+                'designation' => strtolower($validated['designation']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        if (!empty($validated['project']) && $validated['project'] !== 'Not assigned') {
+            $proj = Project::where('title', $validated['project'])->first();
+            if ($proj) {
+                $proj->students()->attach($userId, [
+                    'role' => strtolower($validated['designation']) === 'nova' ? 'project_lead' : 'developer',
+                    'assigned_date' => now()->toDateString(),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Student created successfully',
+            'data' => [
+                'id' => 'RLZ' . str_pad($userId, 3, '0', STR_PAD_LEFT),
+                'db_id' => $userId,
+                'name' => $validated['name'],
+                'email' => $email,
+                'course' => $validated['course'],
+                'designation' => ucfirst($validated['designation']),
+                'project' => $validated['project'] ?? 'Not assigned',
+                'status' => 'Active',
+            ],
+        ], 201);
+    }
+
+    public function meetings(Request $request)
+    {
+        if (!$this->isAuthorized($request, ['view-coordinator', 'view-communication'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $meetings = DB::table('meetings')
+            ->join('projects', 'projects.id', '=', 'meetings.project_id')
+            ->select(
+                'meetings.id',
+                'meetings.title',
+                'projects.title as project',
+                'meetings.scheduled_at',
+                'meetings.location',
+                'meetings.meeting_link',
+                'meetings.agenda',
+                'meetings.status'
+            )
+            ->orderBy('meetings.scheduled_at', 'desc')
+            ->get()
+            ->map(function ($m) {
+                $dt = new \DateTime($m->scheduled_at);
+                return [
+                    'id' => $m->id,
+                    'date' => $dt->format('d M Y'),
+                    'time' => $dt->format('h:i A'),
+                    'title' => $m->title,
+                    'project' => $m->project,
+                    'location' => $m->location,
+                    'meeting_link' => $m->meeting_link,
+                    'agenda' => $m->agenda,
+                    'participants' => 'Coordinator, Students',
+                    'status' => ucfirst($m->status),
+                ];
+            });
+
+        return response()->json(['data' => $meetings]);
+    }
+
+    public function storeMeeting(Request $request)
+    {
+        if (!$this->isAuthorized($request, ['view-coordinator', 'view-communication'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'project' => 'required|string',
+            'date' => 'required|date',
+            'time' => 'required|string',
+            'participants' => 'nullable|string',
+            'agenda' => 'nullable|string',
+            'meeting_link' => 'nullable|string|max:500',
+        ]);
+
+        $proj = Project::where('title', $validated['project'])->first();
+        if (!$proj) {
+            return response()->json(['error' => 'Selected project not found'], 404);
+        }
+
+        $scheduledAt = date('Y-m-d H:i:s', strtotime($validated['date'] . ' ' . $validated['time']));
+
+        $meetingId = DB::table('meetings')->insertGetId([
+            'project_id' => $proj->id,
+            'title' => $validated['title'],
+            'scheduled_at' => $scheduledAt,
+            'agenda' => $validated['agenda'] ?? null,
+            'meeting_link' => $validated['meeting_link'] ?? null,
+            'status' => 'scheduled',
+            'created_by' => $this->currentUserId($request) ?? $request->user()?->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $dt = new \DateTime($scheduledAt);
+
+        return response()->json([
+            'message' => 'Meeting scheduled successfully',
+            'data' => [
+                'id' => $meetingId,
+                'date' => $dt->format('d M Y'),
+                'time' => $dt->format('h:i A'),
+                'title' => $validated['title'],
+                'project' => $proj->title,
+                'meeting_link' => $validated['meeting_link'] ?? null,
+                'participants' => $validated['participants'] ?? 'Coordinator, Students',
+                'status' => 'Scheduled',
+            ],
+        ], 201);
     }
 }

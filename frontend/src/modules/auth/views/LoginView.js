@@ -7,7 +7,7 @@ export function LoginView(route, router) {
 
   const mockPresets = [
     { label: 'Director', user: 'director', pass: 'director123' },
-    { label: 'Co-ordinator', user: 'coordinator', pass: 'coord123' },
+    { label: 'Co-ordinator', user: 'coordinator', pass: 'password123' },
     { label: 'Finance Head', user: 'finance_head', pass: 'finance123' },
     { label: 'Faculty', user: 'faculty', pass: 'faculty123' },
     { label: 'Student', user: 'student', pass: 'student123' }

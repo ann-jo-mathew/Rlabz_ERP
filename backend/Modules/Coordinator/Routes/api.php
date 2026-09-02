@@ -20,5 +20,13 @@ Route::group(['prefix' => 'coordinator', 'middleware' => ['auth.jwt']], function
     Route::get('/projects/{project}/requirement-changes', [CoordinatorController::class, 'requirementChanges']);
     Route::post('/projects/{project}/requirement-changes', [CoordinatorController::class, 'storeRequirementChange']);
 
+    Route::get('/students', [CoordinatorController::class, 'students']);
+    Route::post('/students', [CoordinatorController::class, 'storeStudent']);
+
+    Route::get('/faculty', [CoordinatorController::class, 'faculty']);
+
+    Route::get('/meetings', [CoordinatorController::class, 'meetings']);
+    Route::post('/meetings', [CoordinatorController::class, 'storeMeeting']);
+
     Route::post('/projects/{project}/close', [CoordinatorController::class, 'close']);
 });

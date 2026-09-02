@@ -81,10 +81,6 @@ export function CoordinatorFinances(route, router) {
           <h2>Project Finances</h2>
           <p>Detailed budget vs spent for each project.</p>
         </div>
-
-        <div>
-          <button class="coord-btn">Export CSV</button>
-        </div>
       </div>
 
       <div class="coordinator-table-wrapper">
