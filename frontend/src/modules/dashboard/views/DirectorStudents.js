@@ -5,16 +5,18 @@ export function DirectorStudents(route, router) {
   container.className = 'director-dashboard';
 
   let currentTrackFilter = 'All';
+  let activeStudentList = DirectorService.getStudents('All') || [];
 
   function render() {
-    const students = DirectorService.getStudents(currentTrackFilter);
-    const allStudents = DirectorService.getStudents('All');
+    const students = currentTrackFilter === 'All' 
+      ? activeStudentList 
+      : activeStudentList.filter(s => s.track.toLowerCase() === currentTrackFilter.toLowerCase());
 
     const counts = {
-      all: allStudents.length,
-      nova: allStudents.filter(s => s.track === 'Nova').length,
-      orbit: allStudents.filter(s => s.track === 'Orbit').length,
-      spark: allStudents.filter(s => s.track === 'Spark').length
+      all: activeStudentList.length,
+      nova: activeStudentList.filter(s => s.track === 'Nova').length,
+      orbit: activeStudentList.filter(s => s.track === 'Orbit').length,
+      spark: activeStudentList.filter(s => s.track === 'Spark').length
     };
 
     container.innerHTML = `
@@ -76,6 +78,7 @@ export function DirectorStudents(route, router) {
       <div class="director-panel">
         <div class="director-panel-header">
           <h2>Student Roster (${students.length} Showing)</h2>
+          <span style="font-size:0.85rem; color:#6b7280;">Live records from MySQL database</span>
         </div>
 
         <div class="director-table-responsive">
@@ -92,14 +95,16 @@ export function DirectorStudents(route, router) {
               </tr>
             </thead>
             <tbody>
-              ${students.map(s => `
+              ${students.length === 0 ? `
+                <tr><td colspan="7" style="text-align:center; padding:2rem; color:#9ca3af;">No students found in this track.</td></tr>
+              ` : students.map(s => `
                 <tr>
                   <td>
                     <strong>${s.name}</strong><br>
                     <small style="color:#6b7280">${s.id}</small>
                   </td>
                   <td>
-                    <span class="track-badge ${s.track.toLowerCase()}">${s.track}</span>
+                    <span class="track-badge ${(s.track || 'orbit').toLowerCase()}">${s.track}</span>
                   </td>
                   <td>${s.project}</td>
                   <td>
@@ -129,7 +134,17 @@ export function DirectorStudents(route, router) {
     container.querySelector('#filter-spark')?.addEventListener('click', () => { currentTrackFilter = 'Spark'; render(); });
   }
 
+  // Instant 0ms render
   render();
+
+  // Async background fetch from MySQL
+  DirectorService.getStudentsAsync('All').then(liveStudents => {
+    if (liveStudents && liveStudents.length > 0) {
+      activeStudentList = liveStudents;
+      render();
+    }
+  });
+
   return container;
 }
 

@@ -8,34 +8,29 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * @return void
      */
-    public function up(): void
+    public function up()
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('username')->unique();
-            $table->string('password');
-            
-            // ROLE: Kept as a simple string column for single-role-per-user design.
-            $table->string('role'); 
-            
-            // PERMISSIONS: See my recommendation below. If we go with JSON, it would be:
-            // $table->json('permissions')->nullable();
-
-            // MODULES: JSON column recommended for simple array storage (e.g. ['dashboard', 'project-client'])
-            $table->json('modules')->nullable();
-
-            // CATEGORY: Only relevant if role = 'student'
-            $table->enum('category', ['nova', 'orbit', 'spark'])->nullable();
-
+            $table->string('name', 150);
+            $table->string('email', 255)->unique();
+            $table->string('password', 255);
+            $table->string('phone', 20)->nullable();
+            $table->enum('role', ['director', 'coordinator', 'finance', 'faculty', 'student']);
+            $table->json('permissions')->nullable();
             $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
+     *
+     * @return void
      */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('users');
     }

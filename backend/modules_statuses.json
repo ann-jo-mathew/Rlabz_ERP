@@ -1,0 +1,12 @@
+{
+    "Auth": true,
+    "Project": true,
+    "Dashboard": true,
+    "Coordinator": true,
+    "Faculty": true,
+    "Student": true,
+    "Finance": true,
+    "Communication": true,
+    "Github": true,
+    "Certificates": true
+}

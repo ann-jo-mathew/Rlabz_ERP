@@ -5,7 +5,7 @@ namespace Modules\Auth\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
-// use Modules\Auth\Models\User; // Commented out for mock
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -14,19 +14,24 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // REAL IMPLEMENTATION (Commented out):
-        // $validated = $request->validate([...]);
-        // $validated['password'] = Hash::make($validated['password']);
-        // $user = User::create($validated);
-        // $token = auth()->login($user);
+        $validated = $request->validate([
+            'name' => 'required|string|max:150',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+            'role' => 'required|in:director,coordinator,finance,faculty,student',
+            'phone' => 'nullable|string|max:20',
+        ]);
+        $validated['password'] = Hash::make($validated['password']);
+        $validated['permissions'] = json_encode([]); // Default empty permissions
         
-        // MOCK IMPLEMENTATION (No DB needed):
+        $userId = DB::table('users')->insertGetId($validated);
+        $user = DB::table('users')->where('id', $userId)->first();
+        
+        $token = $this->generateJwt($user);
+        
         return response()->json([
-            'message' => 'User registered successfully (MOCK)',
-            'user' => [
-                'username' => $request->username,
-                'role' => $request->role ?? 'student',
-            ]
+            'message' => 'User registered successfully',
+            'user' => $user
         ], 201);
     }
 
@@ -35,95 +40,48 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        // REAL IMPLEMENTATION (Commented out):
-        // $credentials = $request->only('username', 'password');
-        // if (! $token = auth()->attempt($credentials)) {
-        //     return response()->json(['error' => 'Unauthorized'], 401);
-        // }
-        
-        // MOCK USERS CONFIGURATION:
-        $mockUsers = [
-            'director' => [
-                'password' => 'director123',
-                'id' => 1,
-                'username' => 'director',
-                'name' => 'Director & Co-ordinator',
-                'role' => 'director',
-                'defaultRoute' => '/dashboard',
-                'modules' => ['dashboard', 'finance', 'project-client', 'github', 'audit-notifications', 'auth'],
-                'permissions' => ['view-dashboard', 'view-finance-readonly', 'view-projects', 'view-github', 'view-audit-notifications'],
-            ],
-            'coordinator' => [
-                'password' => 'coord123',
-                'id' => 2,
-                'username' => 'coordinator',
-                'name' => 'Co-ordinator',
-                'role' => 'coordinator',
-                'defaultRoute' => '/coordinator',
-                'modules' => ['coordinator', 'finance', 'student', 'project-client', 'communication', 'github', 'certificates', 'auth'],
-                'permissions' => ['view-coordinator', 'view-finance-readonly', 'view-student', 'view-projects', 'view-communication', 'view-github', 'view-certificates'],
-            ],
-            'finance_head' => [
-                'password' => 'finance123',
-                'id' => 3,
-                'username' => 'finance_head',
-                'name' => 'Finance Head',
-                'role' => 'finance_head',
-                'defaultRoute' => '/finance',
-                'modules' => ['finance', 'student', 'project-client', 'auth'],
-                'permissions' => ['view-finance', 'view-student-designations', 'view-projects'],
-            ],
-            'faculty' => [
-                'password' => 'faculty123',
-                'id' => 4,
-                'username' => 'faculty',
-                'name' => 'Faculty Member',
-                'role' => 'faculty',
-                'defaultRoute' => '/faculty',
-                'modules' => ['faculty', 'project-client', 'communication', 'github', 'auth'],
-                'permissions' => ['view-faculty', 'view-projects', 'view-communication', 'view-github'],
-            ],
-            'student' => [
-                'password' => 'student123',
-                'id' => 5,
-                'username' => 'student',
-                'name' => 'Student User',
-                'role' => 'student',
-                'defaultRoute' => '/student',
-                'modules' => ['student', 'project-client', 'communication', 'github', 'certificates', 'auth'],
-                'permissions' => ['view-student', 'view-projects', 'view-communication', 'view-github', 'view-certificates-read'],
-            ],
-            // Legacy / Fallback Admin account
-            'admin' => [
-                'password' => 'password',
-                'id' => 99,
-                'username' => 'admin',
-                'name' => 'Administrator',
-                'role' => 'director',
-                'defaultRoute' => '/dashboard',
-                'modules' => ['dashboard', 'finance', 'project-client', 'github', 'audit-notifications', 'auth'],
-                'permissions' => ['view-dashboard', 'view-finance-readonly', 'view-projects', 'view-github', 'view-audit-notifications'],
-            ]
-        ];
+        $email = $request->input('email');
+        $password = $request->input('password');
 
-        $username = $request->username;
-        $password = $request->password;
-
-        if (isset($mockUsers[$username]) && $mockUsers[$username]['password'] === $password) {
-            $userConfig = $mockUsers[$username];
-            unset($userConfig['password']);
-
-            $mockToken = base64_encode(json_encode([
-                'typ' => 'JWT', 'alg' => 'HS256'
-            ])) . '.' . base64_encode(json_encode(array_merge($userConfig, [
-                'sub' => $userConfig['id'],
-                'exp' => time() + 3600
-            ]))) . '.mocksignature';
-
-            return $this->respondWithToken($mockToken, $userConfig);
+        if (!$email || !str_contains($email, '@rajagiri.edu')) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+                DB::table('audit_logs')->insert([
+                    'user_id' => 1,
+                    'action' => 'Login Failed - Invalid Domain',
+                    'description' => "Failed login attempt for '{$email}'. Email must contain @rajagiri.edu.",
+                    'created_at' => now()
+                ]);
+            }
+            return response()->json(['error' => 'Email must contain @rajagiri.edu'], 401);
         }
 
-        return response()->json(['error' => 'Invalid username or password. Check MOCK_LOGIN_CREDENTIALS.txt.'], 401);
+        $user = DB::table('users')->where('email', $email)->first();
+
+        if (!$user || !Hash::check($password, $user->password)) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+                DB::table('audit_logs')->insert([
+                    'user_id' => $user->id ?? 1,
+                    'action' => 'Login Failed - Invalid Credentials',
+                    'description' => "Failed login attempt for '{$email}'. Invalid credentials.",
+                    'created_at' => now()
+                ]);
+            }
+            return response()->json(['error' => 'Invalid email or password.'], 401);
+        }
+
+        $token = $this->generateJwt($user);
+
+        // Record authentication login event in audit_logs table
+        if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+            DB::table('audit_logs')->insert([
+                'user_id' => $user->id,
+                'action' => 'System Login',
+                'description' => "User {$user->name} ({$user->role}) logged in successfully.",
+                'created_at' => now()
+            ]);
+        }
+
+        return $this->respondWithToken($token, $user);
     }
 
     /**
@@ -131,8 +89,7 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        // REAL: auth()->logout();
-        return response()->json(['message' => 'Successfully logged out (MOCK)']);
+        return response()->json(['message' => 'Successfully logged out']);
     }
 
     /**
@@ -140,20 +97,92 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        // REAL: return $this->respondWithToken(auth()->refresh());
-        return response()->json(['message' => 'Token refreshed (MOCK)', 'token' => 'mock-refreshed-token']);
+        // JWT Refresh could be implemented here
+        return response()->json(['error' => 'Not implemented'], 501);
+    }
+
+    /**
+     * @route GET /api/auth/users
+     */
+    public function searchUsers(Request $request)
+    {
+        $role = $request->query('role');
+        $search = $request->query('search');
+
+        $query = DB::table('users');
+        if ($role) {
+            $query->where('role', $role);
+        }
+        if ($search) {
+            $query->where('name', 'LIKE', '%' . $search . '%');
+        }
+
+        $users = $query->select('id', 'name', 'email', 'role')->limit(10)->get();
+        return response()->json(['status' => 'success', 'data' => $users]);
     }
 
     /**
      * Helper to format token response.
      */
-    protected function respondWithToken($token, $userMock = null)
+    protected function respondWithToken($token, $user)
     {
+        // Compute frontend-specific UI elements based on role
+        $role = $user->role ?? 'student';
+        
+        $defaultRoutes = [
+            'director' => '/dashboard',
+            'coordinator' => '/coordinator',
+            'finance' => '/finance',
+            'faculty' => '/faculty',
+            'student' => '/student'
+        ];
+        
+        $modules = [
+            'director' => ['dashboard', 'project', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication'],
+            'coordinator' => ['coordinator', 'project', 'student', 'communication', 'github', 'certificates'],
+            'finance' => ['finance', 'project'],
+            'faculty' => ['faculty', 'project', 'communication', 'github'],
+            'student' => ['student', 'project', 'communication', 'github', 'certificates']
+        ];
+        
+        // Convert stdClass to array for mutation if using DB facade
+        $userArray = (array) $user;
+        $userArray['defaultRoute'] = $defaultRoutes[$role] ?? '/student';
+        $userArray['modules'] = $modules[$role] ?? $modules['student'];
+        $userArray['permissions'] = is_string($user->permissions) ? json_decode($user->permissions, true) : ($user->permissions ?? []);
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => 3600, // REAL: auth()->factory()->getTTL() * 60
-            'user' => $userMock
+            'expires_in' => 3600,
+            'user' => $userArray
         ]);
+    }
+
+    private function base64UrlEncode($data)
+    {
+        return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
+    }
+
+    private function generateJwt($user)
+    {
+        $permissions = is_string($user->permissions) ? json_decode($user->permissions, true) : ($user->permissions ?? []);
+
+        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
+        $payload = json_encode([
+            'sub' => $user->id,
+            'email' => $user->email,
+            'role' => $user->role,
+            'permissions' => $permissions,
+            'exp' => time() + 3600
+        ]);
+
+        $base64UrlHeader = $this->base64UrlEncode($header);
+        $base64UrlPayload = $this->base64UrlEncode($payload);
+
+        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, config('app.key'), true);
+        $base64UrlSignature = $this->base64UrlEncode($signature);
+
+        return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
     }
 }
