@@ -40,7 +40,7 @@ class ProjectTaskController extends Controller
         $role = $request->input('auth_user')['role'] ?? '';
         
         if ($role === 'faculty') {
-            $isAssigned = DB::table('project_faculty')->where('project_id', $projectId)->where('faculty_id', $userId)->exists() || DB::table('projects')->where('id', $projectId)->where('faculty_id', $userId)->exists();
+            $isAssigned = DB::table('project_faculty')->where('project_id', $projectId)->where('faculty_id', $userId)->exists();
             if (!$isAssigned) {
                 return response()->json(['error' => 'Forbidden: You are not assigned to this project'], 403);
             }
@@ -48,7 +48,7 @@ class ProjectTaskController extends Controller
 
         $module = Module::create([
             'project_id' => $projectId,
-            'name' => $request->name,
+            'module_name' => $request->name,
             'description' => $request->description,
             'status' => 'active'
         ]);

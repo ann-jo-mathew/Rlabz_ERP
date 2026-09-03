@@ -1,5 +1,16 @@
 /* Project Module Specific Styles */
 
+/* Ensure font family matches global app font */
+.project-dashboard, 
+.project-details, 
+.project-create,
+.premium-table,
+.premium-table th,
+.premium-table td {
+  font-family: var(--font-family);
+}
+
+
 /* Premium Table Styling */
 .project-table-container {
   background: var(--bg-card);

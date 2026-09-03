@@ -38,10 +38,8 @@ class ProjectController extends Controller
         } elseif ($role === 'faculty' || $role === 'student' || in_array('project.view_assigned', $permissions)) {
             $userId = $this->getUserId($request);
             if ($role === 'faculty') {
-                $query->where(function($q) use ($userId) {
-                    $q->whereHas('faculty', function($sub) use ($userId) {
-                        $sub->where('user_id', $userId);
-                    })->orWhere('faculty_id', $userId);
+                $query->whereHas('faculty', function($sub) use ($userId) {
+                    $sub->where('users.id', $userId);
                 });
             } elseif ($role === 'student') {
                 $query->whereHas('students', function($q) use ($userId) {
@@ -76,7 +74,7 @@ class ProjectController extends Controller
             $hasAccess = false;
             
             if ($role === 'faculty') {
-                $hasAccess = DB::table('project_faculty')->where('project_id', $id)->where('faculty_id', $userId)->exists() || $project->faculty_id == $userId;
+                $hasAccess = DB::table('project_faculty')->where('project_id', $id)->where('faculty_id', $userId)->exists();
             } elseif ($role === 'student') {
                 $hasAccess = DB::table('project_student')->where('project_id', $id)->where('student_id', $userId)->exists();
             }
