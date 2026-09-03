@@ -8,6 +8,11 @@ export async function StudentPayroll(route, router) {
   setTimeout(updateFinanceSidebar, 0);
 
   const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+  const fmtDate = (d) => {
+    if (!d) return '-';
+    const dt = new Date(d);
+    return isNaN(dt) ? d : dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
 
   let payrollData = [];
   let allProjects = [];
@@ -124,10 +129,15 @@ export async function StudentPayroll(route, router) {
     const searchTerm = (container.querySelector('#search-input')?.value || '').toLowerCase();
 
     const filtered = payrollData.filter(pr => {
-      const matchProject = projectFilter === 'All' || pr.projectId.toString() === projectFilter;
-      const matchDesg = desgFilter === 'All' || pr.designation === desgFilter;
-      const matchStatus = statusFilter === 'All' || pr.status === statusFilter;
-      const matchSearch = !searchTerm || pr.studentName.toLowerCase().includes(searchTerm) || pr.id.toLowerCase().includes(searchTerm);
+      const projId = pr.project_id || '';
+      const sName = pr.student_name || 'Unknown';
+      const desg = (pr.designation || '').charAt(0).toUpperCase() + (pr.designation || '').slice(1);
+      const status = pr.status || 'Pending';
+      
+      const matchProject = projectFilter === 'All' || projId.toString() === projectFilter;
+      const matchDesg = desgFilter === 'All' || desg === desgFilter;
+      const matchStatus = statusFilter === 'All' || status === statusFilter;
+      const matchSearch = !searchTerm || sName.toLowerCase().includes(searchTerm) || (pr.project_student_id || '').toString().includes(searchTerm);
       return matchProject && matchDesg && matchStatus && matchSearch;
     });
 
@@ -139,46 +149,45 @@ export async function StudentPayroll(route, router) {
 
     noResults.style.display = 'none';
     tbody.innerHTML = filtered.map(pr => {
-      const isPaid = pr.status === 'Paid';
-      const isProcessing = pr.status === 'Processing';
-      const isApproved = pr.status === 'Approved';
-      const isCalculated = pr.status === 'Calculated';
+      const sName = pr.student_name || 'Unknown';
+      const projName = pr.project_name || 'Unknown';
+      const desg = (pr.designation || '').charAt(0).toUpperCase() + (pr.designation || '').slice(1);
+      const status = pr.status || 'Pending';
+
+      const isPaid = status === 'Paid';
+      const isPartial = status === 'Partially Paid';
 
       let actionHtml = '';
-      if (isCalculated) {
-        actionHtml = `<button class="fin-btn outline sm approve-btn" data-id="${pr.id}">Approve</button>`;
-      } else if (isApproved) {
-        actionHtml = `<button class="fin-btn primary sm process-btn" data-id="${pr.id}">Process Payment</button>`;
-      } else if (isProcessing) {
-        actionHtml = `<span style="display:flex;align-items:center;gap:6px;color:var(--primary);font-size:0.8rem;font-weight:600;"><span class="fin-spinner"></span>Processing...</span>`;
-      } else if (isPaid) {
-        actionHtml = `<button class="fin-btn outline sm receipt-btn" data-id="${pr.id}">
+      if (isPaid) {
+        actionHtml = `<button class="fin-btn outline sm receipt-btn" data-id="${pr.project_student_id}">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           Download Receipt
         </button>`;
+      } else {
+        actionHtml = `<button class="fin-btn primary sm process-btn" data-id="${pr.project_student_id}" data-desg="${pr.designation}" data-remaining="${pr.remaining_payable}">Process Payment</button>`;
       }
 
-      const desgClass = pr.designation === 'Nova' ? 'nova' : pr.designation === 'Orbit' ? 'orbit' : 'spark';
-      const statusClass = isPaid ? 'success' : isApproved ? 'primary' : isProcessing ? 'info' : 'warning';
+      const desgClass = desg === 'Nova' ? 'nova' : desg === 'Orbit' ? 'orbit' : 'spark';
+      const statusClass = isPaid ? 'success' : isPartial ? 'info' : 'warning';
 
       return `
         <tr>
           <td>
-            <div style="font-weight:600">${pr.studentName}</div>
-            <div style="font-size:0.75rem;color:var(--text-muted)">${pr.id}</div>
+            <div style="font-weight:600">${sName}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">PS-ID: ${pr.project_student_id}</div>
           </td>
-          <td><span class="fin-badge ${desgClass}">${pr.designation}</span></td>
-          <td><div style="font-weight:500">${pr.projectName}</div></td>
+          <td><span class="fin-badge ${desgClass}">${desg}</span></td>
+          <td><div style="font-weight:500">${projName}</div></td>
           <td>
             <div class="fin-hours-cell">
-              <span class="fin-hours-logged">Logged: ${pr.loggedHours}h</span>
-              <span class="fin-hours-approved">Approved: ${pr.approvedHours}h</span>
+              <span class="fin-hours-approved">Approved: ${pr.approved_hours || 0}h</span>
             </div>
           </td>
-          <td style="font-family:var(--font-mono,monospace);font-size:0.875rem;">₹${pr.rate}/hr</td>
-          <td style="font-weight:700;color:var(--text-main)">${fmt(pr.grossAmount)}</td>
-          <td style="font-size:0.875rem;color:var(--text-muted)">${pr.period}</td>
-          <td><span class="fin-badge ${statusClass}">${pr.status}</span></td>
+          <td style="font-family:var(--font-mono,monospace);font-size:0.875rem;">₹${pr.hourly_rate || 0}/hr</td>
+          <td style="font-weight:700;color:var(--text-main)">${fmt(pr.gross_amount || 0)}</td>
+          <td style="color:var(--primary);font-weight:600">${fmt(pr.amount_paid || 0)}</td>
+          <td style="color:#d97706;font-weight:600">${fmt(pr.remaining_payable || 0)}</td>
+          <td><span class="fin-badge ${statusClass}">${status}</span></td>
           <td>${actionHtml}</td>
         </tr>
       `;
@@ -188,40 +197,76 @@ export async function StudentPayroll(route, router) {
   };
 
   const bindTableEvents = () => {
-    container.querySelectorAll('.approve-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const pr = payrollData.find(p => p.id === btn.dataset.id);
-        if (pr) { pr.status = 'Approved'; renderTable(); }
-      });
-    });
-
     container.querySelectorAll('.process-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const id = btn.dataset.id;
-        const pr = payrollData.find(p => p.id === id);
-        if (!pr) return;
-        pr.status = 'Processing';
-        renderTable();
-        try {
-          await financeService.processPayroll(id);
-          payrollData = await financeService.getStudentPayroll();
-          renderTable();
-        } catch (e) {
-          pr.status = 'Approved';
-          renderTable();
-          alert('Failed to process payroll: ' + e.message);
-        }
+        const psId = btn.dataset.id;
+        const desg = btn.dataset.desg;
+        const remaining = parseFloat(btn.dataset.remaining) || 0;
+        
+        // Create payment modal
+        const modal = document.createElement('div');
+        modal.className = 'fin-modal-overlay';
+        modal.innerHTML = `
+          <div class="fin-modal">
+            <h3 style="margin:0 0 1rem">Process Student Payment</h3>
+            <div class="fin-form-group">
+              <label>Amount (Max Remaining: ${fmt(remaining)})</label>
+              <input type="number" class="fin-input" id="pay-amount" value="${remaining}" max="${remaining}" step="0.01">
+            </div>
+            <div class="fin-form-group">
+              <label>Payment Date</label>
+              <input type="date" class="fin-input" id="pay-date" value="${new Date().toISOString().split('T')[0]}">
+            </div>
+            <div class="fin-form-actions" style="margin-top:1rem">
+              <button class="fin-btn primary" id="confirm-pay">Confirm Payment</button>
+              <button class="fin-btn outline" id="cancel-pay">Cancel</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        
+        modal.querySelector('#cancel-pay').addEventListener('click', () => modal.remove());
+        modal.querySelector('#confirm-pay').addEventListener('click', async () => {
+          const amount = parseFloat(modal.querySelector('#pay-amount').value);
+          const payDate = modal.querySelector('#pay-date').value;
+          if (!amount || amount <= 0) { alert('Enter a valid amount'); return; }
+          try {
+            await financeService.processPayroll({
+              project_student_id: psId,
+              amount: amount,
+              payment_date: payDate,
+              designation: desg
+            });
+            modal.remove();
+            payrollData = await financeService.getStudentPayroll();
+            renderTable();
+          } catch (e) {
+            alert('Payment failed: ' + e.message);
+          }
+        });
       });
     });
 
     container.querySelectorAll('.receipt-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const pr = payrollData.find(p => p.id === btn.dataset.id);
-        if (!pr || pr.status !== 'Paid') return;
+        const pr = payrollData.find(p => p.project_student_id?.toString() === btn.dataset.id);
+        if (!pr) return;
         btn.disabled = true;
         btn.innerHTML = '<span class="fin-spinner"></span>';
         try {
-          await generateReceipt(pr);
+          await generateReceipt({
+            studentName: pr.student_name,
+            id: pr.project_student_id,
+            designation: (pr.designation || '').charAt(0).toUpperCase() + (pr.designation || '').slice(1),
+            projectName: pr.project_name,
+            approvedHours: pr.approved_hours,
+            rate: pr.hourly_rate,
+            grossAmount: pr.gross_amount,
+            txRef: 'SP-' + pr.project_student_id,
+            paymentDate: new Date().toLocaleDateString('en-IN'),
+            loggedHours: pr.approved_hours,
+            period: 'Current Period'
+          });
         } catch (e) {
           alert('Failed to generate receipt: ' + e.message);
         } finally {
@@ -280,9 +325,8 @@ export async function StudentPayroll(route, router) {
           <div class="fin-select-wrap">
             <select id="status-filter" class="fin-input">
               <option value="All">All Statuses</option>
-              <option value="Calculated">Calculated</option>
-              <option value="Approved">Approved</option>
-              <option value="Processing">Processing</option>
+              <option value="Pending">Pending</option>
+              <option value="Partially Paid">Partially Paid</option>
               <option value="Paid">Paid</option>
             </select>
           </div>
@@ -305,10 +349,11 @@ export async function StudentPayroll(route, router) {
                 <th>Student</th>
                 <th>Designation</th>
                 <th>Project</th>
-                <th>Hours (Logged / Approved)</th>
+                <th>Approved Hours</th>
                 <th>Rate</th>
-                <th>Calculated Amount</th>
-                <th>Period</th>
+                <th>Gross Amount</th>
+                <th>Paid</th>
+                <th>Remaining</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>

@@ -2,12 +2,21 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Finance\Controllers\FinanceController;
+use Modules\Finance\Http\Controllers\PaymentController;
 
 Route::group(['prefix' => 'finance', 'middleware' => ['auth.jwt']], function () {
     Route::get('/dashboard', [FinanceController::class, 'getDashboard']);
     Route::get('/projects', [FinanceController::class, 'getProjects']);
     Route::get('/projects/{id}', [FinanceController::class, 'getProjectDetails']);
-    Route::post('/projects/{id}/payments', [FinanceController::class, 'recordClientPayment']); // Mock
+    Route::post('/projects/{id}/allocations', [FinanceController::class, 'updateAllocations']);
+    
+    // Payments
+    Route::post('/client-payments', [PaymentController::class, 'recordClientPayment']); 
+    Route::post('/student-payments', [PaymentController::class, 'recordStudentPayment']); 
+    Route::post('/faculty-payments', [PaymentController::class, 'recordFacultyPayment']); 
+
     Route::get('/student-payments', [FinanceController::class, 'getStudentPayments']);
-    Route::post('/student-payments', [FinanceController::class, 'recordStudentPayment']); // Mock
+    Route::get('/faculty-payments', [FinanceController::class, 'getFacultyPayments']);
+    Route::get('/invoices', [FinanceController::class, 'getInvoices']);
+    Route::get('/transactions', [FinanceController::class, 'getTransactions']);
 });

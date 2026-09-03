@@ -3,32 +3,18 @@
 namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Auth\Models\User;
-use Modules\ProjectClient\Models\Project;
+use Modules\Project\Models\Project;
 
 class ProjectFinance extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'project_id',
-        'estimated_cost',
-        'subtotal',
-        'gst_amount',
-        'total_amount',
+        'total_development_amount',
+        'gst_percentage',
         'created_by',
         'approved_by',
         'approved_at',
         'status',
-    ];
-
-    protected $casts = [
-        'estimated_cost' => 'decimal:2',
-        'subtotal' => 'decimal:2',
-        'gst_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
-        'approved_at' => 'datetime',
     ];
 
     public function project()
@@ -36,13 +22,38 @@ class ProjectFinance extends Model
         return $this->belongsTo(Project::class);
     }
 
-    public function creator()
+    public function invoices()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->hasMany(Invoice::class);
     }
 
-    public function approver()
+    public function developmentAllocations()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->hasMany(DevelopmentAllocation::class);
+    }
+
+    public function hostingCharges()
+    {
+        return $this->hasMany(HostingCharge::class);
+    }
+
+    public function maintenanceSupportCharges()
+    {
+        return $this->hasMany(MaintenanceSupportCharge::class);
+    }
+
+    public function getTotalInvoicedAttribute()
+    {
+        return $this->invoices->sum('grand_total');
+    }
+
+    public function getTotalCollectedAttribute()
+    {
+        return $this->invoices->sum('total_paid');
+    }
+
+    public function getPendingAmountAttribute()
+    {
+        return max(0, $this->total_invoiced - $this->total_collected);
     }
 }

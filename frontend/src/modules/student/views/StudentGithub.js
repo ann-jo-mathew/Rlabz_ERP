@@ -1,8 +1,9 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
-import { getProjects, getGithub, saveGithubUrl } from './mockStore.js';
+import { getProjects, getGithub, saveGithubUrl, ensureDataLoaded } from './studentStore.js';
 import '../student.css';
 
-export function StudentGithub(route, router) {
+export async function StudentGithub(route, router) {
+  await ensureDataLoaded();
   renderStudentSidebar();
 
   const container = document.createElement('div');
@@ -57,7 +58,7 @@ export function StudentGithub(route, router) {
 
             <div class="student-form-group">
               <label for="git-url">GitHub Repository URL</label>
-              <input type="url" id="git-url" class="student-input" placeholder="e.g. https://github.com/rosha/my-project" required>
+              <input type="url" id="git-url" class="student-input" placeholder="e.g. https://github.com/student-nova/my-project" required>
             </div>
 
             <button type="submit" class="student-btn student-btn-primary" style="justify-content:center; margin-top:8px;">
@@ -90,14 +91,14 @@ export function StudentGithub(route, router) {
 
     // Bind form submission event handler
     const form = container.querySelector('#github-form');
-    form?.addEventListener('submit', (e) => {
+    form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const project = container.querySelector('#git-project').value;
       const url = container.querySelector('#git-url').value.trim();
 
       if (!project || !url) return;
 
-      saveGithubUrl(project, url);
+      await saveGithubUrl(project, url);
       render();
     });
   }

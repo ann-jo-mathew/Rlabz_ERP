@@ -9,6 +9,21 @@ class AuthStore {
     let storedUser = null;
     try {
       storedUser = JSON.parse(localStorage.getItem('user'));
+      if (storedUser) {
+        if (storedUser.email === 'nova@rajagiri.edu') {
+          storedUser.name = "Student Nova";
+          storedUser.designation = "Nova";
+          storedUser.isTeamLead = true;
+        } else if (storedUser.email === 'orbit@rajagiri.edu') {
+          storedUser.name = "Student Orbit";
+          storedUser.designation = "Orbit";
+          storedUser.isTeamLead = false;
+        } else if (storedUser.email === 'spark@rajagiri.edu') {
+          storedUser.name = "Student Spark";
+          storedUser.designation = "Spark";
+          storedUser.isTeamLead = false;
+        }
+      }
     } catch (e) {
       storedUser = null;
     }
@@ -56,6 +71,20 @@ class AuthStore {
       if (response.ok && data.access_token) {
         this.token = data.access_token;
         this.user = data.user;
+
+        if (this.user.email === 'nova@rajagiri.edu') {
+          this.user.name = "Student Nova";
+          this.user.designation = "Nova";
+          this.user.isTeamLead = true;
+        } else if (this.user.email === 'orbit@rajagiri.edu') {
+          this.user.name = "Student Orbit";
+          this.user.designation = "Orbit";
+          this.user.isTeamLead = false;
+        } else if (this.user.email === 'spark@rajagiri.edu') {
+          this.user.name = "Student Spark";
+          this.user.designation = "Spark";
+          this.user.isTeamLead = false;
+        }
 
         localStorage.setItem('token', this.token);
         localStorage.setItem('user', JSON.stringify(this.user));

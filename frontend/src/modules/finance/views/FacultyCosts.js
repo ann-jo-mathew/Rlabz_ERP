@@ -7,6 +7,11 @@ export async function FacultyCosts(route, router) {
   setTimeout(updateFinanceSidebar, 0);
 
   const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+  const fmtDate = (d) => {
+    if (!d) return '-';
+    const dt = new Date(d);
+    return isNaN(dt) ? d : dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
 
   let facultyCosts = [];
   let allProjects = [];
@@ -20,8 +25,12 @@ export async function FacultyCosts(route, router) {
     const statusFilter = container.querySelector('#status-filter').value;
 
     const filtered = facultyCosts.filter(fc => {
-      const matchName = fc.name.toLowerCase().includes(searchTerm) || fc.projectName.toLowerCase().includes(searchTerm);
-      const matchStatus = statusFilter === 'All' || fc.status === statusFilter;
+      const fName = fc.faculty_name || 'Unknown';
+      const pName = fc.project_name || 'Unknown';
+      const status = fc.payment_date ? 'Paid' : 'Pending';
+
+      const matchName = fName.toLowerCase().includes(searchTerm) || pName.toLowerCase().includes(searchTerm);
+      const matchStatus = statusFilter === 'All' || status === statusFilter;
       return matchName && matchStatus;
     });
 
@@ -33,21 +42,26 @@ export async function FacultyCosts(route, router) {
       noResults.style.display = 'block';
     } else {
       noResults.style.display = 'none';
-      tbody.innerHTML = filtered.map(fc => `
+      tbody.innerHTML = filtered.map(fc => {
+        const fName = fc.faculty_name || 'Unknown';
+        const pName = fc.project_name || 'Unknown';
+        const status = fc.payment_date ? 'Paid' : 'Pending';
+
+        return `
         <tr>
           <td>
-            <div style="font-weight:600">${fc.projectName}</div>
+            <div style="font-weight:600">${pName}</div>
           </td>
           <td>
-            <div style="font-weight:600">${fc.name}</div>
+            <div style="font-weight:600">${fName}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">PF-ID: ${fc.project_faculty_id}</div>
           </td>
-          <td style="color:var(--text-muted)">${fc.role}</td>
-          <td style="font-weight:700">${fmt(fc.amount)}</td>
-          <td style="color:var(--text-muted)">${fc.date}</td>
-          <td><span class="fin-badge ${fc.status === 'Paid' ? 'success' : 'warning'}">${fc.status}</span></td>
-          <td style="font-size:0.8rem;color:var(--text-muted);font-family:monospace;">${fc.txRef || '—'}</td>
+          <td style="color:var(--text-muted)">Faculty</td>
+          <td style="font-weight:700">${fmt(fc.amount || 0)}</td>
+          <td style="color:var(--text-muted)">${fmtDate(fc.payment_date)}</td>
+          <td><span class="fin-badge ${status === 'Paid' ? 'success' : 'warning'}">${status}</span></td>
         </tr>
-      `).join('');
+      `}).join('');
     }
   };
 
@@ -107,20 +121,21 @@ export async function FacultyCosts(route, router) {
             <label>Project</label>
             <div class="fin-select-wrap">
               <select class="fin-input" id="new-fc-project">
+                <option value="">Select Project</option>
                 <!-- Filled dynamically -->
               </select>
             </div>
           </div>
           <div class="fin-form-group">
-            <label>Resource Name</label>
-            <input type="text" class="fin-input" id="new-fc-name" placeholder="e.g. Dr. John Smith">
+            <label>Assigned Faculty</label>
+            <div class="fin-select-wrap">
+              <select class="fin-input" id="new-fc-faculty" disabled>
+                <option value="">Select Project First</option>
+              </select>
+            </div>
           </div>
         </div>
         <div>
-          <div class="fin-form-group">
-            <label>Role / Designation</label>
-            <input type="text" class="fin-input" id="new-fc-role" placeholder="e.g. Project Consultant">
-          </div>
           <div class="fin-form-group">
             <label>Amount (₹)</label>
             <input type="number" class="fin-input" id="new-fc-amt" placeholder="0">
@@ -152,7 +167,6 @@ export async function FacultyCosts(route, router) {
               <th>Total Cost</th>
               <th>Date</th>
               <th>Status</th>
-              <th>Tx Reference</th>
             </tr>
           </thead>
           <tbody id="fc-tbody"></tbody>
@@ -174,23 +188,67 @@ export async function FacultyCosts(route, router) {
   });
 
   const addForm = container.querySelector('#add-fc-form');
+  const projectSelect = container.querySelector('#new-fc-project');
+  const facultySelect = container.querySelector('#new-fc-faculty');
+  
   container.querySelector('#add-fc-btn').addEventListener('click', () => addForm.classList.add('visible'));
   container.querySelector('#cancel-new-fc').addEventListener('click', () => addForm.classList.remove('visible'));
+  
+  projectSelect.addEventListener('change', async () => {
+    const pId = projectSelect.value;
+    if (!pId) {
+      facultySelect.innerHTML = '<option value="">Select Project First</option>';
+      facultySelect.disabled = true;
+      return;
+    }
+    facultySelect.innerHTML = '<option value="">Loading...</option>';
+    facultySelect.disabled = true;
+    
+    try {
+      const faculties = await financeService.getProjectFaculties(pId);
+      if (faculties.length === 0) {
+        facultySelect.innerHTML = '<option value="">No faculty assigned to this project</option>';
+      } else {
+        facultySelect.innerHTML = faculties.map(f => `<option value="${f.project_faculty_id || f.id}">${f.resource_name} (${f.designation})</option>`).join('');
+        facultySelect.disabled = false;
+      }
+    } catch (e) {
+      facultySelect.innerHTML = '<option value="">Error loading faculties</option>';
+    }
+  });
+
   container.querySelector('#save-new-fc').addEventListener('click', async () => {
+    const pfId = facultySelect.value;
+    const amount = parseFloat(container.querySelector('#new-fc-amt').value) || 0;
+    const date = container.querySelector('#new-fc-date').value;
+    
+    if (!pfId) {
+      alert("Please select a faculty member.");
+      return;
+    }
+    if (amount <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
     const data = {
-      projectId: parseInt(container.querySelector('#new-fc-project').value),
-      name: container.querySelector('#new-fc-name').value.trim() || 'Unknown Resource',
-      role: container.querySelector('#new-fc-role').value.trim() || 'Consultant',
-      amount: parseFloat(container.querySelector('#new-fc-amt').value) || 0,
-      date: container.querySelector('#new-fc-date').value || new Date().toISOString().split('T')[0]
+      project_faculty_id: pfId,
+      amount: amount,
+      date: date || new Date().toISOString().split('T')[0] // The API expects payment_date, let's fix below
     };
-    await financeService.addFacultyCost(data);
-    addForm.classList.remove('visible');
-    container.querySelector('#new-fc-name').value = '';
-    container.querySelector('#new-fc-role').value = '';
-    container.querySelector('#new-fc-amt').value = '';
-    container.querySelector('#new-fc-date').value = '';
-    loadData();
+    
+    try {
+      await financeService.addFacultyCost({ ...data, payment_date: data.date });
+      addForm.classList.remove('visible');
+      facultySelect.innerHTML = '<option value="">Select Project First</option>';
+      facultySelect.disabled = true;
+      projectSelect.value = '';
+      container.querySelector('#new-fc-amt').value = '';
+      container.querySelector('#new-fc-date').value = '';
+      loadData();
+    } catch(e) {
+      alert('Failed to save cost: ' + e.message);
+    }
   });
 
   loadData();
