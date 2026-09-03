@@ -40,11 +40,11 @@ class ProjectController extends Controller
             
             if ($role === 'faculty') {
                 $query->whereHas('faculty', function($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })->orWhere('faculty_id', $userId);
+                    $q->where('users.id', $userId);
+                });
             } elseif ($role === 'student') {
                 $query->whereHas('students', function($q) use ($userId) {
-                    $q->where('user_id', $userId);
+                    $q->where('users.id', $userId);
                 });
             } else {
                 return response()->json(['status' => 'success', 'data' => []]);
@@ -62,7 +62,7 @@ class ProjectController extends Controller
         $user = $request->input('auth_user');
         $permissions = $user['permissions'] ?? [];
         
-        $project = Project::find($id);
+        $project = Project::with(['faculty', 'students', 'modules.tasks'])->find($id);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }

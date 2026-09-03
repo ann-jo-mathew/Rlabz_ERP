@@ -13,7 +13,12 @@ const routes = [
       {
         path: 'projects',
         name: 'student-projects',
-        component: () => import('./views/StudentProjects.js')
+        component: () => import('@/modules/project/views/ProjectDashboard.js')
+      },
+      {
+        path: 'projects/:id',
+        name: 'student-projects-details',
+        component: () => import('@/modules/project/views/ProjectDetails.js')
       },
       {
         path: 'proposals',
