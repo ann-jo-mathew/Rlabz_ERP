@@ -45,7 +45,7 @@ class ProjectController extends Controller
                 });
             } elseif ($role === 'student') {
                 $query->whereHas('students', function($q) use ($userId) {
-                    $q->where('user_id', $userId);
+                    $q->where('users.id', $userId);
                 });
             }
         } else {
@@ -61,7 +61,7 @@ class ProjectController extends Controller
         $user = $request->input('auth_user');
         $permissions = $user['permissions'] ?? [];
         
-        $project = Project::find($id);
+        $project = Project::with(['faculty', 'students', 'modules.tasks'])->find($id);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }
