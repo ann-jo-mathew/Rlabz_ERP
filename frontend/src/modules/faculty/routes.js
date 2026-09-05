@@ -18,7 +18,12 @@ const routes = [
       {
         path: 'projects',
         name: 'faculty-projects',
-        component: () => import('./views/FacultyProjects.js')
+        component: () => import('@/modules/project/views/ProjectDashboard.js')
+      },
+      {
+        path: 'projects/:id',
+        name: 'faculty-projects-details',
+        component: () => import('@/modules/project/views/ProjectDetails.js')
       },
       {
         path: 'students',

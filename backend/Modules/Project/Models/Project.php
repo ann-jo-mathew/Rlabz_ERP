@@ -41,4 +41,18 @@ class Project extends Model
     {
         return $this->hasMany(Module::class);
     }
+
+    public function faculty()
+    {
+        return $this->belongsToMany(User::class, 'project_faculty', 'project_id', 'faculty_id')
+                    ->withPivot('assigned_date')
+                    ->withTimestamps();
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'project_student', 'project_id', 'student_id')
+                    ->withPivot('role', 'assigned_date')
+                    ->withTimestamps();
+    }
 }

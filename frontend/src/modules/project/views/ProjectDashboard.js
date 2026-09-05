@@ -13,7 +13,7 @@ export async function ProjectDashboard(route, router) {
         <h1>Project Management</h1>
         <p>View and manage all institutional projects.</p>
       </div>
-      ${permissions.includes('project.create') ? '<button class="btn btn-primary shadow-hover" id="btn-create-project" style="padding: 0.75rem 1.5rem;"><i class="fa fa-plus" style="margin-right: 0.5rem;"></i>Create Project</button>' : ''}
+      ${permissions.includes('project.create') ? '<button class="btn btn-primary shadow-hover" id="btn-create-project" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.9rem; font-family: var(--font-family);"><i class="fa fa-plus" style="margin-right: 0.5rem;"></i>Create Project</button>' : ''}
     </div>
     <div class="dashboard-content" id="project-list-container">
       <div class="spinner" style="border-top-color: var(--primary); margin: 40px auto; display: block; width: 32px; height: 32px;"></div>
