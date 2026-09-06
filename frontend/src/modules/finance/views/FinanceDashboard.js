@@ -27,6 +27,11 @@ export async function FinanceDashboard(route, router) {
   const projects = await financeService.getProjectFinances();
 
   const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+  const fmtDate = (d) => {
+    if (!d) return '-';
+    const dt = new Date(d);
+    return isNaN(dt) ? d : dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
 
   const recvPct = summary.totalBilling > 0 
     ? Math.round((summary.totalCollected / summary.totalBilling) * 100) 
@@ -80,6 +85,30 @@ export async function FinanceDashboard(route, router) {
         </a>
       </div>
     </div>
+
+    <!-- SSL Expiry Warnings -->
+    ${(() => {
+      let sslWarnings = '';
+      if (projects) {
+        projects.forEach(p => {
+          if (p.project_finance && p.project_finance.hosting_charges) {
+            p.project_finance.hosting_charges.forEach(hc => {
+              if (hc.charge_type.toLowerCase() === 'ssl' && hc.expiry_date) {
+                const exp = new Date(hc.expiry_date);
+                const now = new Date();
+                const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+                if (diffDays <= 7 && diffDays >= 0) {
+                  sslWarnings += `<div class="alert-error" style="margin-bottom:1rem; border: 1px solid var(--error); border-left: 4px solid var(--error);"><strong>URGENT:</strong> SSL Certificate for project <strong>${p.title || p.name}</strong> is expiring in ${diffDays} days! (${fmtDate(hc.expiry_date)})</div>`;
+                } else if (diffDays < 0) {
+                  sslWarnings += `<div class="alert-error" style="margin-bottom:1rem; border: 1px solid var(--error); border-left: 4px solid var(--error);"><strong>URGENT:</strong> SSL Certificate for project <strong>${p.title || p.name}</strong> has EXPIRED! (${fmtDate(hc.expiry_date)})</div>`;
+                }
+              }
+            });
+          }
+        });
+      }
+      return sslWarnings;
+    })()}
 
     <!-- KPI Strip -->
     <div class="fin-kpi-strip">

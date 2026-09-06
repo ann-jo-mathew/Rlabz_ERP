@@ -72,6 +72,18 @@ class FinanceService {
     return this._fetch('/finance/faculty-payments', { method: 'POST', body: JSON.stringify(data) });
   }
 
+  async addResourceCost(data) {
+    return this._fetch('/finance/hosting-charges', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async addMaintenanceCost(data) {
+    return this._fetch('/finance/maintenance-charges', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async createInvoice(data) {
+    return this._fetch('/finance/invoices', { method: 'POST', body: JSON.stringify(data) });
+  }
+
   async getProjectStudents(projectId) {
     return await this._fetch(`/finance/projects/${projectId}`).then(data => {
       return (data?.assigned_resources || []).filter(r => r.type === 'Student');

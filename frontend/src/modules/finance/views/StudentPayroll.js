@@ -180,7 +180,8 @@ export async function StudentPayroll(route, router) {
           <td><div style="font-weight:500">${projName}</div></td>
           <td>
             <div class="fin-hours-cell">
-              <span class="fin-hours-approved">Approved: ${pr.approved_hours || 0}h</span>
+              <span class="fin-hours-approved" style="display:block;margin-bottom:2px">Tasks: ${pr.completed_tasks || 0}</span>
+              <span class="fin-hours-approved">Hours: ${pr.approved_hours || 0}</span>
             </div>
           </td>
           <td style="font-family:var(--font-mono,monospace);font-size:0.875rem;">₹${pr.hourly_rate || 0}/hr</td>
@@ -238,6 +239,11 @@ export async function StudentPayroll(route, router) {
               designation: desg
             });
             modal.remove();
+            
+            // set loading state before re-fetching
+            const tbody = container.querySelector('#payroll-tbody');
+            if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:3rem;color:var(--text-muted)"><span class="fin-spinner" style="margin-right:10px"></span> Updating payroll...</td></tr>`;
+            
             payrollData = await financeService.getStudentPayroll();
             renderTable();
           } catch (e) {
@@ -278,9 +284,6 @@ export async function StudentPayroll(route, router) {
   };
 
   try {
-    payrollData = await financeService.getStudentPayroll();
-    allProjects = await financeService.getProjectsList();
-
     container.innerHTML = `
       <div class="fin-page-header">
         <div>
@@ -295,7 +298,6 @@ export async function StudentPayroll(route, router) {
         <div class="fin-select-wrap" style="max-width:400px;">
           <select id="project-filter" class="fin-input">
             <option value="All">All Projects</option>
-            ${allProjects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -349,7 +351,7 @@ export async function StudentPayroll(route, router) {
                 <th>Student</th>
                 <th>Designation</th>
                 <th>Project</th>
-                <th>Approved Hours</th>
+                <th>Completed Tasks / Hours</th>
                 <th>Rate</th>
                 <th>Gross Amount</th>
                 <th>Paid</th>
@@ -358,7 +360,9 @@ export async function StudentPayroll(route, router) {
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="payroll-tbody"></tbody>
+            <tbody id="payroll-tbody">
+              <tr><td colspan="10" style="text-align:center;padding:3rem;color:var(--text-muted)"><span class="fin-spinner" style="margin-right:10px"></span> Loading payroll data...</td></tr>
+            </tbody>
           </table>
           <div id="no-results" style="display:none;text-align:center;padding:2.5rem;color:var(--text-muted)">
             <p style="margin:0;font-size:0.9rem">No payroll records found for the selected filters.</p>
@@ -366,6 +370,21 @@ export async function StudentPayroll(route, router) {
         </div>
       </div>
     `;
+
+    const loadData = async () => {
+      try {
+        payrollData = await financeService.getStudentPayroll();
+        allProjects = await financeService.getProjectsList();
+        
+        const projectFilter = container.querySelector('#project-filter');
+        projectFilter.innerHTML = '<option value="All">All Projects</option>' + allProjects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        
+        renderTable();
+      } catch (e) {
+        container.querySelector('#payroll-tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#ef4444">Failed to load payroll data: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:10px">Retry</button></td></tr>`;
+      }
+    };
+
 
     const projectFilter = container.querySelector('#project-filter');
     const searchInput = container.querySelector('#search-input');
@@ -385,7 +404,7 @@ export async function StudentPayroll(route, router) {
       renderTable();
     });
 
-    renderTable();
+    loadData();
 
   } catch (e) {
     container.innerHTML = `<div class="alert-error">Failed to load payroll data: ${e.message}</div>`;

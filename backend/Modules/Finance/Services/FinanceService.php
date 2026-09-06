@@ -13,12 +13,19 @@ use DB;
 
 class FinanceService
 {
+    public function getApprovedHourlyRate($projectStudentId = null)
+    {
+        $setting = DB::table('finance_settings')->first();
+        return $setting ? (float) $setting->student_hourly_rate : 0;
+    }
+
     public function getDashboardSummary()
     {
         $totalInvoiced = Invoice::all()->sum('grand_total');
         $totalCollected = Invoice::get()->sum('total_paid'); // using accessor sum
 
         $hostingCharges = HostingCharge::sum('amount');
+        $maintenanceCharges = \Modules\Finance\Models\MaintenanceSupportCharge::sum('amount');
         $studentPayments = StudentPayment::sum('amount');
         $facultyPayments = \Modules\Finance\Models\FacultyPayment::sum('amount');
 
@@ -28,8 +35,8 @@ class FinanceService
             'outstanding' => max(0, round($totalInvoiced - $totalCollected, 2)),
             'totalPayroll' => round($studentPayments, 2),
             'totalFaculty' => round($facultyPayments, 2),
-            'totalOtherExpenses' => round($hostingCharges, 2),
-            'totalExpenses' => round($hostingCharges + $studentPayments + $facultyPayments, 2)
+            'totalOtherExpenses' => round($hostingCharges + $maintenanceCharges, 2),
+            'totalExpenses' => round($hostingCharges + $maintenanceCharges + $studentPayments + $facultyPayments, 2)
         ];
     }
 
@@ -44,19 +51,24 @@ class FinanceService
             
         foreach ($students as $student) {
             $hours = DB::table('student_work_logs')
-                ->where('project_student_id', $student->project_student_id)
-                ->where('approval_status', 'approved')
-                ->sum('hours_worked');
+                ->join('tasks', 'student_work_logs.task_id', '=', 'tasks.id')
+                ->where('student_work_logs.project_student_id', $student->project_student_id)
+                ->where('student_work_logs.approval_status', 'approved')
+                ->where('tasks.status', 'completed')
+                ->sum('student_work_logs.hours_worked');
+
+            $completedTasks = DB::table('student_work_logs')
+                ->join('tasks', 'student_work_logs.task_id', '=', 'tasks.id')
+                ->where('student_work_logs.project_student_id', $student->project_student_id)
+                ->where('student_work_logs.approval_status', 'approved')
+                ->where('tasks.status', 'completed')
+                ->distinct('tasks.id')
+                ->count('tasks.id');
             
-            $designation = $student->designation ?? 'Spark';
-            $rate = match(strtolower($designation)) {
-                'nova' => 250,
-                'orbit' => 200,
-                'spark' => 150,
-                default => 150,
-            };
+            $rate = $this->getApprovedHourlyRate($student->project_student_id);
             
-            $student->designation = ucfirst($designation);
+            $student->designation = ucfirst($student->designation ?? 'None');
+            $student->completed_tasks = $completedTasks;
             $student->approved_hours = $hours;
             $student->hourly_rate = $rate;
             $student->gross_amount = $hours * $rate;
@@ -161,13 +173,14 @@ class FinanceService
 
     public function getAllProjects()
     {
-        $projects = Project::all();
+        // Only return projects that are accepted, in_progress, or closed
+        $projects = Project::whereIn('status', ['accepted', 'in_progress', 'closed'])->get();
         $finances = ProjectFinance::with(['developmentAllocations', 'invoices'])->get()->keyBy('project_id');
         
         $projects->each(function($project) use ($finances) {
             $pf = $finances->get($project->id);
             if ($pf) {
-                $pf->append(['total_invoiced', 'total_collected', 'pending_amount']);
+                $pf->append(['total_invoiced', 'total_collected', 'pending_amount', 'total_expenses']);
             }
             $project->project_finance = $pf;
         });
@@ -182,7 +195,7 @@ class FinanceService
             return null;
         }
 
-        $projectFinance->append(['total_invoiced', 'total_collected', 'pending_amount']);
+        $projectFinance->append(['total_invoiced', 'total_collected', 'pending_amount', 'total_expenses']);
 
         // Fetch students via pivot, since we can't edit Project model
         $students = DB::table('project_student')
@@ -196,16 +209,13 @@ class FinanceService
             $student->type = 'Student';
             // Calc amount from work logs
             $hours = DB::table('student_work_logs')
-                ->where('project_student_id', $student->project_student_id)
-                ->where('approval_status', 'approved')
-                ->sum('hours_worked');
+                ->join('tasks', 'student_work_logs.task_id', '=', 'tasks.id')
+                ->where('student_work_logs.project_student_id', $student->project_student_id)
+                ->where('student_work_logs.approval_status', 'approved')
+                ->where('tasks.status', 'completed')
+                ->sum('student_work_logs.hours_worked');
             
-            $rate = match(strtolower($student->designation)) {
-                'nova' => 250,
-                'orbit' => 200,
-                'spark' => 150,
-                default => 150,
-            };
+            $rate = $this->getApprovedHourlyRate($student->project_student_id);
             $student->amount = $hours * $rate;
             
             // Get paid
