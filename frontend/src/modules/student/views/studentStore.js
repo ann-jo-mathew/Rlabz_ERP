@@ -10,6 +10,8 @@ let cachedWorkLogs = [];
 let cachedMeetings = [];
 let cachedGithub = [];
 let cachedChatMessages = [];
+let cachedNotifications = [];
+let cachedProfile = null;
 
 let dataLoaded = false;
 let lastToken = null;
@@ -48,6 +50,8 @@ export async function ensureDataLoaded(force = false) {
     cachedMeetings = [];
     cachedGithub = [];
     cachedChatMessages = [];
+    cachedNotifications = [];
+    cachedProfile = null;
     dataLoaded = false;
     lastToken = currentToken;
   }
@@ -89,6 +93,22 @@ export async function ensureDataLoaded(force = false) {
         console.warn(`Could not load chat for project ${proj.id}:`, err);
       }
     }
+
+    // 8. Fetch notifications from DB
+    try {
+      cachedNotifications = await apiFetch('/student/notifications');
+    } catch (err) {
+      console.warn('Could not load notifications:', err);
+      cachedNotifications = [];
+    }
+
+    // 9. Fetch student profile from DB
+    try {
+      cachedProfile = await apiFetch('/student/profile');
+    } catch (err) {
+      console.warn('Could not load profile:', err);
+      cachedProfile = null;
+    }
     
     dataLoaded = true;
   } catch (error) {
@@ -122,6 +142,24 @@ export function getGithub() {
 
 export function getChatMessages() {
   return cachedChatMessages;
+}
+
+export function getNotifications() {
+  return cachedNotifications;
+}
+
+export function getStudentProfile() {
+  return cachedProfile;
+}
+
+export async function fetchLiveStudentProfile() {
+  try {
+    const profile = await apiFetch('/student/profile');
+    cachedProfile = profile;
+    return profile;
+  } catch (e) {
+    return null;
+  }
 }
 
 export async function saveReport(report) {

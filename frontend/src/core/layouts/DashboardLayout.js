@@ -149,9 +149,17 @@ export async function DashboardLayout(contentChild, route, router) {
   const wrapper = document.createElement('div');
   wrapper.className = 'dashboard-layout animate-fade-in';
 
-  const displayName = authStore.user?.name || authStore.user?.username || 'User';
+  const user = authStore.user;
+  const isStudent = authStore.role === 'student';
+  const displayName = user?.name || user?.username || 'User';
   const roleName = authStore.role ? authStore.role.replace('_', ' ').toUpperCase() : 'MEMBER';
   const initial = displayName.charAt(0).toUpperCase();
+
+  const designation = user?.designation || (isStudent ? 'Nova' : roleName);
+  const email = user?.email || 'student@rajagiri.edu';
+  const department = user?.department || 'Computer Applications';
+  const course = user?.course || 'MCA';
+  const semester = user?.semester_text || (user?.semester ? `${user.semester}th Semester` : '2nd Year / 3rd Semester');
 
   wrapper.innerHTML = `
     <aside class="sidebar">
@@ -188,32 +196,32 @@ export async function DashboardLayout(contentChild, route, router) {
           <!-- Floating Profile Popover -->
           <div class="profile-popover" id="profile-popover">
             <div class="profile-popover-header">
-              <div class="profile-popover-avatar">${initial}</div>
+              <div class="profile-popover-avatar" id="popover-avatar">${initial}</div>
               <div class="profile-popover-meta">
-                <span class="profile-popover-name">${displayName}</span>
-                <span class="profile-popover-role">${roleName}</span>
+                <span class="profile-popover-name" id="popover-name">${displayName}</span>
+                <span class="profile-popover-role" id="popover-role">${roleName}</span>
               </div>
             </div>
             <div class="profile-popover-body">
               <div class="profile-popover-row">
                 <span class="profile-popover-label">Designation:</span>
-                <span class="profile-popover-value" style="font-weight: 700;">Nova</span>
+                <span class="profile-popover-value" id="popover-designation" style="font-weight: 700;">${designation}</span>
               </div>
               <div class="profile-popover-row">
                 <span class="profile-popover-label">Email:</span>
-                <span class="profile-popover-value">student@rajagiri.edu</span>
+                <span class="profile-popover-value" id="popover-email">${email}</span>
               </div>
               <div class="profile-popover-row">
                 <span class="profile-popover-label">Department:</span>
-                <span class="profile-popover-value">Computer Applications</span>
+                <span class="profile-popover-value" id="popover-department">${department}</span>
               </div>
               <div class="profile-popover-row">
                 <span class="profile-popover-label">Course:</span>
-                <span class="profile-popover-value">MCA</span>
+                <span class="profile-popover-value" id="popover-course">${course}</span>
               </div>
               <div class="profile-popover-row">
                 <span class="profile-popover-label">Semester:</span>
-                <span class="profile-popover-value">2nd Year / 3rd Semester</span>
+                <span class="profile-popover-value" id="popover-semester">${semester}</span>
               </div>
             </div>
           </div>
@@ -265,6 +273,47 @@ export async function DashboardLayout(contentChild, route, router) {
     profilePopover.addEventListener('click', (e) => {
       e.stopPropagation();
     });
+
+    // Sync live profile from database
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('http://127.0.0.1:8000/api/student/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(r => r.ok ? r.json() : null)
+      .then(p => {
+        if (!p) return;
+        const desEl = wrapper.querySelector('#popover-designation');
+        const emailEl = wrapper.querySelector('#popover-email');
+        const deptEl = wrapper.querySelector('#popover-department');
+        const courseEl = wrapper.querySelector('#popover-course');
+        const semEl = wrapper.querySelector('#popover-semester');
+        const nameEl = wrapper.querySelector('#popover-name');
+        
+        if (desEl && p.designation) desEl.textContent = p.designation;
+        if (emailEl && p.email) emailEl.textContent = p.email;
+        if (deptEl && p.department) deptEl.textContent = p.department;
+        if (courseEl && p.course) courseEl.textContent = p.course;
+        if (semEl && (p.semester_text || p.semester)) {
+          semEl.textContent = p.semester_text || `${p.semester}th Semester`;
+        }
+        if (nameEl && p.name) nameEl.textContent = p.name;
+
+        if (user) {
+          user.name = p.name || user.name;
+          user.designation = p.designation || user.designation;
+          user.course = p.course || user.course;
+          user.semester = p.semester || user.semester;
+          user.semester_text = p.semester_text || user.semester_text;
+          user.department = p.department || user.department;
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+      })
+      .catch(() => {});
+    }
   }
 
   return wrapper;

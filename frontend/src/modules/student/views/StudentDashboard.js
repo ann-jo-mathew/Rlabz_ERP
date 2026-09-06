@@ -1,5 +1,5 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
-import { getProjects, getMeetings, ensureDataLoaded } from './studentStore.js';
+import { getProjects, getMeetings, getNotifications, ensureDataLoaded } from './studentStore.js';
 import { useAuthStore } from '@/core/stores/auth.js';
 import '../student.css';
 
@@ -25,19 +25,15 @@ export async function StudentDashboard(route, router) {
   const activeProjectsCount = projects.filter(p => p.status === 'In Progress').length;
   const upcomingMeetingsCount = meetings.filter(m => m.status === 'Scheduled').length;
 
-  // 4. Mock notifications based on actual stored items
-  const notifications = [
-    { title: "Weekly Progress Review meeting scheduled for Aug 11", time: "2 hours ago" },
-    { title: "Daily Work Log for Aug 8 successfully submitted", time: "1 day ago" },
-    { title: "GitHub repository URL updated for RLabZ ERP - Student Portal", time: "2 days ago" }
-  ];
+  // 4. Live notifications fetched from database
+  const notifications = getNotifications() || [];
 
   // 5. Render projects rows
   const projectRows = projects.map(p => `
     <tr>
       <td>
         <div style="font-weight: 600;">${p.title}</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${p.tech}</div>
+        ${p.timeline && p.timeline !== 'Not specified' ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Timeline: ${p.timeline}</div>` : ''}
       </td>
       <td>
         <span class="student-badge student-badge-info">${p.designation}</span>
@@ -110,12 +106,16 @@ export async function StudentDashboard(route, router) {
       <div class="student-card">
         <div class="student-card-title">Recent Notifications</div>
         <div style="display: flex; flex-direction: column;">
-          ${notifications.map(n => `
+          ${notifications.length > 0 ? notifications.map(n => `
             <div class="student-notif-item">
-              <span class="student-notif-title">${n.title}</span>
-              <span class="student-notif-time">${n.time}</span>
+              <span class="student-notif-title">${n.title || n.message}</span>
+              <span class="student-notif-time">${n.time || 'Recently'}</span>
             </div>
-          `).join('')}
+          `).join('') : `
+            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.875rem;">
+              No recent notifications found in database.
+            </div>
+          `}
         </div>
       </div>
     </div>

@@ -122,6 +122,9 @@ class DevUserSeeder extends Seeder
         DB::table('chat_messages')->truncate();
         DB::table('meetings')->truncate();
         DB::table('meeting_participants')->truncate();
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->truncate();
+        }
         Schema::enableForeignKeyConstraints();
 
         // 2. Seed Student Profiles & Faculty Profiles
@@ -482,5 +485,59 @@ class DevUserSeeder extends Seeder
                 'updated_at' => '2026-08-08 16:15:00',
             ]
         ]);
+
+        // 14. Seed Notifications for Students
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                [
+                    'user_id' => $novaId,
+                    'type' => 'meeting',
+                    'message' => 'Weekly Progress Review meeting scheduled for Aug 11',
+                    'is_read' => false,
+                    'created_at' => now()->subHours(2),
+                    'updated_at' => now()->subHours(2),
+                ],
+                [
+                    'user_id' => $novaId,
+                    'type' => 'work_log',
+                    'message' => 'Daily Work Log for Aug 8 successfully submitted',
+                    'is_read' => false,
+                    'created_at' => now()->subDays(1),
+                    'updated_at' => now()->subDays(1),
+                ],
+                [
+                    'user_id' => $novaId,
+                    'type' => 'github',
+                    'message' => 'GitHub repository URL updated for RLabZ ERP - Student Portal',
+                    'is_read' => false,
+                    'created_at' => now()->subDays(2),
+                    'updated_at' => now()->subDays(2),
+                ],
+                [
+                    'user_id' => $orbitId,
+                    'type' => 'meeting',
+                    'message' => 'Weekly Progress Review meeting scheduled for Aug 11',
+                    'is_read' => false,
+                    'created_at' => now()->subHours(2),
+                    'updated_at' => now()->subHours(2),
+                ],
+                [
+                    'user_id' => $orbitId,
+                    'type' => 'work_log',
+                    'message' => 'Daily Work Log for Aug 8 successfully submitted',
+                    'is_read' => false,
+                    'created_at' => now()->subDays(1),
+                    'updated_at' => now()->subDays(1),
+                ],
+                [
+                    'user_id' => $sparkId,
+                    'type' => 'meeting',
+                    'message' => 'Weekly Progress Review meeting scheduled for Aug 11',
+                    'is_read' => false,
+                    'created_at' => now()->subHours(2),
+                    'updated_at' => now()->subHours(2),
+                ]
+            ]);
+        }
     }
 }

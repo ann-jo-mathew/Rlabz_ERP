@@ -70,9 +70,6 @@ export async function StudentChat(route, router) {
                   <div class="student-chat-header-title">${currentProject.title}</div>
                   <div class="student-chat-header-subtitle">Supervisor: <strong>${currentProject.faculty}</strong></div>
                 </div>
-                <div>
-                  <span class="student-badge student-badge-success">Online</span>
-                </div>
               </div>
 
               <!-- Message Stream -->
