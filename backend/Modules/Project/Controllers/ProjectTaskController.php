@@ -50,7 +50,8 @@ class ProjectTaskController extends Controller
             'project_id' => $projectId,
             'module_name' => $request->name,
             'description' => $request->description,
-            'status' => 'active'
+            'status' => 'not_started',
+            'created_by' => $userId
         ]);
 
         return response()->json(['status' => 'success', 'data' => $module], 201);
@@ -66,12 +67,14 @@ class ProjectTaskController extends Controller
             'priority' => 'string'
         ]);
 
+        $userId = $this->getUserId($request);
+
         $task = Task::create([
             'module_id' => $moduleId,
             'title' => $request->title,
             'description' => $request->description,
-            'priority' => $request->priority ?? 'medium',
-            'status' => 'To Do'
+            'status' => 'todo',
+            'created_by' => $userId
         ]);
 
         return response()->json(['status' => 'success', 'data' => $task], 201);
@@ -82,7 +85,7 @@ class ProjectTaskController extends Controller
         $this->checkPermission($request, 'project.task.update');
         
         $request->validate([
-            'status' => 'required|string|in:To Do,In Progress,Completed,Blocked'
+            'status' => 'required|string|in:To Do,In Progress,Completed,Blocked,todo,in_progress,completed,blocked'
         ]);
 
         $task = Task::find($taskId);
@@ -98,7 +101,17 @@ class ProjectTaskController extends Controller
             // but ideally we check assignment explicitly
         }
 
-        $task->status = $request->status;
+        $statusMap = [
+            'To Do' => 'todo',
+            'In Progress' => 'in_progress',
+            'Completed' => 'completed',
+            'Blocked' => 'blocked',
+            'todo' => 'todo',
+            'in_progress' => 'in_progress',
+            'completed' => 'completed',
+            'blocked' => 'blocked',
+        ];
+        $task->status = $statusMap[$request->status];
         $task->save();
 
         return response()->json(['status' => 'success', 'data' => $task]);

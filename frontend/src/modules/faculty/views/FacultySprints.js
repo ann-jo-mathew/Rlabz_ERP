@@ -489,7 +489,7 @@ export function FacultySprints() {
                             All configured modules for this project and their assigned student development team members.
                         </p>
                     </div>
-                    <button id="btn-goto-assign-module" class="btn btn-primary btn-sm shadow-hover" style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                    <button id="btn-goto-assign-module" class="btn btn-primary btn-sm shadow-hover" style="display: inline-flex; align-items: center; gap: 0.45rem; width: max-content; padding: 0.5rem 1.25rem;">
                         ${iconFolder} + Assign Students / Create Module
                     </button>
                 </div>
@@ -571,7 +571,7 @@ export function FacultySprints() {
                             Comprehensive list of all assigned student tasks, associated modules, assignees, deadlines, and delivery statuses.
                         </p>
                     </div>
-                    <button id="btn-goto-assign-task" class="btn btn-primary btn-sm shadow-hover" style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                    <button id="btn-goto-assign-task" class="btn btn-primary btn-sm shadow-hover" style="display: inline-flex; align-items: center; gap: 0.45rem; width: max-content; padding: 0.5rem 1.25rem;">
                         ${iconTask} + Assign New Task
                     </button>
                 </div>
