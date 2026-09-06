@@ -16,7 +16,10 @@
 .faculty-home,
 .faculty-profile,
 .faculty-projects,
-.faculty-students {
+.faculty-students,
+.faculty-sprints,
+.faculty-meetings,
+.faculty-verify-tasks {
     padding: 30px;
     max-width: 1200px;
     margin: 0 auto;
@@ -30,7 +33,10 @@
 .faculty-home::-webkit-scrollbar,
 .faculty-profile::-webkit-scrollbar,
 .faculty-projects::-webkit-scrollbar,
-.faculty-students::-webkit-scrollbar {
+.faculty-students::-webkit-scrollbar,
+.faculty-sprints::-webkit-scrollbar,
+.faculty-meetings::-webkit-scrollbar,
+.faculty-verify-tasks::-webkit-scrollbar {
     display: none;
 }
 
@@ -664,3 +670,616 @@
     background: #e2e8f0;
     color: #1e293b;
 }
+
+/* Dashboard Notification styles */
+.noti-bell-btn {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.noti-bell-btn:hover {
+    transform: scale(1.1);
+}
+.noti-dropdown {
+    transition: all 0.3s ease;
+    border-radius: 12px !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+/* Common Layout and Form styles */
+.faculty-meetings,
+.faculty-sprints,
+.faculty-reports,
+.faculty-notifications {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    max-height: calc(100vh - 132px);
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.faculty-meetings::-webkit-scrollbar,
+.faculty-sprints::-webkit-scrollbar,
+.faculty-reports::-webkit-scrollbar,
+.faculty-notifications::-webkit-scrollbar {
+    display: none;
+}
+
+/* Calendar Styles */
+.calendar-wrapper {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    text-align: center;
+}
+.calendar-day-label {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 13px;
+    padding: 8px 0;
+}
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #334155;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+.calendar-day:hover {
+    background: #f1f5f9;
+}
+.calendar-day.selected {
+    background: #087f5b;
+    color: white;
+    font-weight: bold;
+}
+.calendar-day.has-meeting::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+.calendar-day.selected.has-meeting::after {
+    background: #ffffff;
+}
+
+/* Meeting Schedule Form & List */
+.meeting-schedule-container {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+@media (max-width: 900px) {
+    .meeting-schedule-container {
+        grid-template-columns: 1fr;
+    }
+}
+.meeting-form-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.meeting-form-group {
+    margin-bottom: 16px;
+}
+.meeting-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+.meeting-form-input, .meeting-form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.meeting-form-input:focus, .meeting-form-select:focus {
+    border-color: #087f5b;
+}
+.meeting-team-preview {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    color: #475569;
+}
+.meeting-submit-btn {
+    width: 100%;
+    background: #087f5b;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.meeting-submit-btn:hover {
+    background: #066b4d;
+}
+.meetings-list-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.meeting-item {
+    padding: 14px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.meeting-item:last-child {
+    border-bottom: none;
+}
+.meeting-item-title {
+    font-weight: bold;
+    font-size: 15px;
+    color: #1e293b;
+}
+.meeting-item-meta {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 4px;
+    display: flex;
+    gap: 15px;
+}
+
+/* Sprints page styles */
+.sprints-filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+@media (max-width: 600px) {
+    .sprints-filter-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+}
+.sprints-project-progress-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.sprints-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.sprint-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.sprint-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+}
+.sprint-title {
+    font-weight: 700;
+    font-size: 18px;
+    color: #1e293b;
+}
+.sprint-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.sprint-badge.verified {
+    background: #dcfce7;
+    color: #15803d;
+}
+.sprint-badge.pending {
+    background: #fef9c3;
+    color: #a16207;
+}
+.sprint-badge.in-progress {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+.sprint-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.sprint-info-row {
+    font-size: 14px;
+}
+.sprint-info-row span {
+    font-weight: 600;
+    color: #64748b;
+    display: inline-block;
+    width: 120px;
+}
+.sprint-feedback-box {
+    background: #f8fafc;
+    border-left: 4px solid #087f5b;
+    padding: 12px;
+    border-radius: 0 8px 8px 0;
+    margin-top: 10px;
+}
+.sprint-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+.btn-verify {
+    background: #087f5b;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-verify:hover {
+    background: #066b4d;
+}
+.btn-edit {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-edit:hover {
+    background: #e2e8f0;
+}
+
+/* Modal and Form overlay style */
+.faculty-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+.faculty-modal-card {
+    background: white;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+}
+
+/* Reports and Notifications page styles */
+.report-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+.report-btn-download {
+    background: #087f5b;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.report-btn-download:hover {
+    background: #066b4d;
+}
+.notification-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #cbd5e1;
+}
+.notification-card.unread {
+    border-left-color: #087f5b;
+    background: #f7fdfa;
+}
+.notification-card-content h4 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    color: #1e293b;
+}
+.notification-card-content p {
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: #475569;
+}
+.notification-card-time {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+/* Github integration style additions */
+.git-log-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #087f5b;
+    font-weight: 600;
+    font-size: 13px;
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.git-log-btn:hover {
+    text-decoration: underline;
+}
+.git-message-box {
+    margin-top: 15px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+.git-message-box textarea {
+    width: 100%;
+    height: 60px;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    resize: none;
+}
+.git-message-box textarea:focus {
+    border-color: #087f5b;
+}
+.git-message-btn {
+    margin-top: 8px;
+    background: #087f5b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+.git-message-btn:hover {
+    background: #066b4d;
+}
+.git-log-container {
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #cbd5e1;
+    font-family: monospace;
+    padding: 12px;
+    font-size: 12px;
+}
+.git-log-entry {
+    margin-bottom: 8px;
+    border-bottom: 1px dashed #334155;
+    padding-bottom: 8px;
+}
+.git-log-entry:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* =========================================
+   MY PROJECT DESIGN MATCHING STYLES
+   ========================================= */
+.faculty-sprints,
+.faculty-meetings,
+.faculty-sprints *,
+.faculty-meetings * {
+    box-sizing: border-box;
+}
+
+.faculty-sprints,
+.faculty-meetings {
+    font-family: var(--font-family, 'Plus Jakarta Sans', sans-serif);
+    color: var(--text-main, #0f172a);
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.faculty-sprints .page-header h1,
+.faculty-meetings .page-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    margin: 0 0 0.4rem;
+}
+
+.faculty-sprints .page-header p,
+.faculty-meetings .page-header p {
+    font-size: 0.92rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+/* Card panels matching My Project */
+.faculty-card-panel {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+    padding: 1.5rem;
+}
+
+/* Premium Inputs matching My Project */
+.faculty-sprints .premium-input,
+.faculty-meetings .premium-input {
+    width: 100%;
+    padding: 0.7rem 0.95rem;
+    font-size: 0.92rem;
+    font-family: inherit;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    background: var(--bg-main, #f8fafc);
+    color: var(--text-main, #0f172a);
+    transition: var(--transition, all 0.2s ease);
+}
+
+.faculty-sprints .premium-input:focus,
+.faculty-meetings .premium-input:focus {
+    outline: none;
+    border-color: var(--primary, #059669);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+/* Buttons matching My Project */
+.faculty-sprints .btn,
+.faculty-meetings .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-md, 8px);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition, all 0.2s ease);
+}
+
+.faculty-sprints .btn-sm,
+.faculty-meetings .btn-sm,
+.faculty-verify-tasks .btn-sm {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.82rem;
+    border-radius: var(--radius-sm, 6px);
+}
+
+.faculty-sprints .btn-primary,
+.faculty-meetings .btn-primary,
+.faculty-verify-tasks .btn-primary {
+    background: var(--primary, #059669);
+    color: #ffffff;
+}
+
+.faculty-sprints .btn-primary.shadow-hover,
+.faculty-meetings .btn-primary.shadow-hover,
+.faculty-verify-tasks .btn-primary.shadow-hover {
+    box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+}
+
+.faculty-sprints .btn-primary.shadow-hover:hover,
+.faculty-meetings .btn-primary.shadow-hover:hover,
+.faculty-verify-tasks .btn-primary.shadow-hover:hover {
+    background: var(--primary-hover, #047857);
+    box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.1));
+    transform: translateY(-2px);
+}
+
+.faculty-sprints .btn-outline,
+.faculty-meetings .btn-outline,
+.faculty-verify-tasks .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color, #e2e8f0);
+    color: var(--text-main, #0f172a);
+}
+
+.faculty-sprints .btn-outline:hover,
+.faculty-meetings .btn-outline:hover,
+.faculty-verify-tasks .btn-outline:hover {
+    border-color: var(--primary, #059669);
+    color: var(--primary, #059669);
+    background: var(--primary-light, #ecfdf5);
+}
+
+/* Status Badges matching My Project */
+.faculty-sprints .status-badge,
+.faculty-meetings .status-badge,
+.faculty-verify-tasks .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.faculty-sprints .status-badge.todo,
+.faculty-meetings .status-badge.todo,
+.faculty-verify-tasks .status-badge.todo { background: #dbeafe; color: #2563eb; }
+.faculty-sprints .status-badge.in_progress,
+.faculty-meetings .status-badge.in_progress,
+.faculty-verify-tasks .status-badge.in_progress { background: #fce7f3; color: #db2777; }
+.faculty-sprints .status-badge.completed,
+.faculty-meetings .status-badge.completed,
+.faculty-verify-tasks .status-badge.completed { background: #d1fae5; color: #059669; }
+.faculty-sprints .status-badge.scheduled,
+.faculty-meetings .status-badge.scheduled,
+.faculty-verify-tasks .status-badge.scheduled { background: #fef3c7; color: #d97706; }
+.faculty-sprints .status-badge.cancelled,
+.faculty-meetings .status-badge.cancelled,
+.faculty-verify-tasks .status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+.faculty-sprints .status-badge.blocked,
+.faculty-meetings .status-badge.blocked,
+.faculty-verify-tasks .status-badge.blocked { background: #f1f5f9; color: #475569; }
