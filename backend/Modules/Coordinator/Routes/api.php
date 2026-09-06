@@ -8,8 +8,10 @@ Route::group(['prefix' => 'coordinator', 'middleware' => ['auth.jwt']], function
     Route::post('/projects', [CoordinatorController::class, 'store']);
     Route::get('/projects/{project}', [CoordinatorController::class, 'show']);
 
+    Route::get('/students/eligible', [CoordinatorController::class, 'eligibleStudents']);
     Route::post('/projects/{project}/students', [CoordinatorController::class, 'assignStudent']);
     Route::delete('/projects/{project}/students/{studentId}', [CoordinatorController::class, 'removeStudent']);
+    Route::post('/projects/{project}/modules/{module}/students', [CoordinatorController::class, 'assignStudentToModule']);
 
     Route::post('/projects/{project}/faculty', [CoordinatorController::class, 'assignFaculty']);
     Route::delete('/projects/{project}/faculty/{facultyId}', [CoordinatorController::class, 'removeFaculty']);

@@ -42,6 +42,23 @@ async function fetchProjects() {
   return Array.isArray(body?.data) ? body.data : (Array.isArray(body) ? body : []);
 }
 
+async function fetchEligibleStudents() {
+  const token = getAuthToken();
+  if (!token) return [];
+
+  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/students/eligible', {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resp.ok) return [];
+  const body = await resp.json().catch(() => ({}));
+  return Array.isArray(body?.data) ? body.data : [];
+}
+
 export async function CoordinatorStudents(route, router) {
   const container = document.createElement('div');
   container.className = 'coordinator-dashboard';
@@ -92,7 +109,7 @@ export async function CoordinatorStudents(route, router) {
         </div>
 
         <button class="coordinator-primary-btn" id="add-student-btn">
-          + Add Student
+          + Assign Student
         </button>
       </div>
 
@@ -178,57 +195,65 @@ export async function CoordinatorStudents(route, router) {
 
   async function showAddStudentModal() {
     const modalRoot = container.querySelector('#student-modal-root');
-    const projects = await fetchProjects();
+    const [projects, eligibleStudents] = await Promise.all([fetchProjects(), fetchEligibleStudents()]);
 
     const projectOptionsHtml = projects.length
-      ? projects.map(p => `<option value="${p.title}">${p.title}</option>`).join('')
+      ? projects.map(p => `<option value="${p.id}">${p.title}</option>`).join('')
       : '<option value="">No projects available</option>';
+
+    const studentOptionsHtml = eligibleStudents.length
+      ? eligibleStudents.map(s => `<option value="${s.id}">${s.name}${s.email ? ` (${s.email})` : ''}</option>`).join('')
+      : '<option value="">No unassigned students available</option>';
 
     modalRoot.innerHTML = `
       <div class="coordinator-modal-overlay">
         <div class="coordinator-modal">
           <div class="coordinator-modal-header">
             <div>
-              <h2>Add Student</h2>
-              <p>Add a student and assign their RLabZ designation.</p>
+              <h2>Assign Student</h2>
+              <p>Assign an existing, unassigned student to a project.</p>
             </div>
             <button id="close-student-modal" class="coordinator-close-btn">×</button>
           </div>
 
           <form id="new-student-form">
             <div class="coordinator-form-grid">
-              <div class="coordinator-form-group">
-                <label>Student Name *</label>
-                <input type="text" name="name" placeholder="Enter student name" required>
-              </div>
-
-              <div class="coordinator-form-group">
-                <label>Course *</label>
-                <input type="text" name="course" placeholder="e.g. MCA" required>
-              </div>
-
-              <div class="coordinator-form-group">
-                <label>Designation *</label>
-                <select name="designation" required>
-                  <option value="">Select designation</option>
-                  <option value="Nova">Nova — Lead Developer</option>
-                  <option value="Orbit">Orbit — Developer</option>
-                  <option value="Spark">Spark — Learner Intern</option>
+              <div class="coordinator-form-group full-width">
+                <label>Student *</label>
+                <select name="student_id" required>
+                  <option value="">Select a student</option>
+                  ${studentOptionsHtml}
                 </select>
               </div>
 
               <div class="coordinator-form-group full-width">
-                <label>Current Project</label>
-                <select name="project">
-                  <option value="">Not assigned</option>
+                <label>Project *</label>
+                <select name="project_id" required>
+                  <option value="">Select a project</option>
                   ${projectOptionsHtml}
                 </select>
+              </div>
+
+              <div class="coordinator-form-group">
+                <label>Role *</label>
+                <select name="role" required>
+                  <option value="project_lead">Project Lead</option>
+                  <option value="developer">Developer</option>
+                  <option value="designer">Designer</option>
+                  <option value="tester">Tester</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="coordinator-form-group">
+                <label>Assigned Date</label>
+                <input type="date" name="assigned_date">
               </div>
             </div>
 
             <div class="coordinator-modal-footer">
               <button type="button" id="cancel-student" class="coordinator-secondary-btn">Cancel</button>
-              <button type="submit" class="coordinator-primary-btn">Add Student</button>
+              <button type="submit" class="coordinator-primary-btn">Assign Student</button>
             </div>
           </form>
         </div>
@@ -243,6 +268,9 @@ export async function CoordinatorStudents(route, router) {
       const form = event.target;
       const formData = new FormData(form);
       const payload = Object.fromEntries(formData.entries());
+      const projectId = payload.project_id;
+      delete payload.project_id;
+      if (!payload.assigned_date) delete payload.assigned_date;
 
       const token = getAuthToken();
       if (!token) {
@@ -251,7 +279,7 @@ export async function CoordinatorStudents(route, router) {
       }
 
       try {
-        const resp = await fetch('http://127.0.0.1:8000/api/coordinator/students', {
+        const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/students`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -263,10 +291,10 @@ export async function CoordinatorStudents(route, router) {
 
         const body = await resp.json().catch(() => ({}));
         if (!resp.ok) {
-          throw new Error(body.error || body.message || 'Failed to add student');
+          throw new Error(body.error || body.message || 'Failed to assign student');
         }
 
-        alert('Student added successfully!');
+        alert('Student assigned successfully!');
         closeModal();
 
         // Refresh list from backend

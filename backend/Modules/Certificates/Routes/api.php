@@ -8,5 +8,6 @@ Route::group(['prefix' => 'certificates', 'middleware' => ['auth.jwt']], functio
     Route::get('/{certificate}', [CertificatesController::class, 'show']);
     Route::get('/projects/{project}', [CertificatesController::class, 'projectCertificates']);
     Route::get('/students/{student}', [CertificatesController::class, 'studentCertificates']);
+    Route::get('/modules/{module}/eligible-students', [CertificatesController::class, 'moduleEligibleStudents']);
     Route::post('/', [CertificatesController::class, 'store']);
 });

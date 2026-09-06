@@ -6,13 +6,25 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Auth\Models\User;
 use Modules\Certificates\Models\Certificate;
-use Modules\ProjectClient\Models\Project;
+use Modules\Project\Models\Module;
+use Modules\Project\Models\Project;
 
 class CertificatesController extends Controller
 {
     protected function currentUserId(Request $request): ?int
     {
         return $request->auth_user['sub'] ?? null;
+    }
+
+    protected function generateCertificateNumber(): string
+    {
+        $year = date('Y');
+        do {
+            $sequence = str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
+            $candidate = "CERT-{$year}-{$sequence}";
+        } while (Certificate::where('certificate_number', $candidate)->exists());
+
+        return $candidate;
     }
 
     protected function isAuthorized(Request $request): bool
@@ -34,7 +46,7 @@ class CertificatesController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $certificates = Certificate::with(['project', 'student', 'issuer'])->latest('issue_date')->get();
+        $certificates = Certificate::with(['project', 'module', 'student', 'issuer'])->latest('issue_date')->get();
 
         return response()->json([
             'data' => $certificates,
@@ -49,7 +61,7 @@ class CertificatesController extends Controller
         }
 
         return response()->json([
-            'data' => $certificate->load(['project', 'student', 'issuer']),
+            'data' => $certificate->load(['project', 'module', 'student', 'issuer']),
         ]);
     }
 
@@ -59,7 +71,7 @@ class CertificatesController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $certificates = Certificate::with(['student', 'issuer'])
+        $certificates = Certificate::with(['module', 'student', 'issuer'])
             ->where('project_id', $project->id)
             ->orderBy('issue_date', 'desc')
             ->get();
@@ -73,12 +85,31 @@ class CertificatesController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $certificates = Certificate::with(['project', 'issuer'])
+        $certificates = Certificate::with(['project', 'module', 'issuer'])
             ->where('student_id', $student->id)
             ->orderBy('issue_date', 'desc')
             ->get();
 
         return response()->json(['data' => $certificates]);
+    }
+
+    /**
+     * Students eligible for a certificate for the given module: must have a
+     * module_student record for this module (module_student is the source of truth
+     * for "was assigned to / completed this module", per the certificate business rule).
+     */
+    public function moduleEligibleStudents(Request $request, Module $module)
+    {
+        if (!$this->isAuthorized($request)) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $students = $module->students()->select('users.id', 'users.name', 'users.email')->get();
+
+        return response()->json([
+            'data' => $students,
+            'module_status' => $module->status,
+        ]);
     }
 
     public function store(Request $request)
@@ -89,23 +120,52 @@ class CertificatesController extends Controller
 
         $validated = $request->validate([
             'project_id' => 'required|integer|exists:projects,id',
+            'module_id' => 'required|integer|exists:modules,id',
             'student_id' => 'required|integer|exists:users,id',
-            'certificate_number' => 'required|string|max:50|unique:certificates',
-            'description' => 'required|string|max:100',
-            'issue_date' => 'required|date',
+            'issue_date' => 'nullable|date',
             'certificate_file' => 'nullable|string|max:500',
         ]);
 
-        $validated['issued_by'] = $this->currentUserId($request) ?? $request->user()?->id;
-        if (!$validated['issued_by']) {
+        $project = Project::findOrFail($validated['project_id']);
+        $module = Module::findOrFail($validated['module_id']);
+
+        if ((int) $module->project_id !== (int) $project->id) {
+            return response()->json(['error' => 'Selected module does not belong to the selected project'], 422);
+        }
+
+        if ($module->status !== 'completed') {
+            return response()->json(['error' => 'Certificates can only be issued once the module status is completed'], 422);
+        }
+
+        $student = User::find($validated['student_id']);
+        if (!$student || $student->role !== 'student') {
+            return response()->json(['error' => 'Selected user is not a student'], 422);
+        }
+
+        $isAssignedToModule = $module->students()->where('users.id', $student->id)->exists();
+        if (!$isAssignedToModule) {
+            return response()->json(['error' => 'Selected student is not assigned to this module'], 422);
+        }
+
+        $issuedBy = $this->currentUserId($request) ?? $request->user()?->id;
+        if (!$issuedBy) {
             return response()->json(['error' => 'Unable to identify current user'], 400);
         }
 
-        $certificate = Certificate::create($validated);
+        $certificate = Certificate::create([
+            'project_id' => $project->id,
+            'module_id' => $module->id,
+            'student_id' => $student->id,
+            'certificate_number' => $this->generateCertificateNumber(),
+            'description' => "{$student->name} has successfully completed the {$module->module_name} module of the {$project->title} project.",
+            'issue_date' => $validated['issue_date'] ?? now()->toDateString(),
+            'certificate_file' => $validated['certificate_file'] ?? null,
+            'issued_by' => $issuedBy,
+        ]);
 
         return response()->json([
             'message' => 'Certificate issued successfully',
-            'data' => $certificate->load(['project', 'student', 'issuer']),
+            'data' => $certificate->load(['project', 'module', 'student', 'issuer']),
         ], 201);
     }
 }

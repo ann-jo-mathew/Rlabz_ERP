@@ -4,7 +4,7 @@ namespace Modules\Coordinator\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Modules\Auth\Models\User;
-use Modules\ProjectClient\Models\Project;
+use Modules\Project\Models\Project;
 
 class ProjectFaculty extends Pivot
 {

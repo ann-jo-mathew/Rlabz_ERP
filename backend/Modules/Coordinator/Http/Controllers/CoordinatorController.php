@@ -12,7 +12,9 @@ use Modules\Coordinator\Models\ProjectClosure;
 use Modules\Coordinator\Models\ProjectFaculty;
 use Modules\Coordinator\Models\ProjectStudent;
 use Modules\Coordinator\Models\RequirementChange;
-use Modules\ProjectClient\Models\Project;
+use Modules\Project\Models\Module;
+use Modules\Project\Models\Project;
+use Modules\Project\Models\Task;
 
 class CoordinatorController extends Controller
 {
@@ -80,6 +82,7 @@ class CoordinatorController extends Controller
             'students:id,name,email',
             'faculty:id,name,email',
             'modules.tasks',
+            'modules.students:id,name,email',
             'requirements',
             'closure',
         ])->latest()->get();
@@ -105,10 +108,12 @@ class CoordinatorController extends Controller
             'students:id,name,email',
             'faculty:id,name,email',
             'modules.tasks',
+            'modules.students:id,name,email',
             'requirements.uploader',
             'requirementChanges.requester',
             'closure.closer',
             'certificates.student',
+            'certificates.module',
         ]);
 
         $project->requirements_text = $project->getOriginal('requirements');
@@ -191,6 +196,26 @@ class CoordinatorController extends Controller
         ], 201);
     }
 
+    /**
+     * Students eligible for a NEW project assignment: role = student AND not already
+     * present in project_student for any project (business rule: one project at a time).
+     */
+    public function eligibleStudents(Request $request)
+    {
+        if (!$this->isAuthorized($request, ['view-coordinator', 'view-student'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $assignedStudentIds = DB::table('project_student')->pluck('student_id');
+
+        $students = User::where('role', 'student')
+            ->whereNotIn('id', $assignedStudentIds)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return response()->json(['data' => $students]);
+    }
+
     public function removeStudent(Request $request, Project $project, $studentId)
     {
         if (!$this->isAuthorized($request, ['view-coordinator', 'view-projects'])) {
@@ -255,6 +280,46 @@ class CoordinatorController extends Controller
         ]);
     }
 
+    /**
+     * Assign a student to a module (module_student). The student must already be
+     * assigned to the module's parent project via project_student.
+     */
+    public function assignStudentToModule(Request $request, Project $project, Module $module)
+    {
+        if (!$this->isAuthorized($request, ['view-coordinator', 'view-projects'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        if ((int) $module->project_id !== (int) $project->id) {
+            return response()->json(['error' => 'Selected module does not belong to this project'], 422);
+        }
+
+        $validated = $request->validate([
+            'student_id' => ['required', 'integer', 'exists:users,id'],
+            'assigned_date' => 'nullable|date',
+        ]);
+
+        $onProject = $project->students()->where('student_id', $validated['student_id'])->exists();
+        if (!$onProject) {
+            return response()->json(['error' => 'Student must be assigned to this project before being assigned to a module'], 422);
+        }
+
+        if ($module->students()->where('student_id', $validated['student_id'])->exists()) {
+            return response()->json(['error' => 'Student is already assigned to this module'], 422);
+        }
+
+        $module->students()->attach($validated['student_id'], [
+            'assigned_date' => $validated['assigned_date'] ?? now()->toDateString(),
+        ]);
+
+        $record = $module->students()->where('users.id', $validated['student_id'])->first();
+
+        return response()->json([
+            'message' => 'Student assigned to module successfully',
+            'data' => $record,
+        ], 201);
+    }
+
     public function requirements(Request $request, Project $project)
     {
         if (!$this->isAuthorized($request, ['view-coordinator', 'view-projects'])) {
@@ -276,15 +341,24 @@ class CoordinatorController extends Controller
         }
 
         $validated = $request->validate([
-            'task_id' => 'nullable|integer|exists:tasks,id',
+            'task_id' => 'required|integer|exists:tasks,id',
             'description' => 'required|string',
             'document_path' => 'nullable|string|max:500',
             'uploaded_on' => 'nullable|date',
         ]);
 
+        $taskBelongsToProject = Task::where('id', $validated['task_id'])
+            ->whereHas('module', function ($query) use ($project) {
+                $query->where('project_id', $project->id);
+            })->exists();
+
+        if (!$taskBelongsToProject) {
+            return response()->json(['error' => 'Selected task does not belong to this project'], 422);
+        }
+
         $requirement = ClientRequirement::create([
             'project_id' => $project->id,
-            'task_id' => $validated['task_id'] ?? null,
+            'task_id' => $validated['task_id'],
             'description' => $validated['description'],
             'document_path' => $validated['document_path'] ?? null,
             'uploaded_by' => $this->currentUserId($request) ?? $request->user()?->id,

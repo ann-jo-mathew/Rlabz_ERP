@@ -13,7 +13,7 @@ const routes = [
       {
         path: 'projects',
         name: 'coordinator-projects',
-        component: () => import('@/modules/project/views/ProjectDashboard.js')
+        component: () => import('./views/CoordinatorProjects.js')
       },
       {
         path: 'projects/create',
@@ -23,11 +23,6 @@ const routes = [
       {
         path: 'projects/:id',
         name: 'coordinator-projects-details',
-        component: () => import('@/modules/project/views/ProjectDetails.js')
-      },
-      {
-        path: 'projects/:id',
-        name: 'coordinator-project-detail',
         component: () => import('./views/CoordinatorProjectDetail.js')
       },
       {
