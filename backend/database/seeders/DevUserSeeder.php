@@ -100,9 +100,14 @@ class DevUserSeeder extends Seeder
         $novaId = DB::table('users')->where('email', 'nova@rajagiri.edu')->value('id');
         $orbitId = DB::table('users')->where('email', 'orbit@rajagiri.edu')->value('id');
         $sparkId = DB::table('users')->where('email', 'spark@rajagiri.edu')->value('id');
+        $aliceId = DB::table('users')->where('email', 'alice.smith@rajagiri.edu')->value('id');
+        $bobId = DB::table('users')->where('email', 'bob.johnson@rajagiri.edu')->value('id');
 
         // Disable FK checks and truncate relational tables
         Schema::disableForeignKeyConstraints();
+        if (Schema::hasTable('faculty_profiles')) {
+            DB::table('faculty_profiles')->truncate();
+        }
         DB::table('student_profiles')->truncate();
         DB::table('projects')->truncate();
         DB::table('project_student')->truncate();
@@ -119,12 +124,20 @@ class DevUserSeeder extends Seeder
         DB::table('meeting_participants')->truncate();
         Schema::enableForeignKeyConstraints();
 
-        // 2. Seed Student Profiles
+        // 2. Seed Student Profiles & Faculty Profiles
         DB::table('student_profiles')->insert([
             ['student_id' => $novaId, 'course' => 'MCA', 'batch' => '2025-2027', 'semester' => '3', 'designation' => 'Nova', 'created_at' => now(), 'updated_at' => now()],
             ['student_id' => $orbitId, 'course' => 'MCA', 'batch' => '2025-2027', 'semester' => '3', 'designation' => 'Orbit', 'created_at' => now(), 'updated_at' => now()],
             ['student_id' => $sparkId, 'course' => 'MCA', 'batch' => '2025-2027', 'semester' => '3', 'designation' => 'Spark', 'created_at' => now(), 'updated_at' => now()],
         ]);
+
+        if (Schema::hasTable('faculty_profiles')) {
+            DB::table('faculty_profiles')->insert([
+                ['faculty_id' => $facultyId, 'department' => 'Computer Applications', 'designation' => 'Associate Professor', 'created_at' => now(), 'updated_at' => now()],
+                ['faculty_id' => $aliceId ?: 8, 'department' => 'Computer Applications', 'designation' => 'Assistant Professor', 'created_at' => now(), 'updated_at' => now()],
+                ['faculty_id' => $bobId ?: 9, 'department' => 'Computer Applications', 'designation' => 'Professor & HOD', 'created_at' => now(), 'updated_at' => now()],
+            ]);
+        }
 
         // 3. Seed Projects
         $projectId1 = DB::table('projects')->insertGetId([

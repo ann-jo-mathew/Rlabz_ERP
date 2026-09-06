@@ -41,6 +41,13 @@ class ProjectAssignmentController extends Controller
         $faculty = DB::table('users')->where('id', $request->faculty_id)->first();
         $facultyName = $faculty ? $faculty->name : 'Faculty Member';
 
+        if (Schema::hasColumn('projects', 'faculty_id')) {
+            DB::table('projects')->where('id', $projectId)->update([
+                'faculty_id' => $request->faculty_id,
+                'updated_at' => now()
+            ]);
+        }
+
         if (Schema::hasTable('project_faculty')) {
             DB::table('project_faculty')->updateOrInsert(
                 ['project_id' => $projectId, 'faculty_id' => $request->faculty_id],

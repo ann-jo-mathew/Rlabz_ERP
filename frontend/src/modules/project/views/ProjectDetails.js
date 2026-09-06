@@ -637,6 +637,13 @@ export async function ProjectDetails(route, router) {
     formFaculty.addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = container.querySelector('#msg-faculty');
+      const facultyId = container.querySelector('#faculty-id').value;
+      if (!facultyId) {
+        msg.style.color = 'red';
+        msg.textContent = 'Please select a faculty member from the dropdown suggestions.';
+        return;
+      }
+      msg.style.color = '#2563eb';
       msg.textContent = 'Assigning...';
       const formData = new FormData(formFaculty);
       try {
@@ -652,18 +659,18 @@ export async function ProjectDetails(route, router) {
         const data = await response.json();
         if (response.ok) {
           msg.style.color = 'green';
-          msg.textContent = data.message || 'Assigned successfully!';
+          msg.textContent = data.message || 'Assigned faculty successfully!';
           formFaculty.reset();
           container.querySelector('#faculty-search').value = '';
           container.querySelector('#faculty-id').value = '';
           loadProject();
         } else {
           msg.style.color = 'red';
-          msg.textContent = data.error || 'Failed to assign';
+          msg.textContent = data.error || data.message || 'Failed to assign faculty';
         }
       } catch (err) {
         msg.style.color = 'red';
-        msg.textContent = 'Error assigning';
+        msg.textContent = 'Error assigning faculty';
       }
     });
   }
@@ -705,6 +712,51 @@ export async function ProjectDetails(route, router) {
     });
   }
 
+  function showUserProjectsPopup(parentHost, user) {
+    const projectsList = user.active_projects || user.activeProjects || [];
+    const popupOverlay = document.createElement('div');
+    popupOverlay.className = 'director-modal-overlay';
+    popupOverlay.style.zIndex = '2000';
+    popupOverlay.innerHTML = `
+      <div class="director-modal" style="max-width: 440px; border-top: 4px solid #10b981;">
+        <div class="director-modal-header">
+          <h3 style="margin:0; font-size:1.1rem; color:#111827;">Active Projects — ${user.name}</h3>
+          <button class="btn-director btn-director-outline btn-close-popup">✕</button>
+        </div>
+        <div class="director-modal-body" style="max-height:280px; overflow-y:auto; margin-bottom:1rem;">
+          <div style="font-size:0.8rem; color:#6b7280; margin-bottom:0.75rem;">
+            Email: <strong>${user.email || ''}</strong>
+          </div>
+          ${projectsList.length === 0 ? `
+            <div style="text-align:center; padding:1.5rem; color:#9ca3af; background:#f9fafb; border-radius:8px;">
+              No active projects currently assigned to this faculty member.
+            </div>
+          ` : `
+            <div style="display:flex; flex-direction:column; gap:0.6rem;">
+              ${projectsList.map((p, idx) => `
+                <div style="padding:0.65rem 0.85rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+                  <div style="font-weight:700; color:#111827; font-size:0.875rem;">${idx + 1}. ${p.title}</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
+                    <span style="font-size:0.75rem; color:#6b7280;">Type: ${p.type || 'Web Application'}</span>
+                    <span class="status-badge ${p.status === 'completed' ? 'completed' : 'in_progress'}" style="font-size:0.65rem; padding:1px 6px;">
+                      ${(p.status || 'in_progress').replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+        <div class="director-modal-footer">
+          <button class="btn-director btn-director-primary btn-close-popup">Close</button>
+        </div>
+      </div>
+    `;
+
+    popupOverlay.querySelectorAll('.btn-close-popup').forEach(b => b.addEventListener('click', () => popupOverlay.remove()));
+    parentHost.appendChild(popupOverlay);
+  }
+
   // Autocomplete Logic
   function setupAutocomplete(searchInputId, hiddenInputId, resultsId, role) {
     const searchInput = container.querySelector('#' + searchInputId);
@@ -715,46 +767,78 @@ export async function ProjectDetails(route, router) {
 
     let debounceTimer;
 
+    const fetchAndRender = async (query = '') => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://127.0.0.1:8000/api/auth/users?role=${role}&search=${encodeURIComponent(query)}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await response.json();
+
+        if (data.status === 'success' && data.data && data.data.length > 0) {
+          resultsContainer.innerHTML = '';
+          data.data.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.style.display = 'flex';
+            item.style.justifyContent = 'space-between';
+            item.style.alignItems = 'center';
+            item.style.padding = '0.6rem 0.85rem';
+
+            const count = user.active_projects_count !== undefined ? user.active_projects_count : (user.active_projects ? user.active_projects.length : 0);
+
+            item.innerHTML = `
+              <div>
+                <strong>${user.name}</strong><br>
+                <small style="color:var(--text-muted);">${user.email}</small>
+              </div>
+              ${role === 'faculty' ? `
+                <button type="button" class="btn-view-user-projects" style="font-size:0.75rem; padding:0.25rem 0.55rem; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; border-radius:6px; cursor:pointer; font-weight:600; white-space:nowrap; margin-left:0.5rem;">
+                  📊 ${count} Active Project${count === 1 ? '' : 's'}
+                </button>
+              ` : ''}
+            `;
+
+            const projBtn = item.querySelector('.btn-view-user-projects');
+            if (projBtn) {
+              projBtn.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                showUserProjectsPopup(container, user);
+              });
+            }
+
+            item.addEventListener('click', () => {
+              searchInput.value = user.name;
+              hiddenInput.value = user.id;
+              resultsContainer.style.display = 'none';
+            });
+            resultsContainer.appendChild(item);
+          });
+          resultsContainer.style.display = 'block';
+        } else {
+          resultsContainer.innerHTML = '<div class="autocomplete-item"><small>No users found</small></div>';
+          resultsContainer.style.display = 'block';
+        }
+      } catch (err) {
+        console.error('Error fetching users:', err);
+      }
+    };
+
+    searchInput.addEventListener('focus', () => {
+      fetchAndRender(searchInput.value.trim());
+    });
+
+    searchInput.addEventListener('click', () => {
+      fetchAndRender(searchInput.value.trim());
+    });
+
     searchInput.addEventListener('input', (e) => {
       clearTimeout(debounceTimer);
       const query = e.target.value.trim();
-
-      if (query.length < 2) {
-        resultsContainer.style.display = 'none';
-        hiddenInput.value = '';
-        return;
-      }
-
-      debounceTimer = setTimeout(async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`http://127.0.0.1:8000/api/auth/users?role=${role}&search=${encodeURIComponent(query)}`, {
-            headers: { 'Authorization': 'Bearer ' + token }
-          });
-          const data = await response.json();
-
-          if (data.status === 'success' && data.data.length > 0) {
-            resultsContainer.innerHTML = '';
-            data.data.forEach(user => {
-              const item = document.createElement('div');
-              item.className = 'autocomplete-item';
-              item.innerHTML = `<strong>${user.name}</strong><small>${user.email}</small>`;
-              item.addEventListener('click', () => {
-                searchInput.value = user.name;
-                hiddenInput.value = user.id;
-                resultsContainer.style.display = 'none';
-              });
-              resultsContainer.appendChild(item);
-            });
-            resultsContainer.style.display = 'block';
-          } else {
-            resultsContainer.innerHTML = '<div class="autocomplete-item"><small>No users found</small></div>';
-            resultsContainer.style.display = 'block';
-          }
-        } catch (err) {
-          console.error('Error fetching users:', err);
-        }
-      }, 300);
+      debounceTimer = setTimeout(() => {
+        fetchAndRender(query);
+      }, 250);
     });
 
     document.addEventListener('click', (e) => {

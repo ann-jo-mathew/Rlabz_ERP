@@ -232,26 +232,90 @@ export function DirectorProjects(route, router) {
   }
 
   function showProposalModal(proposal, faculties) {
+  function showFacultyProjectsPopup(parentHost, faculty) {
+    const projectsList = faculty.activeProjects || [];
+    const popupOverlay = document.createElement('div');
+    popupOverlay.className = 'director-modal-overlay';
+    popupOverlay.style.zIndex = '1050';
+    popupOverlay.innerHTML = `
+      <div class="director-modal" style="max-width: 440px; border-top: 4px solid #10b981;">
+        <div class="director-modal-header">
+          <h3 style="margin:0; font-size:1.1rem; color:#111827;">Active Projects — ${faculty.name}</h3>
+          <button class="btn-director btn-director-outline btn-close-popup">✕</button>
+        </div>
+        <div class="director-modal-body" style="max-height:280px; overflow-y:auto; margin-bottom:1rem;">
+          <div style="font-size:0.8rem; color:#6b7280; margin-bottom:0.75rem;">
+            Email: <strong>${faculty.email || 'faculty@rajagiri.edu'}</strong> | Department: <strong>${faculty.department || 'Computer Applications'}</strong>
+          </div>
+          ${projectsList.length === 0 ? `
+            <div style="text-align:center; padding:1.5rem; color:#9ca3af; background:#f9fafb; border-radius:8px;">
+              No active projects currently assigned to this faculty member.
+            </div>
+          ` : `
+            <div style="display:flex; flex-direction:column; gap:0.6rem;">
+              ${projectsList.map((p, idx) => `
+                <div style="padding:0.65rem 0.85rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+                  <div style="font-weight:700; color:#111827; font-size:0.875rem;">${idx + 1}. ${p.title}</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
+                    <span style="font-size:0.75rem; color:#6b7280;">Type: ${p.type || 'Web Application'}</span>
+                    <span class="status-badge ${p.status === 'completed' ? 'completed' : 'in_progress'}" style="font-size:0.65rem; padding:1px 6px;">
+                      ${(p.status || 'in_progress').replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+        <div class="director-modal-footer">
+          <button class="btn-director btn-director-primary btn-close-popup">Close</button>
+        </div>
+      </div>
+    `;
+
+    popupOverlay.querySelectorAll('.btn-close-popup').forEach(b => b.addEventListener('click', () => popupOverlay.remove()));
+    parentHost.appendChild(popupOverlay);
+  }
+
+  function showProposalModal(proposal, faculties) {
     const modalHost = container.querySelector('#proposal-modal-container');
+    const defaultFacId = proposal.suggestedFaculty || (faculties[0] ? faculties[0].id : '');
     modalHost.innerHTML = `
       <div class="director-modal-overlay">
-        <div class="director-modal">
+        <div class="director-modal" style="max-width:540px;">
           <div class="director-modal-header">
             <h3>Review Proposal: ${proposal.title}</h3>
             <button class="btn-director btn-director-outline btn-close-modal">✕</button>
           </div>
           <div class="director-modal-body">
-            <p><strong>Description:</strong> ${proposal.description}</p>
-            <p><strong>Source:</strong> ${proposal.source} (${proposal.sourceName}) | <strong>Client:</strong> ${proposal.clientName}</p>
-            <p><strong>Est. Budget:</strong> ₹${proposal.estimatedBudget.toLocaleString()} | <strong>Timeline:</strong> ${proposal.expectedTimeline}</p>
+            <p style="margin-bottom:0.5rem;"><strong>Description:</strong> ${proposal.description}</p>
+            <p style="margin-bottom:1rem;"><strong>Source:</strong> ${proposal.source} (${proposal.sourceName}) | <strong>Client:</strong> ${proposal.clientName} | <strong>Est. Budget:</strong> ₹${proposal.estimatedBudget.toLocaleString()}</p>
             
-            <label style="font-weight:600; font-size:0.875rem;">Assign Lead Faculty:</label>
-            <select id="modal-select-faculty" style="padding:0.5rem; border-radius:6px; border:1px solid #d1d5db;">
-              ${faculties.map(f => `<option value="${f.id}" ${f.id === proposal.suggestedFaculty ? 'selected' : ''}>${f.name} (${f.department})</option>`).join('')}
-            </select>
+            <label style="font-weight:600; font-size:0.875rem; margin-bottom:0.35rem; display:block;">Assign Lead Faculty:</label>
+            <div class="faculty-selection-list" style="display:flex; flex-direction:column; gap:0.5rem; max-height:220px; overflow-y:auto; padding:0.25rem; border:1px solid #d1d5db; border-radius:8px; background:#f9fafb;">
+              ${faculties.map(f => {
+                const projectsList = f.activeProjects || [];
+                const count = f.activeProjectsCount !== undefined ? f.activeProjectsCount : projectsList.length;
+                const isSelected = String(f.id) === String(defaultFacId);
+                return `
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? '#10b981' : '#e5e7eb'}; border-radius:6px;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; margin:0;">
+                      <input type="radio" name="proposal_faculty_choice" value="${f.id}" ${isSelected ? 'checked' : ''} />
+                      <div>
+                        <div style="font-weight:600; color:#111827; font-size:0.85rem;">${f.name}</div>
+                        <div style="font-size:0.75rem; color:#6b7280;">${f.department || 'Computer Applications'}</div>
+                      </div>
+                    </label>
+                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:#047857; border-color:#a7f3d0; background:#ecfdf5; border-radius:6px; cursor:pointer;">
+                      📊 ${count} Active Project${count === 1 ? '' : 's'}
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
 
-            <label style="font-weight:600; font-size:0.875rem;">Director Review Notes / Remarks:</label>
-            <textarea id="modal-review-notes" rows="3" placeholder="Enter optional notes for the client and team..." style="padding:0.5rem; border-radius:6px; border:1px solid #d1d5db; font-family:inherit;"></textarea>
+            <label style="font-weight:600; font-size:0.875rem; margin-top:0.5rem; display:block;">Director Review Notes / Remarks:</label>
+            <textarea id="modal-review-notes" rows="2" placeholder="Enter optional notes for the client and team..." style="padding:0.5rem; border-radius:6px; border:1px solid #d1d5db; font-family:inherit;"></textarea>
           </div>
           <div class="director-modal-footer">
             <button class="btn-director btn-director-danger btn-reject-prop">Reject Proposal</button>
@@ -262,9 +326,19 @@ export function DirectorProjects(route, router) {
     `;
 
     modalHost.querySelector('.btn-close-modal').addEventListener('click', () => { modalHost.innerHTML = ''; });
+    modalHost.querySelectorAll('.btn-view-faculty-projects').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const facId = e.currentTarget.getAttribute('data-id');
+        const faculty = faculties.find(f => String(f.id) === String(facId));
+        if (faculty) showFacultyProjectsPopup(modalHost, faculty);
+      });
+    });
 
     modalHost.querySelector('.btn-accept-prop').addEventListener('click', async () => {
-      const facId = modalHost.querySelector('#modal-select-faculty').value;
+      const selectedRadio = modalHost.querySelector('input[name="proposal_faculty_choice"]:checked');
+      const facId = selectedRadio ? selectedRadio.value : (faculties[0] ? faculties[0].id : null);
       const notes = modalHost.querySelector('#modal-review-notes').value;
       await DirectorService.updateProposalStatusAsync(proposal.id, 'accepted', notes, facId);
       modalHost.innerHTML = '';
@@ -281,19 +355,39 @@ export function DirectorProjects(route, router) {
 
   function showFacultyModal(project, faculties) {
     const modalHost = container.querySelector('#faculty-modal-container');
+    const defaultFacId = project.facultyId || (faculties[0] ? faculties[0].id : '');
     modalHost.innerHTML = `
       <div class="director-modal-overlay">
-        <div class="director-modal">
+        <div class="director-modal" style="max-width:520px;">
           <div class="director-modal-header">
             <h3>Assign Faculty to ${project.title}</h3>
             <button class="btn-director btn-director-outline btn-close-modal">✕</button>
           </div>
           <div class="director-modal-body">
-            <p>Current Lead Faculty: <strong>${project.facultyName}</strong></p>
-            <label style="font-weight:600; font-size:0.875rem;">Select New Lead Faculty:</label>
-            <select id="modal-reassign-faculty" style="padding:0.5rem; border-radius:6px; border:1px solid #d1d5db;">
-              ${faculties.map(f => `<option value="${f.id}" ${f.id === project.facultyId ? 'selected' : ''}>${f.name} (${f.department})</option>`).join('')}
-            </select>
+            <p style="margin-bottom:0.75rem;">Current Lead Faculty: <strong>${project.facultyName || 'Unassigned'}</strong></p>
+            <label style="font-weight:600; font-size:0.875rem; margin-bottom:0.35rem; display:block;">Select New Lead Faculty:</label>
+            
+            <div class="faculty-selection-list" style="display:flex; flex-direction:column; gap:0.5rem; max-height:220px; overflow-y:auto; padding:0.25rem; border:1px solid #d1d5db; border-radius:8px; background:#f9fafb;">
+              ${faculties.map(f => {
+                const projectsList = f.activeProjects || [];
+                const count = f.activeProjectsCount !== undefined ? f.activeProjectsCount : projectsList.length;
+                const isSelected = String(f.id) === String(defaultFacId);
+                return `
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? '#10b981' : '#e5e7eb'}; border-radius:6px;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; margin:0;">
+                      <input type="radio" name="project_faculty_choice" value="${f.id}" ${isSelected ? 'checked' : ''} />
+                      <div>
+                        <div style="font-weight:600; color:#111827; font-size:0.85rem;">${f.name}</div>
+                        <div style="font-size:0.75rem; color:#6b7280;">${f.department || 'Computer Applications'}</div>
+                      </div>
+                    </label>
+                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:#047857; border-color:#a7f3d0; background:#ecfdf5; border-radius:6px; cursor:pointer;">
+                      📊 ${count} Active Project${count === 1 ? '' : 's'}
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
           </div>
           <div class="director-modal-footer">
             <button class="btn-director btn-director-outline btn-close-modal">Cancel</button>
@@ -304,19 +398,36 @@ export function DirectorProjects(route, router) {
     `;
 
     modalHost.querySelectorAll('.btn-close-modal').forEach(b => b.addEventListener('click', () => { modalHost.innerHTML = ''; }));
+    modalHost.querySelectorAll('.btn-view-faculty-projects').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const facId = e.currentTarget.getAttribute('data-id');
+        const faculty = faculties.find(f => String(f.id) === String(facId));
+        if (faculty) showFacultyProjectsPopup(modalHost, faculty);
+      });
+    });
 
     modalHost.querySelector('.btn-save-faculty').addEventListener('click', async () => {
-      const facId = modalHost.querySelector('#modal-reassign-faculty').value;
+      const selectedRadio = modalHost.querySelector('input[name="project_faculty_choice"]:checked');
+      const facId = selectedRadio ? selectedRadio.value : (faculties[0] ? faculties[0].id : null);
       await DirectorService.assignFacultyAsync(project.id, facId);
       modalHost.innerHTML = '';
       await render();
     });
   }
 
+  const loadAllData = async () => {
+    const [projects, proposals, faculties] = await Promise.all([
+      DirectorService.getProjectsAsync(),
+      DirectorService.getProposalsAsync(),
+      DirectorService.getFacultiesAsync()
+    ]);
+    render(faculties || []);
+  };
+
   render();
-  DirectorService.getFacultiesAsync().then(liveFaculties => {
-    if (liveFaculties) render(liveFaculties);
-  });
+  loadAllData();
   return container;
 }
 

@@ -6,133 +6,17 @@
 const STORAGE_KEY = 'rlabz_director_data';
 
 const initialData = {
-  projects: [
-    {
-      id: 'PROJ-101',
-      title: 'Department Website Portal',
-      type: 'Web Application',
-      source: 'Institution',
-      sourceName: 'CS Department Head',
-      clientName: 'Rajagiri CS Dept',
-      clientContact: 'csdept@rajagiri.edu',
-      status: 'in_progress',
-      priority: 'high',
-      progress: 75,
-      timeline: '2026-06-01 to 2026-08-30',
-      budget: 50000,
-      spent: 32000,
-      facultyId: 'FAC-01',
-      facultyName: 'Dr. Anita Roy',
-      assignedStudents: [
-        { id: 'STU-01', name: 'Rohan Sharma', track: 'Nova', role: 'Lead Full Stack' },
-        { id: 'STU-02', name: 'Ananya Verma', track: 'Orbit', role: 'Frontend Dev' },
-        { id: 'STU-03', name: 'Kiran Paul', track: 'Spark', role: 'UI Trainee' }
-      ],
-      deliverables: ['Responsive Dashboard', 'Role Auth', 'PDF Export'],
-      requirementDocs: ['spec_v1.pdf', 'client_brief.docx']
-    },
-    {
-      id: 'PROJ-102',
-      title: 'Smart Lab Inventory Tracker',
-      type: 'IoT / Mobile App',
-      source: 'External',
-      sourceName: 'TechCorp Solutions',
-      clientName: 'TechCorp India',
-      clientContact: 'contact@techcorp.in',
-      status: 'in_progress',
-      priority: 'urgent',
-      progress: 40,
-      timeline: '2026-07-15 to 2026-10-15',
-      budget: 85000,
-      spent: 28000,
-      facultyId: 'FAC-02',
-      facultyName: 'Prof. Mathew Joseph',
-      assignedStudents: [
-        { id: 'STU-04', name: 'Farsan K.A.', track: 'Nova', role: 'Tech Lead' },
-        { id: 'STU-05', name: 'Sneha George', track: 'Orbit', role: 'Backend Dev' }
-      ],
-      deliverables: ['Barcode Scanner Module', 'Inventory API', 'Admin Panel'],
-      requirementDocs: ['lab_inventory_requirements.pdf']
-    },
-    {
-      id: 'PROJ-103',
-      title: 'Campus Event Management System',
-      type: 'Web Portal',
-      source: 'Student',
-      sourceName: 'Student Council',
-      clientName: 'Rajagiri Student Union',
-      clientContact: 'union@rajagiri.edu',
-      status: 'completed',
-      priority: 'normal',
-      progress: 100,
-      timeline: '2026-03-01 to 2026-06-30',
-      budget: 30000,
-      spent: 30000,
-      facultyId: 'FAC-01',
-      facultyName: 'Dr. Anita Roy',
-      assignedStudents: [
-        { id: 'STU-06', name: 'Devika Nair', track: 'Orbit', role: 'Lead Dev' },
-        { id: 'STU-07', name: 'Arjun Das', track: 'Spark', role: 'Junior Tester' }
-      ],
-      deliverables: ['Event Registration', 'Ticket QR Generator'],
-      requirementDocs: ['event_system_proposal.pdf']
-    }
-  ],
-  proposals: [
-    {
-      id: 'PROP-201',
-      title: 'Alumni Network & Career Portal',
-      type: 'Web Application',
-      source: 'Alumni',
-      sourceName: 'Rajagiri Alumni Association',
-      clientName: 'Alumni Cell',
-      contactEmail: 'alumni@rajagiri.edu',
-      priority: 'urgent',
-      estimatedBudget: 95000,
-      expectedTimeline: '4 Months',
-      submittedDate: '2026-08-05',
-      description: 'Centralized portal for alumni registration, mentoring programs, job postings, and donation tracking.',
-      deliverables: ['Alumni Directory', 'Mentorship Module', 'Payment Gateway Integration'],
-      status: 'pending',
-      suggestedFaculty: 'FAC-03'
-    },
-    {
-      id: 'PROP-202',
-      title: 'Automated Attendance System via Face Detection',
-      type: 'AI / Computer Vision',
-      source: 'Faculty',
-      sourceName: 'Dr. Thomas Kurian',
-      clientName: 'Department of Computer Applications',
-      contactEmail: 'thomas.k@rajagiri.edu',
-      priority: 'normal',
-      estimatedBudget: 60000,
-      expectedTimeline: '3 Months',
-      submittedDate: '2026-08-07',
-      description: 'Camera-based attendance marking for lecture halls with daily automated email reports to faculty.',
-      deliverables: ['Face Recognition Model', 'Faculty Dashboard', 'Daily Email Alerts'],
-      status: 'pending',
-      suggestedFaculty: 'FAC-02'
-    }
-  ],
-  faculties: [
-    { id: '4', name: 'Faculty Member', email: 'faculty@rajagiri.edu', department: 'Computer Applications', activeProjectsCount: 1 }
-  ],
-  students: [
-    { id: 'STU-01', name: 'Student Nova', track: 'Nova', project: 'Department Website Portal', status: 'Active', gpa: '9.2', github: 'nova-dev', email: 'nova@rajagiri.edu' },
-    { id: 'STU-02', name: 'Student Orbit', track: 'Orbit', project: 'Smart Lab Inventory Tracker', status: 'Active', gpa: '8.8', github: 'orbit-dev', email: 'orbit@rajagiri.edu' },
-    { id: 'STU-03', name: 'Student Spark', track: 'Spark', project: 'Department Website Portal', status: 'Active', gpa: '8.0', github: 'spark-dev', email: 'spark@rajagiri.edu' }
-  ],
+  projects: [],
+  proposals: [],
+  faculties: [],
+  students: [],
   financeSummary: {
-    totalBudget: 265000,
-    totalSpent: 90000,
-    stipendsDisbursed: 45000,
-    pendingInvoices: 2,
-    pendingInvoiceAmount: 35000,
-    payrollByTrack: {
-      Nova: 24000,
-      Orbit: 15000,
-      Spark: 6000
-    }
+    totalBudget: 0,
+    totalSpent: 0,
+    stipendsDisbursed: 0,
+    pendingInvoices: 0,
+    pendingInvoiceAmount: 0,
+    payrollByTrack: { Nova: 0, Orbit: 0, Spark: 0 }
   },
   auditLogs: []
 };
@@ -145,6 +29,10 @@ function loadState() {
   }
   try {
     const data = JSON.parse(stored);
+    if (data.projects && data.projects.some(p => p.id === 'PROJ-101' || p.title === 'Department Website Portal')) {
+      data.projects = initialData.projects;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
     if (data.faculties && data.faculties.some(f => f.id === 'FAC-01')) {
       data.faculties = initialData.faculties;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -211,7 +99,14 @@ let cacheFaculties = null;
 let cacheAuditLogs = null;
 
 export class DirectorService {
+  static getCachedOverview() {
+    return cacheOverview;
+  }
+
   static getOverview() {
+    if (cacheOverview) {
+      return cacheOverview;
+    }
     const data = loadState();
     const activeProjects = data.projects.filter(p => p.status === 'in_progress').length;
     const pendingProposals = data.proposals.filter(p => p.status === 'pending').length;
@@ -240,8 +135,83 @@ export class DirectorService {
     return loadState().projects;
   }
 
+  static async getProjectsAsync(forceFresh = false) {
+    const fresh = await this.fetchProjectsRemote();
+    if (fresh) return fresh;
+    return this.getProjects();
+  }
+
+  static async fetchProjectsRemote() {
+    try {
+      let headers = await getAuthHeadersAsync();
+      let response = await fetch(`${API_BASE}/projects`, { headers });
+      if (response.status === 401) {
+        headers = await getAuthHeadersAsync(true);
+        response = await fetch(`${API_BASE}/projects`, { headers });
+      }
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data) {
+          const data = loadState();
+          data.projects = result.data;
+          saveState(data);
+          return result.data;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
   static getProposals() {
     return loadState().proposals;
+  }
+
+  static async getProposalsAsync(forceFresh = false) {
+    const fresh = await this.fetchProposalsRemote();
+    if (fresh) return fresh;
+    return this.getProposals();
+  }
+
+  static async fetchProposalsRemote() {
+    try {
+      let headers = await getAuthHeadersAsync();
+      let response = await fetch(`${API_BASE}/proposals`, { headers });
+      if (response.status === 401) {
+        headers = await getAuthHeadersAsync(true);
+        response = await fetch(`${API_BASE}/proposals`, { headers });
+      }
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data) {
+          const data = loadState();
+          data.proposals = result.data;
+          saveState(data);
+          return result.data;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  static async getFinanceSummaryAsync() {
+    try {
+      let headers = await getAuthHeadersAsync();
+      let response = await fetch(`${API_BASE}/finance`, { headers });
+      if (response.status === 401) {
+        headers = await getAuthHeadersAsync(true);
+        response = await fetch(`${API_BASE}/finance`, { headers });
+      }
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data) {
+          const data = loadState();
+          data.financeSummary = result.data;
+          saveState(data);
+          return result.data;
+        }
+      }
+    } catch (e) {}
+    return this.getFinanceSummary();
   }
 
   static async updateProposalStatusAsync(proposalId, status, notes = '', facultyId = null) {
@@ -263,6 +233,10 @@ export class DirectorService {
   }
 
   static async getOverviewAsync(forceFresh = false) {
+    if (!forceFresh && cacheOverview) {
+      this.fetchOverviewRemote().then(fresh => { if (fresh) cacheOverview = fresh; });
+      return cacheOverview;
+    }
     const fresh = await this.fetchOverviewRemote();
     if (fresh) {
       cacheOverview = fresh;
@@ -286,7 +260,7 @@ export class DirectorService {
         const result = await response.json();
         if (result.status === 'success' && result.data) {
           const d = result.data;
-          return {
+          const overviewData = {
             totalProjects: d.total_projects,
             activeProjects: d.active_projects,
             pendingProposals: d.pending_proposals,
@@ -310,6 +284,8 @@ export class DirectorService {
               progress: p.progress
             }))
           };
+          cacheOverview = overviewData;
+          return overviewData;
         }
       }
     } catch (e) {
@@ -350,7 +326,8 @@ export class DirectorService {
             name: f.name,
             email: f.email || 'faculty@rajagiri.edu',
             department: 'Computer Applications',
-            activeProjectsCount: 1
+            activeProjectsCount: f.active_projects_count !== undefined ? f.active_projects_count : (f.active_projects ? f.active_projects.length : 0),
+            activeProjects: f.active_projects || []
           }));
           const data = loadState();
           data.faculties = facultiesList;
@@ -516,7 +493,16 @@ export class DirectorService {
   }
 
   static getFaculties() {
-    return loadState().faculties;
+    const data = loadState();
+    const projects = data.projects || [];
+    return (data.faculties || []).map(f => {
+      const assignedProjects = projects.filter(p => (p.facultyId === f.id || String(p.facultyId) === String(f.id)) && p.status !== 'completed' && p.status !== 'rejected');
+      return {
+        ...f,
+        activeProjectsCount: f.activeProjectsCount !== undefined ? f.activeProjectsCount : assignedProjects.length,
+        activeProjects: (f.activeProjects && f.activeProjects.length > 0) ? f.activeProjects : assignedProjects
+      };
+    });
   }
 
   static getStudents(trackFilter = 'All') {
