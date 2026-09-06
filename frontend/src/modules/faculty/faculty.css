@@ -16,7 +16,10 @@
 .faculty-home,
 .faculty-profile,
 .faculty-projects,
-.faculty-students {
+.faculty-students,
+.faculty-sprints,
+.faculty-meetings,
+.faculty-verify-tasks {
     padding: 30px;
     max-width: 1200px;
     margin: 0 auto;
@@ -30,7 +33,10 @@
 .faculty-home::-webkit-scrollbar,
 .faculty-profile::-webkit-scrollbar,
 .faculty-projects::-webkit-scrollbar,
-.faculty-students::-webkit-scrollbar {
+.faculty-students::-webkit-scrollbar,
+.faculty-sprints::-webkit-scrollbar,
+.faculty-meetings::-webkit-scrollbar,
+.faculty-verify-tasks::-webkit-scrollbar {
     display: none;
 }
 
@@ -1117,3 +1123,163 @@
     border-bottom: none;
     padding-bottom: 0;
 }
+
+/* =========================================
+   MY PROJECT DESIGN MATCHING STYLES
+   ========================================= */
+.faculty-sprints,
+.faculty-meetings,
+.faculty-sprints *,
+.faculty-meetings * {
+    box-sizing: border-box;
+}
+
+.faculty-sprints,
+.faculty-meetings {
+    font-family: var(--font-family, 'Plus Jakarta Sans', sans-serif);
+    color: var(--text-main, #0f172a);
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.faculty-sprints .page-header h1,
+.faculty-meetings .page-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    margin: 0 0 0.4rem;
+}
+
+.faculty-sprints .page-header p,
+.faculty-meetings .page-header p {
+    font-size: 0.92rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+/* Card panels matching My Project */
+.faculty-card-panel {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+    padding: 1.5rem;
+}
+
+/* Premium Inputs matching My Project */
+.faculty-sprints .premium-input,
+.faculty-meetings .premium-input {
+    width: 100%;
+    padding: 0.7rem 0.95rem;
+    font-size: 0.92rem;
+    font-family: inherit;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    background: var(--bg-main, #f8fafc);
+    color: var(--text-main, #0f172a);
+    transition: var(--transition, all 0.2s ease);
+}
+
+.faculty-sprints .premium-input:focus,
+.faculty-meetings .premium-input:focus {
+    outline: none;
+    border-color: var(--primary, #059669);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+/* Buttons matching My Project */
+.faculty-sprints .btn,
+.faculty-meetings .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-md, 8px);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition, all 0.2s ease);
+}
+
+.faculty-sprints .btn-sm,
+.faculty-meetings .btn-sm,
+.faculty-verify-tasks .btn-sm {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.82rem;
+    border-radius: var(--radius-sm, 6px);
+}
+
+.faculty-sprints .btn-primary,
+.faculty-meetings .btn-primary,
+.faculty-verify-tasks .btn-primary {
+    background: var(--primary, #059669);
+    color: #ffffff;
+}
+
+.faculty-sprints .btn-primary.shadow-hover,
+.faculty-meetings .btn-primary.shadow-hover,
+.faculty-verify-tasks .btn-primary.shadow-hover {
+    box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+}
+
+.faculty-sprints .btn-primary.shadow-hover:hover,
+.faculty-meetings .btn-primary.shadow-hover:hover,
+.faculty-verify-tasks .btn-primary.shadow-hover:hover {
+    background: var(--primary-hover, #047857);
+    box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.1));
+    transform: translateY(-2px);
+}
+
+.faculty-sprints .btn-outline,
+.faculty-meetings .btn-outline,
+.faculty-verify-tasks .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color, #e2e8f0);
+    color: var(--text-main, #0f172a);
+}
+
+.faculty-sprints .btn-outline:hover,
+.faculty-meetings .btn-outline:hover,
+.faculty-verify-tasks .btn-outline:hover {
+    border-color: var(--primary, #059669);
+    color: var(--primary, #059669);
+    background: var(--primary-light, #ecfdf5);
+}
+
+/* Status Badges matching My Project */
+.faculty-sprints .status-badge,
+.faculty-meetings .status-badge,
+.faculty-verify-tasks .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.faculty-sprints .status-badge.todo,
+.faculty-meetings .status-badge.todo,
+.faculty-verify-tasks .status-badge.todo { background: #dbeafe; color: #2563eb; }
+.faculty-sprints .status-badge.in_progress,
+.faculty-meetings .status-badge.in_progress,
+.faculty-verify-tasks .status-badge.in_progress { background: #fce7f3; color: #db2777; }
+.faculty-sprints .status-badge.completed,
+.faculty-meetings .status-badge.completed,
+.faculty-verify-tasks .status-badge.completed { background: #d1fae5; color: #059669; }
+.faculty-sprints .status-badge.scheduled,
+.faculty-meetings .status-badge.scheduled,
+.faculty-verify-tasks .status-badge.scheduled { background: #fef3c7; color: #d97706; }
+.faculty-sprints .status-badge.cancelled,
+.faculty-meetings .status-badge.cancelled,
+.faculty-verify-tasks .status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+.faculty-sprints .status-badge.blocked,
+.faculty-meetings .status-badge.blocked,
+.faculty-verify-tasks .status-badge.blocked { background: #f1f5f9; color: #475569; }

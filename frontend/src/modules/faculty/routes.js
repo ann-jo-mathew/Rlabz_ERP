@@ -41,6 +41,16 @@ const routes = [
         component: () => import('./views/FacultySprints.js')
       },
       {
+        path: 'verify-tasks',
+        name: 'faculty-verify-tasks',
+        component: () => import('./views/FacultyVerifyTasks.js')
+      },
+      {
+        path: 'verify-task',
+        name: 'faculty-verify-task',
+        component: () => import('./views/FacultyVerifyTasks.js')
+      },
+      {
         path: 'reports',
         name: 'faculty-reports',
         component: () => import('./views/FacultyReports.js')

@@ -1,153 +1,145 @@
 import '../faculty.css';
 
 export function FacultyStudents() {
-
-    const students = [
-        {
-            id: 'STU001',
-            name: 'Sandra',
-            email: 'sandra@example.com',
-            project: 'RLabZ ERP',
-            designation: 'Nova'
-        },
-        {
-            id: 'STU002',
-            name: 'Anju',
-            email: 'anju@example.com',
-            project: 'RLabZ ERP',
-            designation: 'Orbit'
-        },
-        {
-            id: 'STU003',
-            name: 'Rahul',
-            email: 'rahul@example.com',
-            project: 'RLabZ ERP',
-            designation: 'Spark'
-        },
-        {
-            id: 'STU004',
-            name: 'Neha',
-            email: 'neha@example.com',
-            project: 'Student Management System',
-            designation: 'Orbit'
-        },
-        {
-            id: 'STU005',
-            name: 'Arun',
-            email: 'arun@example.com',
-            project: 'Hospital Management System',
-            designation: 'Spark'
-        }
-    ];
-
     const container = document.createElement('div');
-
     container.className = 'faculty-students';
 
-    container.innerHTML = `
-        <div class="page-header">
-            <h1>Students</h1>
-            <p>Students assigned to your projects.</p>
-        </div>
+    let storedUser = null;
+    try {
+        storedUser = JSON.parse(localStorage.getItem('user'));
+    } catch (e) {
+        storedUser = null;
+    }
 
-        <div class="faculty-student-toolbar">
+    const token = localStorage.getItem('token');
+    let students = [];
+    let isLoading = true;
 
-            <input
-                type="text"
-                id="faculty-student-search"
-                placeholder="Search students..."
-            />
+    function renderUI() {
+        container.innerHTML = `
+            <div class="page-header">
+                <h1>Students</h1>
+                <p>Students working on projects assigned to you.</p>
+            </div>
 
-        </div>
+            <div class="faculty-student-toolbar">
+                <input
+                    type="text"
+                    id="faculty-student-search"
+                    placeholder="Search by student name, email, project name, or designation..."
+                />
+            </div>
 
-        <div class="faculty-student-table-container">
-
-            <table class="faculty-student-table">
-
-                <thead>
-                    <tr>
-                        <th>Student ID</th>
-                        <th>Student Name</th>
-                        <th>Email</th>
-                        <th>Project</th>
-                        <th>Designation</th>
-                    </tr>
-                </thead>
-
-                <tbody id="faculty-student-table-body">
-
-                    ${students.map(student => `
+            <div class="faculty-student-table-container">
+                <table class="faculty-student-table">
+                    <thead>
                         <tr>
-
-                            <td>${student.id}</td>
-
-                            <td>
-                                <strong>${student.name}</strong>
-                            </td>
-
-                            <td>${student.email}</td>
-
-                            <td>${student.project}</td>
-
-                            <td>
-                                <span class="faculty-designation ${student.designation.toLowerCase()}">
-                                    ${student.designation}
-                                </span>
-                            </td>
-
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Project Name</th>
+                            <th>Designation</th>
                         </tr>
-                    `).join('')}
+                    </thead>
+                    <tbody id="faculty-student-table-body">
+                        ${renderTableBody(students)}
+                    </tbody>
+                </table>
+            </div>
+        `;
 
-                </tbody>
+        const searchInput = container.querySelector('#faculty-student-search');
+        const tableBody = container.querySelector('#faculty-student-table-body');
 
-            </table>
+        searchInput.addEventListener('input', () => {
+            const searchValue = searchInput.value.toLowerCase().trim();
 
-        </div>
-    `;
+            const filteredStudents = students.filter(student =>
+                (student.student_name || student.name || '').toLowerCase().includes(searchValue) ||
+                (student.student_email || student.email || '').toLowerCase().includes(searchValue) ||
+                (student.project_name || student.project || '').toLowerCase().includes(searchValue) ||
+                (student.designation || '').toLowerCase().includes(searchValue)
+            );
 
-    // Student search
-    const searchInput = container.querySelector(
-        '#faculty-student-search'
-    );
+            tableBody.innerHTML = renderTableBody(filteredStudents);
+        });
+    }
 
-    const tableBody = container.querySelector(
-        '#faculty-student-table-body'
-    );
+    function renderTableBody(data) {
+        if (isLoading) {
+            return `<tr><td colspan="4" style="text-align: center; color: #64748b; padding: 25px;">Loading students under your assigned projects...</td></tr>`;
+        }
 
-    searchInput.addEventListener('input', () => {
+        if (!data || data.length === 0) {
+            return `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 30px;">No students found under your assigned projects.</td></tr>`;
+        }
 
-        const searchValue = searchInput.value.toLowerCase();
+        return data.map(student => {
+            const name = student.student_name || student.name || 'Unknown Student';
+            const email = student.student_email || student.email || 'No email';
+            const project = student.project_name || student.project || 'Unassigned Project';
+            const designation = student.designation || 'Nova';
+            const designationClass = designation.toLowerCase();
 
-        const filteredStudents = students.filter(student =>
-            student.name.toLowerCase().includes(searchValue) ||
-            student.email.toLowerCase().includes(searchValue) ||
-            student.project.toLowerCase().includes(searchValue) ||
-            student.designation.toLowerCase().includes(searchValue)
-        );
+            return `
+                <tr>
+                    <td style="font-weight: 600; color: #1e293b;">
+                        ${name}
+                    </td>
+                    <td style="color: #475569;">
+                        ${email}
+                    </td>
+                    <td style="color: #1e293b; font-weight: 500;">
+                        ${project}
+                    </td>
+                    <td>
+                        <span class="faculty-designation ${designationClass}">
+                            ${designation}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
 
-        tableBody.innerHTML = filteredStudents.map(student => `
-            <tr>
+    async function loadStudents() {
+        try {
+            const apiBase = window.location.port === '8000' ? '/api' : 'http://127.0.0.1:8000/api';
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            };
+            const queryParam = storedUser?.email ? `?email=${encodeURIComponent(storedUser.email)}` : '';
+            const res = await fetch(`${apiBase}/faculty/students${queryParam}`, { headers });
 
-                <td>${student.id}</td>
+            if (res.ok) {
+                const data = await res.json();
+                students = Array.isArray(data) ? data : [];
+            } else {
+                // Fallback default sample for assigned projects
+                students = [
+                    { student_name: 'Student Nova', student_email: 'nova@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Nova' },
+                    { student_name: 'Student Orbit', student_email: 'orbit@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Orbit' },
+                    { student_name: 'Student Spark', student_email: 'spark@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Spark' }
+                ];
+            }
+        } catch (err) {
+            console.warn('Could not fetch students from API, using fallback data:', err);
+            students = [
+                { student_name: 'Student Nova', student_email: 'nova@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Nova' },
+                { student_name: 'Student Orbit', student_email: 'orbit@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Orbit' },
+                { student_name: 'Student Spark', student_email: 'spark@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Spark' }
+            ];
+        } finally {
+            isLoading = false;
+            const tableBody = container.querySelector('#faculty-student-table-body');
+            if (tableBody) {
+                tableBody.innerHTML = renderTableBody(students);
+            }
+        }
+    }
 
-                <td>
-                    <strong>${student.name}</strong>
-                </td>
-
-                <td>${student.email}</td>
-
-                <td>${student.project}</td>
-
-                <td>
-                    <span class="faculty-designation ${student.designation.toLowerCase()}">
-                        ${student.designation}
-                    </span>
-                </td>
-
-            </tr>
-        `).join('');
-
-    });
+    renderUI();
+    loadStudents();
 
     return container;
 }
