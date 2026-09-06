@@ -37,46 +37,35 @@ export async function ProjectDetails(route, router) {
       <!-- OVERVIEW TAB -->
       <div id="tab-overview" class="tab-content" style="display: block;">
         <div id="project-info" class="card-panel" style="margin-bottom: 2rem; display: none;">
-          <div class="project-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; row-gap: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+          <div class="project-form-grid" style="row-gap: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
             <div>
               <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Type</span>
               <strong id="val-type" style="font-size: 1.1rem; color: var(--text-main);"></strong>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client Name</span>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client</span>
               <strong id="val-client" style="font-size: 1.1rem; color: var(--text-main);"></strong>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Status & Priority</span>
-              <span id="val-status"></span> <span id="val-priority"></span>
-          </div>
-          <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Allocated Budget</span>
-            <strong style="font-size: 1.1rem; color: var(--text-main);">₹<span id="val-budget"></span></strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Status</span>
+              <span id="val-status"></span>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Brought By / Source</span>
-              <strong id="val-source" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Budget</span>
+              <strong style="font-size: 1.1rem; color: var(--text-main);">$<span id="val-budget"></span></strong>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Target Timeline</span>
-              <strong id="val-timeline" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Start Date</span>
+              <strong id="val-start" style="font-size: 1.1rem; color: var(--text-main);"></strong>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client Contact</span>
-              <strong id="val-contact" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">End Date</span>
+              <strong id="val-end" style="font-size: 1.1rem; color: var(--text-main);"></strong>
             </div>
           </div>
-
-          <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
-          <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Project Requirements</span>
-            <p id="val-requirements" style="font-size: 1rem; color: var(--text-main); line-height: 1.6; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></p>
-          </div>
-          <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Expected Deliverables</span>
-              <p id="val-deliverables" style="font-size: 1rem; color: var(--text-main); line-height: 1.6; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></p>
-          </div>
+          <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Description</span>
+            <p id="val-desc" style="font-size: 1rem; color: var(--text-main); line-height: 1.6;"></p>
           </div>
         </div>
       </div>
@@ -270,23 +259,13 @@ export async function ProjectDetails(route, router) {
         container.querySelector('#project-title').textContent = p.title || 'Project Details';
         container.querySelector('#val-type').textContent = p.project_type || 'N/A';
         container.querySelector('#val-client').textContent = p.client_name || 'N/A';
-
         const statusSpan = container.querySelector('#val-status');
-        statusSpan.textContent = (p.status || 'N/A').toUpperCase();
+        statusSpan.textContent = p.status || 'N/A';
         statusSpan.className = `status-badge ${p.status || 'active'}`;
-
-        const prioritySpan = container.querySelector('#val-priority');
-        prioritySpan.textContent = p.priority ? p.priority.toUpperCase() + ' PRIORITY' : 'NORMAL PRIORITY';
-        prioritySpan.className = `status-badge ${p.priority === 'urgent' ? 'rejected' : 'in_progress'}`;
-
-        container.querySelector('#val-budget').textContent = p.budget ? Number(p.budget).toLocaleString('en-IN') : '0.00';
-        container.querySelector('#val-source').textContent = (p.brought_by ? p.brought_by + ' (' + (p.source_type || 'External') + ')' : (p.source_type || 'N/A'));
-        container.querySelector('#val-timeline').textContent = p.expected_timeline || 'N/A';
-        container.querySelector('#val-contact').textContent = (p.contact_email || '') + (p.contact_phone ? ' • ' + p.contact_phone : '');
-        container.querySelector('#val-requirements').textContent = p.requirements || 'No specific requirements listed.';
-        container.querySelector('#val-deliverables').textContent = p.deliverables || 'No deliverables specified.';
-
-        container.querySelector('#project-info').style.display = 'block';
+        container.querySelector('#val-budget').textContent = p.budget || '0.00';
+        container.querySelector('#val-start').textContent = p.start_date || 'N/A';
+        container.querySelector('#val-end').textContent = p.end_date || 'N/A';
+        container.querySelector('#val-desc').textContent = p.description || 'No description provided.';
 
         container.querySelector('#project-info').style.display = 'block';
 
