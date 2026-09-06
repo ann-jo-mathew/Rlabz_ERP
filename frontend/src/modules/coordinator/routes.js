@@ -13,7 +13,17 @@ const routes = [
       {
         path: 'projects',
         name: 'coordinator-projects',
-        component: () => import('./views/CoordinatorProjects.js')
+        component: () => import('@/modules/project/views/ProjectDashboard.js')
+      },
+      {
+        path: 'projects/create',
+        name: 'coordinator-projects-create',
+        component: () => import('@/modules/project/views/ProjectCreate.js')
+      },
+      {
+        path: 'projects/:id',
+        name: 'coordinator-projects-details',
+        component: () => import('@/modules/project/views/ProjectDetails.js')
       },
       {
         path: 'projects/:id',

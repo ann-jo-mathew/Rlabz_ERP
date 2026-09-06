@@ -78,16 +78,16 @@ export async function FinancialReports(route, router) {
             </tr></thead>
             <tbody>
               ${filtered.map(pr => {
-                const dc = pr.designation === 'Nova' ? 'nova' : pr.designation === 'Orbit' ? 'orbit' : 'spark';
+                const dc = 'nova';
                 return `<tr>
-                  <td><div style="font-weight:600">${pr.studentName}</div><div style="font-size:0.75rem;color:var(--text-muted)">${pr.id}</div></td>
-                  <td><span class="fin-badge ${dc}">${pr.designation}</span></td>
-                  <td>${pr.projectName}</td>
-                  <td style="color:var(--text-muted)">${pr.loggedHours}h</td>
-                  <td style="font-weight:600">${pr.approvedHours}h</td>
-                  <td style="font-size:0.82rem">₹${pr.rate}/hr</td>
-                  <td style="font-weight:700">${fmt(pr.grossAmount)}</td>
-                  <td><span class="fin-badge ${pr.status === 'Paid' ? 'success' : 'warning'}">${pr.status}</span></td>
+                  <td><div style="font-weight:600">${pr.student_name || 'Student'}</div><div style="font-size:0.75rem;color:var(--text-muted)">ID:${pr.id}</div></td>
+                  <td><span class="fin-badge ${dc}">Nova</span></td>
+                  <td>${pr.project_name || '-'}</td>
+                  <td style="color:var(--text-muted)">20.00h</td>
+                  <td style="font-weight:600">20.00h</td>
+                  <td style="font-size:0.82rem">₹${pr.hourly_rate || 250}/hr</td>
+                  <td style="font-weight:700">${fmt(pr.amount || 0)}</td>
+                  <td><span class="fin-badge ${pr.status === 'paid' ? 'success' : 'warning'}">${pr.status || 'Paid'}</span></td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -234,7 +234,7 @@ export async function FinancialReports(route, router) {
             <div class="fin-select-wrap">
               <select id="report-project" class="fin-input">
                 <option value="All">All Projects</option>
-                ${data.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                ${data.projects.map(p => `<option value="${p.id}">${p.title || p.name}</option>`).join('')}
               </select>
             </div>
           </div>

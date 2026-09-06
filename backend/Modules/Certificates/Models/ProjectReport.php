@@ -5,7 +5,7 @@ namespace Modules\Certificates\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Auth\Models\User;
-use Modules\ProjectClient\Models\Project;
+use Modules\Project\Models\Project;
 
 class ProjectReport extends Model
 {

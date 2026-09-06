@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AuthController extends Controller
 {
@@ -44,16 +45,42 @@ class AuthController extends Controller
         $password = $request->input('password');
 
         if (!$email || !str_contains($email, '@rajagiri.edu')) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+                DB::table('audit_logs')->insert([
+                    'user_id' => 1,
+                    'action' => 'Login Failed - Invalid Domain',
+                    'description' => "Failed login attempt for '{$email}'. Email must contain @rajagiri.edu.",
+                    'created_at' => now()
+                ]);
+            }
             return response()->json(['error' => 'Email must contain @rajagiri.edu'], 401);
         }
 
         $user = DB::table('users')->where('email', $email)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+                DB::table('audit_logs')->insert([
+                    'user_id' => $user->id ?? 1,
+                    'action' => 'Login Failed - Invalid Credentials',
+                    'description' => "Failed login attempt for '{$email}'. Invalid credentials.",
+                    'created_at' => now()
+                ]);
+            }
             return response()->json(['error' => 'Invalid email or password.'], 401);
         }
 
         $token = $this->generateJwt($user);
+
+        // Record authentication login event in audit_logs table
+        if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+            DB::table('audit_logs')->insert([
+                'user_id' => $user->id,
+                'action' => 'System Login',
+                'description' => "User {$user->name} ({$user->role}) logged in successfully.",
+                'created_at' => now()
+            ]);
+        }
 
         return $this->respondWithToken($token, $user);
     }
@@ -92,11 +119,11 @@ class AuthController extends Controller
         ];
         
         $modules = [
-            'director' => ['dashboard', 'project-client', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication'],
-            'coordinator' => ['coordinator', 'project-client', 'student', 'communication', 'github', 'certificates'],
-            'finance' => ['finance', 'project-client'],
-            'faculty' => ['faculty', 'project-client', 'communication', 'github'],
-            'student' => ['student', 'project-client', 'communication', 'github', 'certificates']
+            'director' => ['dashboard', 'project', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication'],
+            'coordinator' => ['coordinator', 'project', 'student', 'communication', 'github', 'certificates'],
+            'finance' => ['finance', 'project'],
+            'faculty' => ['faculty', 'project', 'communication', 'github'],
+            'student' => ['student', 'project', 'communication', 'github', 'certificates']
         ];
         
         // Convert stdClass to array for mutation if using DB facade
@@ -139,4 +166,70 @@ class AuthController extends Controller
 
         return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
     }
+
+    public function searchUsers(Request $request)
+    {
+        $role = $request->query('role');
+        $search = $request->query('search');
+
+        $query = DB::table('users');
+
+        if ($role) {
+            $query->where('role', $role);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+
+        $hasProjects = Schema::hasTable('projects');
+
+        $users = $query->select('id', 'name', 'email', 'role')->take(10)->get()->map(function ($u) use ($hasProjects) {
+            $activeProjects = [];
+            if ($u->role === 'faculty' && $hasProjects) {
+                $queryProj = DB::table('projects')
+                    ->where(function($q) use ($u) {
+                        if (Schema::hasColumn('projects', 'faculty_id')) {
+                            $q->where('faculty_id', $u->id);
+                        }
+                        if (Schema::hasTable('project_faculty')) {
+                            $q->orWhereIn('id', function($sub) use ($u) {
+                                $sub->select('project_id')->from('project_faculty')->where('faculty_id', $u->id);
+                            });
+                        }
+                    })
+                    ->whereIn('status', ['in_progress', 'accepted', 'active'])
+                    ->select('id', 'title', 'status', 'project_type')
+                    ->distinct();
+
+                $activeProjects = $queryProj->get()
+                    ->map(function($p) {
+                        return [
+                            'id' => $p->id,
+                            'title' => $p->title,
+                            'status' => $p->status,
+                            'type' => $p->project_type ?? 'Web Application'
+                        ];
+                    })
+                    ->toArray();
+            }
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+                'role' => $u->role,
+                'active_projects_count' => count($activeProjects),
+                'active_projects' => $activeProjects
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $users
+        ]);
+    }
 }
+

@@ -13,7 +13,17 @@ const routes = [
       {
         path: 'projects',
         name: 'director-dashboard-projects',
-        component: () => import('./views/DirectorProjects.js')
+        component: () => import('@/modules/project/views/ProjectDashboard.js')
+      },
+      {
+        path: 'projects/create',
+        name: 'director-dashboard-projects-create',
+        component: () => import('@/modules/project/views/ProjectCreate.js')
+      },
+      {
+        path: 'projects/:id',
+        name: 'director-dashboard-projects-details',
+        component: () => import('@/modules/project/views/ProjectDetails.js')
       },
       {
         path: 'students',

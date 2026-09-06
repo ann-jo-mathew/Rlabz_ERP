@@ -13,8 +13,9 @@ return new class extends Migration
             $table->foreignId('project_finance_id')->constrained('project_finances')->onDelete('cascade');
             $table->enum('charge_type', ['ssl', 'domain', 'api', 'hosting']);
             $table->decimal('amount', 12, 2);
-            $table->string('name_or_reference', 255)->nullable();
-            $table->text('description')->nullable();
+            $table->date('purchase_date')->nullable();
+            $table->date('expiry_date')->nullable();
+            $table->text('reference_details')->nullable();
             $table->timestamps();
         });
     }

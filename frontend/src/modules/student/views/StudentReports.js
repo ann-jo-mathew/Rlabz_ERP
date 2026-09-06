@@ -1,8 +1,9 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
-import { getProjects, getReports, getWorkLogs, saveReport, saveWorkLog } from './mockStore.js';
+import { getProjects, getReports, getWorkLogs, saveReport, saveWorkLog, ensureDataLoaded } from './studentStore.js';
 import '../student.css';
 
-export function StudentReports(route, router) {
+export async function StudentReports(route, router) {
+  await ensureDataLoaded();
   renderStudentSidebar();
 
   const container = document.createElement('div');
@@ -19,38 +20,49 @@ export function StudentReports(route, router) {
     const projectOptions = projects.map(p => `<option value="${p.title}">${p.title}</option>`).join('');
 
     // 2. Build Reports Rows
-    const reportRows = reports.map(r => `
-      <tr style="vertical-align: top;">
-        <td>
-          <div style="font-weight: 600;">${r.project}</div>
-          <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 2px;">Date: ${r.date}</div>
-        </td>
-        <td><span class="student-badge student-badge-info">${r.type}</span></td>
-        <td>
-          <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">Work Done:</div>
-          <div style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 6px; line-height: 1.4;">${r.workDone}</div>
-          ${r.challenges ? `
-            <div style="font-weight: 600; font-size: 0.85rem; color: var(--danger);">Challenges:</div>
-            <div style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 6px; line-height: 1.4;">${r.challenges}</div>
-          ` : ''}
-          <div style="font-weight: 600; font-size: 0.85rem; color: var(--primary);">Next Steps:</div>
-          <div style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.4;">${r.nextPlan}</div>
-        </td>
-      </tr>
-    `).join('');
+    const reportRows = reports.map(r => {
+      const statusClass = r.status === 'Approved' ? 'student-badge-success' : r.status === 'Rejected' ? 'student-badge-danger' : 'student-badge-warning';
+      return `
+        <tr style="vertical-align: top;">
+          <td>
+            <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">${r.date}</div>
+          </td>
+          <td>
+            <span class="student-badge student-badge-info" style="margin-bottom: 4px; display: inline-block;">${r.type}</span>
+            <span class="student-badge ${statusClass}" style="display: inline-block;">${r.status || 'Pending'}</span>
+          </td>
+          <td>
+            <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">Work Done:</div>
+            <div style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">${r.workDone}</div>
+            ${r.feedback ? `
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 4px; font-size: 0.8rem; margin-top: 6px;">
+                <strong style="color: var(--primary);">Supervisor Feedback:</strong>
+                <span style="color: var(--text-muted);">${r.feedback}</span>
+              </div>
+            ` : ''}
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     // 3. Build Work Logs Rows
     const totalHours = logs.reduce((sum, log) => sum + parseFloat(log.hours || 0), 0);
-    const logRows = logs.map(l => `
-      <tr>
-        <td>
-          <div style="font-weight: 600;">${l.project}</div>
-          <div style="font-size: 0.78rem; color: var(--text-light); margin-top: 2px;">${l.date}</div>
-        </td>
-        <td style="font-weight: 700; color: var(--primary);">${l.hours} hrs</td>
-        <td style="font-size: 0.85rem; color: var(--text-muted); line-height:1.4;">${l.description}</td>
-      </tr>
-    `).join('');
+    const logRows = logs.map(l => {
+      const statusClass = l.status === 'approved' ? 'student-badge-success' : l.status === 'rejected' ? 'student-badge-danger' : 'student-badge-warning';
+      return `
+        <tr>
+          <td>
+            <div style="font-weight: 600;">${l.project}</div>
+            <div style="font-size: 0.78rem; color: var(--text-light); margin-top: 2px;">${l.date}</div>
+          </td>
+          <td style="font-weight: 700; color: var(--primary);">${l.hours} hrs</td>
+          <td style="font-size: 0.85rem; color: var(--text-muted); line-height:1.4;">${l.description}</td>
+          <td>
+            <span class="student-badge ${statusClass}">${l.status ? l.status.toUpperCase() : 'PENDING'}</span>
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     // Today's date string in YYYY-MM-DD
     const todayStr = new Date().toISOString().split('T')[0];
@@ -77,14 +89,6 @@ export function StudentReports(route, router) {
               <div class="student-card-title">Submit Progress Report</div>
               <form id="report-form" class="student-form">
                 <div class="student-form-group">
-                  <label for="rep-project">Project</label>
-                  <select id="rep-project" class="student-select" required>
-                    <option value="" disabled selected>Select project</option>
-                    ${projectOptions}
-                  </select>
-                </div>
-                
-                <div class="student-form-group">
                   <label for="rep-type">Report Type</label>
                   <select id="rep-type" class="student-select" required>
                     <option value="Daily">Daily Report</option>
@@ -102,16 +106,6 @@ export function StudentReports(route, router) {
                   <textarea id="rep-done" class="student-textarea" placeholder="Detail tasks completed..." required></textarea>
                 </div>
 
-                <div class="student-form-group">
-                  <label for="rep-challenges">Challenges / Blockers (Optional)</label>
-                  <textarea id="rep-challenges" class="student-textarea" placeholder="Any issues faced?"></textarea>
-                </div>
-
-                <div class="student-form-group">
-                  <label for="rep-next">Next Plan</label>
-                  <textarea id="rep-next" class="student-textarea" placeholder="Describe next objectives..." required></textarea>
-                </div>
-
                 <button type="submit" class="student-btn student-btn-primary" style="justify-content:center; margin-top:8px;">
                   Submit Progress Report
                 </button>
@@ -125,8 +119,8 @@ export function StudentReports(route, router) {
                 <table class="student-table">
                   <thead>
                     <tr>
-                      <th style="width: 30%;">Project</th>
-                      <th style="width: 15%;">Type</th>
+                      <th style="width: 25%;">Date</th>
+                      <th style="width: 20%;">Type</th>
                       <th style="width: 55%;">Report Content</th>
                     </tr>
                   </thead>
@@ -182,13 +176,14 @@ export function StudentReports(route, router) {
                 <table class="student-table">
                   <thead>
                     <tr>
-                      <th style="width: 30%;">Project & Date</th>
-                      <th style="width: 20%;">Hours</th>
-                      <th style="width: 50%;">Description</th>
+                      <th style="width: 25%;">Project & Date</th>
+                      <th style="width: 15%;">Hours</th>
+                      <th style="width: 45%;">Description</th>
+                      <th style="width: 15%;">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    ${logRows || '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">No log entries recorded.</td></tr>'}
+                    ${logRows || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">No log entries recorded.</td></tr>'}
                   </tbody>
                 </table>
               </div>
@@ -211,23 +206,20 @@ export function StudentReports(route, router) {
 
     // Bind Forms Submit listeners
     const reportForm = container.querySelector('#report-form');
-    reportForm?.addEventListener('submit', (e) => {
+    reportForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const project = container.querySelector('#rep-project').value;
       const type = container.querySelector('#rep-type').value;
       const date = container.querySelector('#rep-date').value;
       const workDone = container.querySelector('#rep-done').value.trim();
-      const challenges = container.querySelector('#rep-challenges').value.trim();
-      const nextPlan = container.querySelector('#rep-next').value.trim();
 
-      if (!project || !type || !date || !workDone || !nextPlan) return;
+      if (!type || !date || !workDone) return;
 
-      saveReport({ project, type, date, workDone, challenges, nextPlan });
+      await saveReport({ type, date, workDone });
       render();
     });
 
     const workLogForm = container.querySelector('#worklog-form');
-    workLogForm?.addEventListener('submit', (e) => {
+    workLogForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const project = container.querySelector('#log-project').value;
       const date = container.querySelector('#log-date').value;
@@ -236,7 +228,7 @@ export function StudentReports(route, router) {
 
       if (!project || !date || isNaN(hours) || !description) return;
 
-      saveWorkLog({ project, date, hours, description });
+      await saveWorkLog({ project, date, hours, description });
       render();
     });
   }

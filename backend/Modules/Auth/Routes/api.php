@@ -14,14 +14,17 @@ use Modules\Auth\Controllers\AuthController;
 |
 */
 
+use Modules\Auth\Middleware\JwtMiddleware;
+
 Route::group(['prefix' => 'auth'], function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
     
     // Protected routes
-    Route::group(['middleware' => ['auth.jwt']], function () {
+    Route::group(['middleware' => [JwtMiddleware::class]], function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
+        Route::get('users', [AuthController::class, 'searchUsers']);
         
         // Example of a route protected by both JWT and our custom Permission middleware
         Route::get('me', function () {

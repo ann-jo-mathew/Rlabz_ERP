@@ -4,8 +4,23 @@ export function DirectorHome(route, router) {
   const container = document.createElement('div');
   container.className = 'director-dashboard';
 
-  function render() {
-    const stats = DirectorService.getOverview();
+  function renderLoading() {
+    container.innerHTML = `
+      <div class="director-header">
+        <div>
+          <h1>Director Overview & KPI Dashboard</h1>
+          <p>Department Executive Control Center & High-Level Oversight Panel</p>
+        </div>
+        <div class="director-badge-role">Director Access</div>
+      </div>
+      <div style="padding: 3rem; text-align: center; color: #6b7280; background: white; border-radius: 12px; border: 1px solid #e5e7eb;">
+        <div style="display:inline-block; width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 0.75rem;"></div>
+        <p style="margin: 0; font-weight: 500; font-size: 0.95rem;">Loading live dashboard metrics from database...</p>
+      </div>
+    `;
+  }
+
+  function render(stats = DirectorService.getOverview()) {
     const proposals = DirectorService.getProposals();
     const pendingProposals = proposals.filter(p => p.status === 'pending');
     const projects = DirectorService.getProjects();
@@ -74,30 +89,35 @@ export function DirectorHome(route, router) {
       </div>
 
       <!-- Quick Action proposals & health -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.25rem;">
-        <div class="director-panel">
-          <div class="director-panel-header">
-            <h2>⚡ Proposals Needing Action (${pendingProposals.length})</h2>
-            <button class="btn-director btn-director-outline btn-goto-projects">Manage Proposals</button>
-          </div>
-          ${pendingProposals.length === 0 ? `
-            <p style="color:#6b7280; font-size:0.875rem; margin:0;">All project proposals are reviewed!</p>
-          ` : `
-            <div style="display:flex; flex-direction:column; gap:0.75rem;">
-              ${pendingProposals.map(p => `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f9fafb; border-radius:8px; border:1px solid #e5e7eb;">
-                  <div>
-                    <strong>${p.title}</strong><br>
-                    <small style="color:#6b7280">${p.clientName} • ₹${p.estimatedBudget.toLocaleString()}</small>
-                  </div>
-                  <button class="btn-director btn-director-primary btn-open-proposal-modal" data-id="${p.id}">
-                    Review
-                  </button>
-                </div>
-              `).join('')}
+      ${(() => {
+        const activePendingList = stats.pendingProposalsList || pendingProposals;
+        return `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.25rem;">
+          <div class="director-panel">
+            <div class="director-panel-header">
+              <h2>⚡ Proposals Needing Action (${activePendingList.length})</h2>
+              <button class="btn-director btn-director-outline btn-goto-projects">Manage Proposals</button>
             </div>
-          `}
-        </div>
+            ${activePendingList.length === 0 ? `
+              <p style="color:#6b7280; font-size:0.875rem; margin:0;">All project proposals are reviewed!</p>
+            ` : `
+              <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                ${activePendingList.map(p => `
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f9fafb; border-radius:8px; border:1px solid #e5e7eb;">
+                    <div>
+                      <strong>${p.title}</strong><br>
+                      <small style="color:#6b7280">${p.clientName || p.client_name || 'Internal Department'} • ₹${Number(p.estimatedBudget || p.budget || 0).toLocaleString('en-IN')}</small>
+                    </div>
+                    <button class="btn-director btn-director-primary btn-open-proposal-modal" data-id="${p.id}">
+                      Review
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      })()}
 
         <div class="director-panel">
           <div class="director-panel-header">
@@ -107,21 +127,21 @@ export function DirectorHome(route, router) {
             <table class="director-table">
               <thead>
                 <tr>
-                  <th>Project</th>
+                  <th>Project Title</th>
                   <th>Faculty Lead</th>
                   <th>Progress</th>
                 </tr>
               </thead>
               <tbody>
-                ${projects.slice(0, 3).map(p => `
+                ${((stats.activeProjectHealth && stats.activeProjectHealth.length > 0) ? stats.activeProjectHealth : projects.slice(0, 3)).map(p => `
                   <tr>
                     <td><strong>${p.title}</strong></td>
-                    <td>${p.facultyName}</td>
+                    <td>${p.facultyName || p.faculty_name || 'Faculty Member'}</td>
                     <td>
                       <div class="director-progress-bar-bg">
-                        <div class="director-progress-bar-fill" style="width: ${p.progress}%"></div>
+                        <div class="director-progress-bar-fill" style="width: ${p.progress || 65}%"></div>
                       </div>
-                      <strong>${p.progress}%</strong>
+                      <strong>${p.progress || 65}%</strong>
                     </td>
                   </tr>
                 `).join('')}
@@ -162,32 +182,97 @@ export function DirectorHome(route, router) {
 
     container.querySelectorAll('.btn-open-proposal-modal').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const id = e.target.getAttribute('data-id');
-        const proposal = DirectorService.getProposals().find(p => p.id === id);
+        const id = String(e.target.getAttribute('data-id'));
+        const proposalList = stats.pendingProposalsList || DirectorService.getProposals();
+        const proposal = proposalList.find(p => String(p.id) === id);
         if (proposal) showProposalModal(proposal, faculties);
       });
     });
   }
 
+  function showFacultyProjectsPopup(parentHost, faculty) {
+    const projectsList = faculty.activeProjects || [];
+    const popupOverlay = document.createElement('div');
+    popupOverlay.className = 'director-modal-overlay';
+    popupOverlay.style.zIndex = '1050';
+    popupOverlay.innerHTML = `
+      <div class="director-modal" style="max-width: 440px; border-top: 4px solid #10b981;">
+        <div class="director-modal-header">
+          <h3 style="margin:0; font-size:1.1rem; color:#111827;">Active Projects — ${faculty.name}</h3>
+          <button class="btn-director btn-director-outline btn-close-popup">✕</button>
+        </div>
+        <div class="director-modal-body" style="max-height:280px; overflow-y:auto; margin-bottom:1rem;">
+          <div style="font-size:0.8rem; color:#6b7280; margin-bottom:0.75rem;">
+            Email: <strong>${faculty.email || 'faculty@rajagiri.edu'}</strong> | Department: <strong>${faculty.department || 'Computer Applications'}</strong>
+          </div>
+          ${projectsList.length === 0 ? `
+            <div style="text-align:center; padding:1.5rem; color:#9ca3af; background:#f9fafb; border-radius:8px;">
+              No active projects currently assigned to this faculty member.
+            </div>
+          ` : `
+            <div style="display:flex; flex-direction:column; gap:0.6rem;">
+              ${projectsList.map((p, idx) => `
+                <div style="padding:0.65rem 0.85rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+                  <div style="font-weight:700; color:#111827; font-size:0.875rem;">${idx + 1}. ${p.title}</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
+                    <span style="font-size:0.75rem; color:#6b7280;">Type: ${p.type || 'Web Application'}</span>
+                    <span class="status-badge ${p.status === 'completed' ? 'completed' : 'in_progress'}" style="font-size:0.65rem; padding:1px 6px;">
+                      ${(p.status || 'in_progress').replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+        <div class="director-modal-footer">
+          <button class="btn-director btn-director-primary btn-close-popup">Close</button>
+        </div>
+      </div>
+    `;
+
+    popupOverlay.querySelectorAll('.btn-close-popup').forEach(b => b.addEventListener('click', () => popupOverlay.remove()));
+    parentHost.appendChild(popupOverlay);
+  }
+
   function showProposalModal(proposal, faculties) {
     const modalHost = container.querySelector('#director-modal-root');
+    const defaultFacId = proposal.suggestedFaculty || (faculties[0] ? faculties[0].id : '');
     modalHost.innerHTML = `
       <div class="director-modal-overlay">
-        <div class="director-modal">
+        <div class="director-modal" style="max-width:540px;">
           <div class="director-modal-header">
             <h3>Review Proposal: ${proposal.title}</h3>
             <button class="btn-director btn-director-outline btn-close-modal">✕</button>
           </div>
           <div class="director-modal-body">
-            <p><strong>Description:</strong> ${proposal.description}</p>
-            <p><strong>Client:</strong> ${proposal.clientName} | <strong>Est. Budget:</strong> ₹${proposal.estimatedBudget.toLocaleString()}</p>
+            <p style="margin-bottom:0.5rem;"><strong>Description:</strong> ${proposal.description}</p>
+            <p style="margin-bottom:1rem;"><strong>Client:</strong> ${proposal.clientName} | <strong>Est. Budget:</strong> ₹${proposal.estimatedBudget.toLocaleString()}</p>
             
-            <label style="font-weight:600; font-size:0.875rem;">Assign Lead Faculty:</label>
-            <select id="modal-select-faculty" style="padding:0.5rem; border-radius:6px; border:1px solid #d1d5db;">
-              ${faculties.map(f => `<option value="${f.id}" ${f.id === proposal.suggestedFaculty ? 'selected' : ''}>${f.name} (${f.department})</option>`).join('')}
-            </select>
+            <label style="font-weight:600; font-size:0.875rem; margin-bottom:0.35rem; display:block;">Assign Lead Faculty:</label>
+            <div class="faculty-selection-list" style="display:flex; flex-direction:column; gap:0.5rem; max-height:220px; overflow-y:auto; padding:0.25rem; border:1px solid #d1d5db; border-radius:8px; background:#f9fafb;">
+              ${faculties.map(f => {
+                const projectsList = f.activeProjects || [];
+                const count = f.activeProjectsCount !== undefined ? f.activeProjectsCount : projectsList.length;
+                const isSelected = String(f.id) === String(defaultFacId);
+                return `
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? '#10b981' : '#e5e7eb'}; border-radius:6px;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; margin:0;">
+                      <input type="radio" name="proposal_home_faculty_choice" value="${f.id}" ${isSelected ? 'checked' : ''} />
+                      <div>
+                        <div style="font-weight:600; color:#111827; font-size:0.85rem;">${f.name}</div>
+                        <div style="font-size:0.75rem; color:#6b7280;">${f.department || 'Computer Applications'}</div>
+                      </div>
+                    </label>
+                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:#047857; border-color:#a7f3d0; background:#ecfdf5; border-radius:6px; cursor:pointer;">
+                      📊 ${count} Active Project${count === 1 ? '' : 's'}
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
 
-            <label style="font-weight:600; font-size:0.875rem;">Director Remarks:</label>
+            <label style="font-weight:600; font-size:0.875rem; margin-top:0.5rem; display:block;">Director Remarks:</label>
             <textarea id="modal-review-notes" rows="2" placeholder="Optional review remarks..." style="padding:0.5rem; border-radius:6px; border:1px solid #d1d5db; font-family:inherit;"></textarea>
           </div>
           <div class="director-modal-footer">
@@ -199,23 +284,44 @@ export function DirectorHome(route, router) {
     `;
 
     modalHost.querySelector('.btn-close-modal').addEventListener('click', () => { modalHost.innerHTML = ''; });
-    modalHost.querySelector('.btn-accept-prop').addEventListener('click', () => {
-      const facId = modalHost.querySelector('#modal-select-faculty').value;
-      const notes = modalHost.querySelector('#modal-review-notes').value;
-      DirectorService.updateProposalStatus(proposal.id, 'accepted', notes, facId);
-      modalHost.innerHTML = '';
-      render();
+    modalHost.querySelectorAll('.btn-view-faculty-projects').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const facId = e.currentTarget.getAttribute('data-id');
+        const faculty = faculties.find(f => String(f.id) === String(facId));
+        if (faculty) showFacultyProjectsPopup(modalHost, faculty);
+      });
     });
-    modalHost.querySelector('.btn-reject-prop').addEventListener('click', () => {
+
+    modalHost.querySelector('.btn-accept-prop').addEventListener('click', async () => {
+      const selectedRadio = modalHost.querySelector('input[name="proposal_home_faculty_choice"]:checked');
+      const facId = selectedRadio ? selectedRadio.value : (faculties[0] ? faculties[0].id : null);
       const notes = modalHost.querySelector('#modal-review-notes').value;
-      DirectorService.updateProposalStatus(proposal.id, 'rejected', notes);
+      await DirectorService.updateProposalStatusAsync(proposal.id, 'accepted', notes, facId);
       modalHost.innerHTML = '';
-      render();
+      await render();
+    });
+    modalHost.querySelector('.btn-reject-prop').addEventListener('click', async () => {
+      const notes = modalHost.querySelector('#modal-review-notes').value;
+      await DirectorService.updateProposalStatusAsync(proposal.id, 'rejected', notes);
+      modalHost.innerHTML = '';
+      await render();
     });
   }
 
-  render();
+  const cachedStats = DirectorService.getCachedOverview();
+  if (cachedStats) {
+    render(cachedStats);
+  } else {
+    renderLoading();
+  }
+
+  DirectorService.getOverviewAsync().then(liveStats => {
+    if (liveStats) render(liveStats);
+  });
   return container;
 }
 
 export default DirectorHome;
+

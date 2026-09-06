@@ -1,8 +1,9 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
-import { getMeetings } from './mockStore.js';
+import { getMeetings, ensureDataLoaded } from './studentStore.js';
 import '../student.css';
 
-export function StudentMeetings(route, router) {
+export async function StudentMeetings(route, router) {
+  await ensureDataLoaded();
   renderStudentSidebar();
 
   const container = document.createElement('div');

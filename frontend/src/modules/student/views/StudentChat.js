@@ -1,8 +1,9 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
-import { getProjects, getChatMessages, saveChatMessage } from './mockStore.js';
+import { getProjects, getChatMessages, saveChatMessage, ensureDataLoaded } from './studentStore.js';
 import '../student.css';
 
-export function StudentChat(route, router) {
+export async function StudentChat(route, router) {
+  await ensureDataLoaded();
   renderStudentSidebar();
 
   const container = document.createElement('div');
@@ -116,14 +117,14 @@ export function StudentChat(route, router) {
 
     // Bind chat form submit
     const chatForm = container.querySelector('#chat-form');
-    chatForm?.addEventListener('submit', (e) => {
+    chatForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = container.querySelector('#chat-input');
       const text = input.value.trim();
 
       if (!text || !selectedProjectTitle) return;
 
-      saveChatMessage(selectedProjectTitle, text);
+      await saveChatMessage(selectedProjectTitle, text);
       input.value = '';
       render();
     });

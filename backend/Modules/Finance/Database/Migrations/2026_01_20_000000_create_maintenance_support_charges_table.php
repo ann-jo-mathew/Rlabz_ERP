@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_finance_id')->constrained('project_finances')->onDelete('cascade');
             $table->decimal('amount', 12, 2);
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
         });
