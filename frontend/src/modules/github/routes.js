@@ -1,9 +1,9 @@
-import { DashboardLayout } from '@/core/layouts/DashboardLayout.js';
+import { FacultyLayout } from '../faculty/FacultyLayout.js';
 
 const routes = [
     {
         path: '/github',
-        component: DashboardLayout,
+        component: FacultyLayout,
         children: [
             {
                 path: '',

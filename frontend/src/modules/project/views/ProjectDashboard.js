@@ -74,11 +74,11 @@ export async function ProjectDashboard(route, router) {
           });
         });
       } else {
-        listContainer.innerHTML = '<p>Error loading projects.</p>';
+        listContainer.innerHTML = '<p>Error loading projects: ' + (data.error || JSON.stringify(data)) + '</p>';
       }
     } catch (e) {
       console.error(e);
-      container.querySelector('#project-list-container').innerHTML = '<p>Failed to load projects.</p>';
+      container.querySelector('#project-list-container').innerHTML = '<p>Failed to load projects: ' + e.message + '</p>';
     }
   }
 

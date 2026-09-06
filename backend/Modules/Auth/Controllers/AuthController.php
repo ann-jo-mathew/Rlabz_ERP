@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AuthController extends Controller
 {
@@ -102,26 +103,6 @@ class AuthController extends Controller
     }
 
     /**
-     * @route GET /api/auth/users
-     */
-    public function searchUsers(Request $request)
-    {
-        $role = $request->query('role');
-        $search = $request->query('search');
-
-        $query = DB::table('users');
-        if ($role) {
-            $query->where('role', $role);
-        }
-        if ($search) {
-            $query->where('name', 'LIKE', '%' . $search . '%');
-        }
-
-        $users = $query->select('id', 'name', 'email', 'role')->limit(10)->get();
-        return response()->json(['status' => 'success', 'data' => $users]);
-    }
-
-    /**
      * Helper to format token response.
      */
     protected function respondWithToken($token, $user)
@@ -154,7 +135,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => 3600,
+            'expires_in' => 86400 * 30,
             'user' => $userArray
         ]);
     }
@@ -174,7 +155,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'role' => $user->role,
             'permissions' => $permissions,
-            'exp' => time() + 3600
+            'exp' => time() + 86400 * 30
         ]);
 
         $base64UrlHeader = $this->base64UrlEncode($header);
@@ -185,4 +166,70 @@ class AuthController extends Controller
 
         return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
     }
+
+    public function searchUsers(Request $request)
+    {
+        $role = $request->query('role');
+        $search = $request->query('search');
+
+        $query = DB::table('users');
+
+        if ($role) {
+            $query->where('role', $role);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+
+        $hasProjects = Schema::hasTable('projects');
+
+        $users = $query->select('id', 'name', 'email', 'role')->take(10)->get()->map(function ($u) use ($hasProjects) {
+            $activeProjects = [];
+            if ($u->role === 'faculty' && $hasProjects) {
+                $queryProj = DB::table('projects')
+                    ->where(function($q) use ($u) {
+                        if (Schema::hasColumn('projects', 'faculty_id')) {
+                            $q->where('faculty_id', $u->id);
+                        }
+                        if (Schema::hasTable('project_faculty')) {
+                            $q->orWhereIn('id', function($sub) use ($u) {
+                                $sub->select('project_id')->from('project_faculty')->where('faculty_id', $u->id);
+                            });
+                        }
+                    })
+                    ->whereIn('status', ['in_progress', 'accepted', 'active'])
+                    ->select('id', 'title', 'status', 'project_type')
+                    ->distinct();
+
+                $activeProjects = $queryProj->get()
+                    ->map(function($p) {
+                        return [
+                            'id' => $p->id,
+                            'title' => $p->title,
+                            'status' => $p->status,
+                            'type' => $p->project_type ?? 'Web Application'
+                        ];
+                    })
+                    ->toArray();
+            }
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+                'role' => $u->role,
+                'active_projects_count' => count($activeProjects),
+                'active_projects' => $activeProjects
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $users
+        ]);
+    }
 }
+

@@ -103,17 +103,18 @@ export async function ProjectDetails(route, router) {
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 0;">Modules & Tasks</h3>
             ${permissions.includes('project.module.create') ? `
-              <button id="btn-add-module" class="btn btn-sm btn-primary shadow-hover"><i class="fa fa-plus"></i> Add Module</button>
+              <button id="btn-add-module" class="btn btn-sm btn-primary shadow-hover" style="width: max-content; padding: 0.5rem 1.5rem;"><i class="fa fa-plus"></i> Add Module</button>
             ` : ''}
           </div>
           
-          <div id="module-form-container" style="display:none; margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px;">
+          <div id="module-form-container" style="display:none; margin-bottom: 1.5rem; padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.01);">
+            <h4 style="margin-bottom: 1rem;">Create New Module</h4>
             <form id="form-module" style="display: flex; flex-direction: column; gap: 1rem;">
               <input type="text" name="name" placeholder="Module Name" class="premium-input" required />
               <textarea name="description" placeholder="Description..." class="premium-input" rows="2"></textarea>
               <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                 <button type="button" id="btn-cancel-module" class="btn btn-outline btn-sm">Cancel</button>
-                <button type="submit" class="btn btn-primary btn-sm">Save Module</button>
+                <button type="submit" class="btn btn-primary btn-sm" style="width: max-content; padding: 0.5rem 1.5rem;">Save Module</button>
               </div>
             </form>
           </div>
@@ -316,35 +317,48 @@ export async function ProjectDetails(route, router) {
         if (modContainer) {
           if (p.modules && p.modules.length > 0) {
             modContainer.innerHTML = p.modules.map(m => `
-              <div class="module-card" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: var(--bg-surface);">
+              <div class="module-card" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; background: var(--bg-card); box-shadow: var(--shadow-sm);">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem;">
                   <div>
-                    <h4 style="margin: 0; font-size: 1.1rem;">${m.name}</h4>
-                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-muted);">${m.description || ''}</p>
+                    <h4 style="margin: 0; font-size: 1.15rem; font-weight: 700;">${m.module_name || m.name || 'Untitled Module'}</h4>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">${m.description || ''}</p>
                   </div>
-                  ${permissions.includes('project.task.create') ? `<button class="btn btn-sm btn-outline btn-add-task" data-module-id="${m.id}"><i class="fa fa-plus"></i> Task</button>` : ''}
+                  ${permissions.includes('project.task.create') ? `<button class="btn btn-sm btn-outline btn-add-task" data-module-id="${m.id}" style="padding: 0.4rem 1rem;"><i class="fa fa-plus"></i> Task</button>` : ''}
                 </div>
                 
-                <div class="tasks-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div class="tasks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
                   ${(m.tasks && m.tasks.length > 0) ? m.tasks.map(t => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-body); border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; transition: var(--transition);">
                       <div>
-                        <strong style="display: block;">${t.title}</strong>
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">Priority: ${t.priority || 'medium'}</span>
+                        <strong style="display: block; font-size: 0.95rem;">${t.title}</strong>
+                        ${t.description ? `<span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">${t.description}</span>` : ''}
                       </div>
                       <div style="display: flex; align-items: center; gap: 1rem;">
-                        <span class="status-badge ${t.status.toLowerCase().replace(' ', '-')}">${t.status}</span>
+                        <span class="status-badge ${t.status}">${t.status.replace('_', ' ').toUpperCase()}</span>
                         ${permissions.includes('project.task.update') ? `
-                          <select class="premium-input task-status-select" data-task-id="${t.id}" style="padding: 0.25rem 0.5rem; width: auto;">
-                            <option value="To Do" ${t.status === 'To Do' ? 'selected' : ''}>To Do</option>
-                            <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                            <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>Completed</option>
-                            <option value="Blocked" ${t.status === 'Blocked' ? 'selected' : ''}>Blocked</option>
+                          <select class="premium-input task-status-select" data-task-id="${t.id}" style="padding: 0.3rem 0.6rem; width: auto; font-size: 0.85rem; background-color: #ffffff;">
+                            <option value="todo" ${t.status === 'todo' ? 'selected' : ''}>To Do</option>
+                            <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="completed" ${t.status === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="blocked" ${t.status === 'blocked' ? 'selected' : ''}>Blocked</option>
                           </select>
                         ` : ''}
                       </div>
                     </div>
-                  `).join('') : '<p style="color:var(--text-muted); font-size: 0.9rem;">No tasks created for this module.</p>'}
+                  `).join('') : '<p style="color:var(--text-muted); font-size: 0.9rem; font-style: italic;">No tasks created for this module.</p>'}
+                </div>
+
+                <!-- Inline Task Form Container -->
+                <div class="task-form-container" id="task-form-${m.id}" style="display:none; margin-top: 1.25rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(16, 185, 129, 0.03);">
+                  <h5 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-main);">Create New Task</h5>
+                  <form class="form-add-task" data-module-id="${m.id}" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <input type="text" name="title" placeholder="Task Title" class="premium-input" required />
+                    <textarea name="description" placeholder="Task Description (Optional)" class="premium-input" rows="2"></textarea>
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                      <button type="button" class="btn btn-outline btn-sm btn-cancel-task" data-module-id="${m.id}">Cancel</button>
+                      <button type="submit" class="btn btn-primary btn-sm" style="width: max-content; padding: 0.4rem 1.25rem;">Save Task</button>
+                    </div>
+                  </form>
                 </div>
               </div>
             `).join('');
@@ -366,21 +380,55 @@ export async function ProjectDetails(route, router) {
               });
             });
 
-            // Bind Add Task buttons
+            // Bind Add Task buttons to show the inline form
             modContainer.querySelectorAll('.btn-add-task').forEach(btn => {
-              btn.addEventListener('click', async (e) => {
+              btn.addEventListener('click', (e) => {
                 const moduleId = e.target.closest('button').getAttribute('data-module-id');
-                const title = prompt('Enter Task Title:');
+                const formContainer = modContainer.querySelector('#task-form-' + moduleId);
+                if (formContainer) formContainer.style.display = 'block';
+                e.target.closest('button').style.display = 'none'; // hide the Task button temporarily
+              });
+            });
+
+            // Bind Cancel Task buttons
+            modContainer.querySelectorAll('.btn-cancel-task').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                const moduleId = e.target.getAttribute('data-module-id');
+                const formContainer = modContainer.querySelector('#task-form-' + moduleId);
+                if (formContainer) formContainer.style.display = 'none';
+                
+                // Show the "Task" button again
+                const taskBtn = modContainer.querySelector('.btn-add-task[data-module-id="'+moduleId+'"]');
+                if (taskBtn) taskBtn.style.display = 'inline-block';
+              });
+            });
+
+            // Bind Task Form submit
+            modContainer.querySelectorAll('.form-add-task').forEach(form => {
+              form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const moduleId = form.getAttribute('data-module-id');
+                const formData = new FormData(form);
+                const title = formData.get('title');
+                const description = formData.get('description');
+                
                 if (title) {
                   try {
                     const t = localStorage.getItem('token');
+                    const btnSave = form.querySelector('button[type="submit"]');
+                    btnSave.disabled = true;
+                    btnSave.textContent = 'Saving...';
+                    
                     await fetch(`http://127.0.0.1:8000/api/projects/modules/${moduleId}/tasks`, {
                       method: 'POST',
                       headers: { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ title, priority: 'medium' })
+                      body: JSON.stringify({ title, description })
                     });
-                    loadProject();
-                  } catch (err) { }
+                    loadProject(); // This re-renders and resets the forms
+                  } catch (err) { 
+                    console.error('Error saving task', err);
+                    alert('Error saving task');
+                  }
                 }
               });
             });
@@ -616,6 +664,13 @@ export async function ProjectDetails(route, router) {
     formFaculty.addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = container.querySelector('#msg-faculty');
+      const facultyId = container.querySelector('#faculty-id').value;
+      if (!facultyId) {
+        msg.style.color = 'red';
+        msg.textContent = 'Please select a faculty member from the dropdown suggestions.';
+        return;
+      }
+      msg.style.color = '#2563eb';
       msg.textContent = 'Assigning...';
       const formData = new FormData(formFaculty);
       try {
@@ -631,18 +686,18 @@ export async function ProjectDetails(route, router) {
         const data = await response.json();
         if (response.ok) {
           msg.style.color = 'green';
-          msg.textContent = data.message || 'Assigned successfully!';
+          msg.textContent = data.message || 'Assigned faculty successfully!';
           formFaculty.reset();
           container.querySelector('#faculty-search').value = '';
           container.querySelector('#faculty-id').value = '';
           loadProject();
         } else {
           msg.style.color = 'red';
-          msg.textContent = data.error || 'Failed to assign';
+          msg.textContent = data.error || data.message || 'Failed to assign faculty';
         }
       } catch (err) {
         msg.style.color = 'red';
-        msg.textContent = 'Error assigning';
+        msg.textContent = 'Error assigning faculty';
       }
     });
   }
@@ -684,6 +739,51 @@ export async function ProjectDetails(route, router) {
     });
   }
 
+  function showUserProjectsPopup(parentHost, user) {
+    const projectsList = user.active_projects || user.activeProjects || [];
+    const popupOverlay = document.createElement('div');
+    popupOverlay.className = 'director-modal-overlay';
+    popupOverlay.style.zIndex = '2000';
+    popupOverlay.innerHTML = `
+      <div class="director-modal" style="max-width: 440px; border-top: 4px solid #10b981;">
+        <div class="director-modal-header">
+          <h3 style="margin:0; font-size:1.1rem; color:#111827;">Active Projects — ${user.name}</h3>
+          <button class="btn-director btn-director-outline btn-close-popup">✕</button>
+        </div>
+        <div class="director-modal-body" style="max-height:280px; overflow-y:auto; margin-bottom:1rem;">
+          <div style="font-size:0.8rem; color:#6b7280; margin-bottom:0.75rem;">
+            Email: <strong>${user.email || ''}</strong>
+          </div>
+          ${projectsList.length === 0 ? `
+            <div style="text-align:center; padding:1.5rem; color:#9ca3af; background:#f9fafb; border-radius:8px;">
+              No active projects currently assigned to this faculty member.
+            </div>
+          ` : `
+            <div style="display:flex; flex-direction:column; gap:0.6rem;">
+              ${projectsList.map((p, idx) => `
+                <div style="padding:0.65rem 0.85rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+                  <div style="font-weight:700; color:#111827; font-size:0.875rem;">${idx + 1}. ${p.title}</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
+                    <span style="font-size:0.75rem; color:#6b7280;">Type: ${p.type || 'Web Application'}</span>
+                    <span class="status-badge ${p.status === 'completed' ? 'completed' : 'in_progress'}" style="font-size:0.65rem; padding:1px 6px;">
+                      ${(p.status || 'in_progress').replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+        <div class="director-modal-footer">
+          <button class="btn-director btn-director-primary btn-close-popup">Close</button>
+        </div>
+      </div>
+    `;
+
+    popupOverlay.querySelectorAll('.btn-close-popup').forEach(b => b.addEventListener('click', () => popupOverlay.remove()));
+    parentHost.appendChild(popupOverlay);
+  }
+
   // Autocomplete Logic
   function setupAutocomplete(searchInputId, hiddenInputId, resultsId, role) {
     const searchInput = container.querySelector('#' + searchInputId);
@@ -694,46 +794,78 @@ export async function ProjectDetails(route, router) {
 
     let debounceTimer;
 
+    const fetchAndRender = async (query = '') => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://127.0.0.1:8000/api/auth/users?role=${role}&search=${encodeURIComponent(query)}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await response.json();
+
+        if (data.status === 'success' && data.data && data.data.length > 0) {
+          resultsContainer.innerHTML = '';
+          data.data.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.style.display = 'flex';
+            item.style.justifyContent = 'space-between';
+            item.style.alignItems = 'center';
+            item.style.padding = '0.6rem 0.85rem';
+
+            const count = user.active_projects_count !== undefined ? user.active_projects_count : (user.active_projects ? user.active_projects.length : 0);
+
+            item.innerHTML = `
+              <div>
+                <strong>${user.name}</strong><br>
+                <small style="color:var(--text-muted);">${user.email}</small>
+              </div>
+              ${role === 'faculty' ? `
+                <button type="button" class="btn-view-user-projects" style="font-size:0.75rem; padding:0.25rem 0.55rem; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; border-radius:6px; cursor:pointer; font-weight:600; white-space:nowrap; margin-left:0.5rem;">
+                  📊 ${count} Active Project${count === 1 ? '' : 's'}
+                </button>
+              ` : ''}
+            `;
+
+            const projBtn = item.querySelector('.btn-view-user-projects');
+            if (projBtn) {
+              projBtn.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                showUserProjectsPopup(container, user);
+              });
+            }
+
+            item.addEventListener('click', () => {
+              searchInput.value = user.name;
+              hiddenInput.value = user.id;
+              resultsContainer.style.display = 'none';
+            });
+            resultsContainer.appendChild(item);
+          });
+          resultsContainer.style.display = 'block';
+        } else {
+          resultsContainer.innerHTML = '<div class="autocomplete-item"><small>No users found</small></div>';
+          resultsContainer.style.display = 'block';
+        }
+      } catch (err) {
+        console.error('Error fetching users:', err);
+      }
+    };
+
+    searchInput.addEventListener('focus', () => {
+      fetchAndRender(searchInput.value.trim());
+    });
+
+    searchInput.addEventListener('click', () => {
+      fetchAndRender(searchInput.value.trim());
+    });
+
     searchInput.addEventListener('input', (e) => {
       clearTimeout(debounceTimer);
       const query = e.target.value.trim();
-
-      if (query.length < 2) {
-        resultsContainer.style.display = 'none';
-        hiddenInput.value = '';
-        return;
-      }
-
-      debounceTimer = setTimeout(async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`http://127.0.0.1:8000/api/auth/users?role=${role}&search=${encodeURIComponent(query)}`, {
-            headers: { 'Authorization': 'Bearer ' + token }
-          });
-          const data = await response.json();
-
-          if (data.status === 'success' && data.data.length > 0) {
-            resultsContainer.innerHTML = '';
-            data.data.forEach(user => {
-              const item = document.createElement('div');
-              item.className = 'autocomplete-item';
-              item.innerHTML = `<strong>${user.name}</strong><small>${user.email}</small>`;
-              item.addEventListener('click', () => {
-                searchInput.value = user.name;
-                hiddenInput.value = user.id;
-                resultsContainer.style.display = 'none';
-              });
-              resultsContainer.appendChild(item);
-            });
-            resultsContainer.style.display = 'block';
-          } else {
-            resultsContainer.innerHTML = '<div class="autocomplete-item"><small>No users found</small></div>';
-            resultsContainer.style.display = 'block';
-          }
-        } catch (err) {
-          console.error('Error fetching users:', err);
-        }
-      }, 300);
+      debounceTimer = setTimeout(() => {
+        fetchAndRender(query);
+      }, 250);
     });
 
     document.addEventListener('click', (e) => {
