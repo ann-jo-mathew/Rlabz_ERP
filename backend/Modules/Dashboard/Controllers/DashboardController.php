@@ -470,6 +470,22 @@ class DashboardController extends Controller
             'updated_at' => now()
         ]);
 
+        if ($newStatus === 'accepted' && $request->faculty_id) {
+            if (Schema::hasColumn('projects', 'faculty_id')) {
+                DB::table('projects')->where('id', $proposalId)->update(['faculty_id' => $request->faculty_id]);
+            }
+            if (Schema::hasTable('project_faculty')) {
+                DB::table('project_faculty')->where('project_id', $proposalId)->delete();
+                DB::table('project_faculty')->insert([
+                    'project_id' => $proposalId,
+                    'faculty_id' => $request->faculty_id,
+                    'assigned_date' => now()->toDateString(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
         $this->logAudit(
             $request,
             $request->status === 'accepted' ? 'Proposal Accepted' : 'Proposal Rejected',
@@ -699,17 +715,21 @@ class DashboardController extends Controller
         }
         $facultyName = $faculty->name;
 
-        // project_faculty (not a projects.faculty_id column, which does not exist) is the
-        // real relationship — same pivot table the Coordinator side reads for display.
+        // Update faculty_id column on projects table if it exists
+        if (Schema::hasColumn('projects', 'faculty_id')) {
+            DB::table('projects')->where('id', $projectId)->update(['faculty_id' => $request->faculty_id]);
+        }
+
+        // Remove previous faculty assignment for this project so previous faculty's count decreases by 1
         if (Schema::hasTable('project_faculty')) {
-            DB::table('project_faculty')->updateOrInsert(
-                ['project_id' => $projectId, 'faculty_id' => $request->faculty_id],
-                [
-                    'assigned_date' => now()->toDateString(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
+            DB::table('project_faculty')->where('project_id', $projectId)->delete();
+            DB::table('project_faculty')->insert([
+                'project_id' => $projectId,
+                'faculty_id' => $request->faculty_id,
+                'assigned_date' => now()->toDateString(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
 
         $this->logAudit(

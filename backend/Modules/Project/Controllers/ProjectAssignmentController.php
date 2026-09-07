@@ -49,14 +49,14 @@ class ProjectAssignmentController extends Controller
         }
 
         if (Schema::hasTable('project_faculty')) {
-            DB::table('project_faculty')->updateOrInsert(
-                ['project_id' => $projectId, 'faculty_id' => $request->faculty_id],
-                [
-                    'assigned_date' => now()->toDateString(),
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]
-            );
+            DB::table('project_faculty')->where('project_id', $projectId)->delete();
+            DB::table('project_faculty')->insert([
+                'project_id' => $projectId,
+                'faculty_id' => $request->faculty_id,
+                'assigned_date' => now()->toDateString(),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
         }
 
         if (Schema::hasTable('audit_logs')) {
