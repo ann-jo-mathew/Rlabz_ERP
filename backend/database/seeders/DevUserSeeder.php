@@ -28,7 +28,7 @@ class DevUserSeeder extends Seeder
             [
                 'name' => 'Coordinator',
                 'email' => 'coordinator@rajagiri.edu',
-                'password' => Hash::make('coord123'),
+                'password' => Hash::make('password123'),
                 'role' => 'coordinator',
                 'permissions' => ['view-coordinator', 'view-finance-readonly', 'view-student', 'view-projects', 'view-communication', 'view-github', 'view-certificates', 'project.create', 'project.assign_students', 'project.view_global', 'project.client_requirements.create', 'project.client_requirements.view', 'project.client_requirements.update', 'project.close'],
             ],

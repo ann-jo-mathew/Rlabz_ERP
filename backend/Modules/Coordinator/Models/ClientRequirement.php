@@ -37,6 +37,11 @@ class ClientRequirement extends Model
         return $this->belongsTo(Task::class);
     }
 
+    public function changes()
+    {
+        return $this->hasMany(RequirementChange::class, 'client_requirement_id');
+    }
+
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');

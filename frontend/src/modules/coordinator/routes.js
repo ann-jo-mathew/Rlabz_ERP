@@ -1,6 +1,5 @@
 import { CoordinatorLayout } from './CoordinatorLayout.js';
 
-
 const routes = [
   {
     path: '/coordinator',
@@ -14,7 +13,7 @@ const routes = [
       {
         path: 'projects',
         name: 'coordinator-projects',
-        component: () => import('@/modules/project/views/ProjectDashboard.js')
+        component: () => import('./views/CoordinatorProjects.js')
       },
       {
         path: 'projects/create',
@@ -24,7 +23,7 @@ const routes = [
       {
         path: 'projects/:id',
         name: 'coordinator-projects-details',
-        component: () => import('@/modules/project/views/ProjectDetails.js')
+        component: () => import('./views/CoordinatorProjectDetail.js')
       },
       {
         path: 'students',
@@ -37,15 +36,19 @@ const routes = [
         component: () => import('./views/CoordinatorMeetings.js')
       },
       {
-  path: 'certificates',
-  name: 'coordinator-certificates',
-  component: () => import('../certificates/views/CertificatesHome.js')
-},
-
+        path: 'certificates',
+        name: 'coordinator-certificates',
+        component: () => import('../certificates/views/CertificatesHome.js')
+      },
       {
         path: 'reports',
         name: 'coordinator-reports',
         component: () => import('./views/CoordinatorReports.js')
+      },
+      {
+        path: 'finance',
+        name: 'coordinator-finance',
+        component: () => import('./views/CoordinatorFinances.js')
       }
     ]
   }

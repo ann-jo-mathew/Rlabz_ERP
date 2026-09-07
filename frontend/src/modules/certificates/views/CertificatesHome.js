@@ -1,42 +1,52 @@
+import { authStore } from '@/core/stores/auth.js';
 import '../certificates.css';
 
 export function CertificatesHome(route, router) {
   const container = document.createElement('div');
 
-  const certificates = [
-    {
-      id: 1,
-      student: 'Rahul Kumar',
-      project: 'Hospital Management System',
-      track: 'Nova',
-      date: '12 Aug 2026',
-      status: 'Issued'
-    },
-    {
-      id: 2,
-      student: 'Anjali Menon',
-      project: 'Hospital Management System',
-      track: 'Orbit',
-      date: '12 Aug 2026',
-      status: 'Issued'
-    },
-    {
-      id: 3,
-      student: 'Arjun Nair',
-      project: 'Hospital Management System',
-      track: 'Spark',
-      date: '-',
-      status: 'Pending'
-    },
-    {
-      id: 4,
-      student: 'Meera Joseph',
-      project: 'Campus ERP',
-      track: 'Orbit',
-      date: '10 Aug 2026',
-      status: 'Issued'
+  let certificates = [];
+
+  function getAuthToken() {
+    return authStore?.token || localStorage.getItem('token') || localStorage.getItem('access_token') || null;
+  }
+
+  async function fetchCertificates() {
+    const token = getAuthToken();
+    if (!token) throw new Error('Authentication required');
+
+    const resp = await fetch('http://127.0.0.1:8000/api/certificates', {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!resp.ok) {
+      const body = await resp.json().catch(() => ({}));
+      throw new Error(body.error || 'Failed to load certificates');
     }
-  ];
+
+    const data = await resp.json();
+    const raw = Array.isArray(data?.data) ? data.data : [];
+    certificates = raw.map(normalizeCertificate);
+    return certificates;
+  }
+
+  function normalizeCertificate(cert) {
+    return {
+      id: cert.id,
+      student: cert.student?.name || 'Unknown student',
+      studentEmail: cert.student?.email || '',
+      project: cert.project?.title || 'Unknown project',
+      module: cert.module?.module_name || '',
+      certificateNumber: cert.certificate_number,
+      description: cert.description,
+      date: cert.issue_date,
+      issuer: cert.issuer?.name || '',
+      status: 'Issued',
+    };
+  }
 
   const reports = [
     {
@@ -133,7 +143,7 @@ export function CertificatesHome(route, router) {
                 <tr>
                   <th>Student</th>
                   <th>Project</th>
-                  <th>Track</th>
+                  <th>Certificate No.</th>
                   <th>Issue Date</th>
                   <th>Status</th>
                   <th>Action</th>
@@ -179,14 +189,19 @@ export function CertificatesHome(route, router) {
       </div>
     `;
 
-    renderCertificates(certificates);
+    // fetch live certificates then render
+    fetchCertificates().then(() => renderCertificates(certificates)).catch((err) => {
+      console.error(err);
+      const tbody = container.querySelector('#certificate-table-body');
+      if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#b91c1c;">${err.message}</td></tr>`;
+    });
+
     renderReports(reports);
 
     // Search certificates
     container
       .querySelector('#certificate-search')
       ?.addEventListener('input', (e) => {
-
         const search = e.target.value.toLowerCase();
 
         const filtered = certificates.filter(c =>
@@ -201,7 +216,6 @@ export function CertificatesHome(route, router) {
     container
       .querySelector('#report-search')
       ?.addEventListener('input', (e) => {
-
         const search = e.target.value.toLowerCase();
 
         const filtered = reports.filter(r =>
@@ -218,7 +232,6 @@ export function CertificatesHome(route, router) {
   }
 
   function renderCertificates(data) {
-
     const tbody = container.querySelector('#certificate-table-body');
 
     if (!tbody) return;
@@ -242,13 +255,9 @@ export function CertificatesHome(route, router) {
           <strong>${cert.student}</strong>
         </td>
 
-        <td>${cert.project}</td>
+        <td>${cert.project}${cert.module ? `<br><small style="color:#6b7280;">${cert.module}</small>` : ''}</td>
 
-        <td>
-          <span class="cert-track ${cert.track.toLowerCase()}">
-            ${cert.track}
-          </span>
-        </td>
+        <td>${cert.certificateNumber}</td>
 
         <td>${cert.date}</td>
 
@@ -275,41 +284,43 @@ export function CertificatesHome(route, router) {
     `).join('');
 
     tbody.querySelectorAll('.cert-action').forEach(button => {
-
-      button.addEventListener('click', () => {
-
+      button.addEventListener('click', async () => {
         const id = Number(button.dataset.id);
-
-        const certificate = certificates.find(c => c.id === id);
-
-        if (certificate) {
-          showCertificateDetails(certificate);
+        try {
+          const token = getAuthToken();
+          if (!token) throw new Error('Authentication required');
+          const resp = await fetch(`http://127.0.0.1:8000/api/certificates/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!resp.ok) {
+            const body = await resp.json().catch(() => ({}));
+            throw new Error(body.error || 'Failed to load certificate');
+          }
+          const body = await resp.json();
+          const cert = normalizeCertificate(body?.data || body);
+          showCertificateDetails(cert);
+        } catch (err) {
+          console.error(err);
+          alert(err.message || 'Unable to load certificate details');
         }
-
       });
-
     });
   }
 
   function renderReports(data) {
-
     const reportList = container.querySelector('#report-list');
-
     if (!reportList) return;
 
     if (data.length === 0) {
-
       reportList.innerHTML = `
         <div style="padding:2rem; text-align:center; color:#6b7280;">
           No reports found.
         </div>
       `;
-
       return;
     }
 
     reportList.innerHTML = data.map(report => `
-
       <div class="report-item">
 
         <div>
@@ -332,55 +343,78 @@ export function CertificatesHome(route, router) {
         </button>
 
       </div>
-
     `).join('');
 
     reportList.querySelectorAll('.cert-action').forEach(button => {
-
       button.addEventListener('click', () => {
-
         const id = Number(button.dataset.reportId);
-
         const report = reports.find(r => r.id === id);
-
-        if (report) {
-          showReportDetails(report);
-        }
-
+        if (report) showReportDetails(report);
       });
-
     });
   }
 
   function showCertificateDetails(certificate) {
-
     const modalRoot =
       container.querySelector('#certificate-modal-root');
 
     modalRoot.innerHTML = `
+    <div class="director-modal-overlay">
+      <div class="director-modal">
 
-      <div class="director-modal-overlay">
+        <div class="director-modal-header">
+          <h3>Certificate Preview</h3>
 
-        <div class="director-modal">
+          <button
+            class="btn-director btn-director-outline"
+            id="close-cert-modal"
+          >
+            ✕
+          </button>
+        </div>
 
-          <div class="director-modal-header">
+        <div class="director-modal-body">
 
-            <h3>Certificate Details</h3>
+          <div
+            style="
+              background: white;
+              border: 6px solid #1e3a8a;
+              padding: 40px;
+              text-align: center;
+              margin: 10px;
+            "
+          >
 
-            <button
-              class="btn-director btn-director-outline"
-              id="close-cert-modal"
+            <p
+              style="
+                letter-spacing: 4px;
+                font-weight: bold;
+              "
             >
-              ✕
-            </button>
+              RLABZ
+            </p>
 
-          </div>
+            <h1>
+              CERTIFICATE
+            </h1>
 
-          <div class="director-modal-body">
+            <h2>
+              OF PROJECT COMPLETION
+            </h2>
 
             <p>
-              <strong>Student:</strong>
+              This is to certify that
+            </p>
+
+            <h2>
               ${certificate.student}
+            </h2>
+
+            <p>
+              ${
+                certificate.description ||
+                'Successfully completed the assigned project module.'
+              }
             </p>
 
             <p>
@@ -388,14 +422,19 @@ export function CertificatesHome(route, router) {
               ${certificate.project}
             </p>
 
+            ${certificate.module ? `
             <p>
-              <strong>Track:</strong>
-              ${certificate.track}
+              <strong>Module:</strong>
+              ${certificate.module}
             </p>
+            ` : ''}
 
             <p>
-              <strong>Status:</strong>
-              ${certificate.status}
+              <strong>Certificate No:</strong>
+              ${
+                certificate.certificateNumber ||
+                'CERT-2026-001'
+              }
             </p>
 
             <p>
@@ -403,36 +442,39 @@ export function CertificatesHome(route, router) {
               ${certificate.date}
             </p>
 
-          </div>
+            <br>
 
-          <div class="director-modal-footer">
-
-            ${
-              certificate.status === 'Pending'
-                ? `
-                  <button
-                    class="cert-primary-btn"
-                    id="approve-certificate"
-                  >
-                    Issue Certificate
-                  </button>
-                `
-                : `
-                  <button
-                    class="cert-primary-btn"
-                    id="download-certificate"
-                  >
-                    Download Certificate
-                  </button>
-                `
-            }
+            <p>
+              <strong>Coordinator</strong>
+              <br>
+              Authorized Signatory
+            </p>
 
           </div>
 
         </div>
 
+        <div class="director-modal-footer">
+
+          <button
+            class="cert-primary-btn"
+            id="download-certificate"
+          >
+            Print Certificate
+          </button>
+
+          <button
+            class="btn-director btn-director-outline"
+            id="close-cert-footer"
+          >
+            Close
+          </button>
+
+        </div>
+
       </div>
-    `;
+    </div>
+  `;
 
     modalRoot
       .querySelector('#close-cert-modal')
@@ -441,31 +483,22 @@ export function CertificatesHome(route, router) {
       });
 
     modalRoot
-      .querySelector('#approve-certificate')
+      .querySelector('#close-cert-footer')
       ?.addEventListener('click', () => {
-
-        alert(
-          `Certificate issued to ${certificate.student}.`
-        );
-
         modalRoot.innerHTML = '';
       });
 
     modalRoot
       .querySelector('#download-certificate')
       ?.addEventListener('click', () => {
-
-        alert(
-          `Certificate for ${certificate.student} is ready for download.`
-        );
-
+      alert(
+  'Certificate for ' + certificate.student + ' is ready for printing.'
+);
       });
   }
 
   function showReportDetails(report) {
-
-    const modalRoot =
-      container.querySelector('#certificate-modal-root');
+    const modalRoot = container.querySelector('#certificate-modal-root');
 
     modalRoot.innerHTML = `
 
@@ -542,115 +575,245 @@ export function CertificatesHome(route, router) {
   }
 
   function showIssueModal() {
-
-    const modalRoot =
-      container.querySelector('#certificate-modal-root');
+    const modalRoot = container.querySelector('#certificate-modal-root');
+    const today = new Date().toISOString().slice(0, 10);
 
     modalRoot.innerHTML = `
-
       <div class="director-modal-overlay">
-
         <div class="director-modal">
-
           <div class="director-modal-header">
-
-            <h3>Issue Project Certificates</h3>
-
-            <button
-              class="btn-director btn-director-outline"
-              id="close-issue-modal"
-            >
-              ✕
-            </button>
-
+            <h3>Issue Single Certificate</h3>
+            <button class="btn-director btn-director-outline" id="close-issue-modal">✕</button>
           </div>
 
           <div class="director-modal-body">
 
-            <label>
-              <strong>Project</strong>
-            </label>
+            <div style="margin-bottom:0.5rem;">
+              <label><strong>Project</strong></label>
+              <select id="certificate-project"><option value="">Loading projects...</option></select>
+            </div>
 
-            <select id="certificate-project">
+            <div style="margin-bottom:0.5rem;">
+              <label><strong>Module</strong></label>
+              <select id="certificate-module"><option value="">Select project first</option></select>
+              <small id="certificate-module-hint" style="display:block;color:#6b7280;margin-top:0.25rem;">Only modules marked "Completed" can be selected for certificate issuance.</small>
+            </div>
 
-              <option value="">
-                Select completed project
-              </option>
+            <div style="margin-bottom:0.5rem;">
+              <label><strong>Student</strong></label>
+              <select id="certificate-student"><option value="">Select module first</option></select>
+            </div>
 
-              <option>
-                Hospital Management System
-              </option>
+            <div style="margin-bottom:0.5rem;">
+              <label><strong>Issue Date</strong></label>
+              <input id="certificate-date" type="date" value="${today}" />
+            </div>
 
-              <option>
-                Campus ERP
-              </option>
+            <div style="margin-bottom:0.5rem;">
+              <label><strong>Certificate File (optional)</strong></label>
+              <input id="certificate-file" type="text" placeholder="Path/URL to certificate file, if any" />
+            </div>
 
-              <option>
-                Student Portal
-              </option>
+            <p style="font-size:0.8rem;color:#6b7280;">Certificate number and description are generated automatically.</p>
 
-            </select>
-
-            <p style="font-size:0.85rem; color:#6b7280;">
-              All eligible students assigned to the selected project
-              will receive a certificate.
-            </p>
+            <div id="issue-error" style="color:#b91c1c;margin-top:0.5rem;"></div>
 
           </div>
 
           <div class="director-modal-footer">
-
-            <button
-              class="btn-director btn-director-outline"
-              id="cancel-issue"
-            >
-              Cancel
-            </button>
-
-            <button
-              class="cert-primary-btn"
-              id="confirm-issue"
-            >
-              Issue Certificates
-            </button>
-
+            <button class="btn-director btn-director-outline" id="cancel-issue">Cancel</button>
+            <button class="cert-primary-btn" id="confirm-issue">Issue Certificate</button>
           </div>
-
         </div>
-
       </div>
     `;
 
-    modalRoot
-      .querySelector('#close-issue-modal')
-      ?.addEventListener('click', () => {
-        modalRoot.innerHTML = '';
+    // Close handlers
+    modalRoot.querySelector('#close-issue-modal')?.addEventListener('click', () => { modalRoot.innerHTML = ''; });
+    modalRoot.querySelector('#cancel-issue')?.addEventListener('click', () => { modalRoot.innerHTML = ''; });
+
+    // Helpers
+    async function fetchProjects() {
+      const token = getAuthToken();
+      const resp = await fetch('http://127.0.0.1:8000/api/coordinator/projects', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       });
+      if (!resp.ok) return [];
+      const body = await resp.json().catch(() => ({}));
+      return Array.isArray(body?.data) ? body.data : (Array.isArray(body) ? body : []);
+    }
 
-    modalRoot
-      .querySelector('#cancel-issue')
-      ?.addEventListener('click', () => {
-        modalRoot.innerHTML = '';
+    async function fetchProjectDetail(projectId) {
+      const token = getAuthToken();
+      const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       });
+      if (!resp.ok) return null;
+      const body = await resp.json().catch(() => ({}));
+      return body?.data?.project || body?.project || null;
+    }
 
-    modalRoot
-      .querySelector('#confirm-issue')
-      ?.addEventListener('click', () => {
+    async function fetchModuleEligibleStudents(moduleId) {
+      const token = getAuthToken();
+      const resp = await fetch(`http://127.0.0.1:8000/api/certificates/modules/${moduleId}/eligible-students`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!resp.ok) return { data: [], module_status: null, message: 'Unable to load eligible students.' };
+      const body = await resp.json().catch(() => ({}));
+      return {
+        data: Array.isArray(body?.data) ? body.data : [],
+        module_status: body?.module_status,
+        message: body?.message || null,
+      };
+    }
 
-        const project =
-          modalRoot.querySelector('#certificate-project').value;
+    async function postCertificate(payload) {
+      const token = getAuthToken();
+      const resp = await fetch('http://127.0.0.1:8000/api/certificates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+      });
+      const body = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        let errMsg = body.error || body.message;
+        if (body.errors && typeof body.errors === 'object') {
+          errMsg = Object.values(body.errors).flat().join(', ');
+        }
+        throw new Error(errMsg || 'Failed to issue certificate');
+      }
+      return body;
+    }
 
-        if (!project) {
-          alert('Please select a project.');
+    // Populate projects select
+    (async () => {
+      const projectSelect = modalRoot.querySelector('#certificate-project');
+      const moduleSelect = modalRoot.querySelector('#certificate-module');
+      const studentSelect = modalRoot.querySelector('#certificate-student');
+      // Keep the initial "Loading projects..." placeholder (set in the modal's HTML) until
+      // the fetch actually resolves — do not overwrite it with "Select a project" first,
+      // or the dropdown looks empty/broken while the (occasionally slow) request is in flight.
+      try {
+        const projects = await fetchProjects();
+        projectSelect.innerHTML = `<option value="">Select a project</option>`;
+        projects.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.title || p.client_name || `Project ${p.id}`;
+          projectSelect.appendChild(opt);
+        });
+      } catch (err) {
+        projectSelect.innerHTML = `<option value="">Unable to load projects</option>`;
+      }
+
+      // When project selected, populate that project's modules
+      projectSelect.addEventListener('change', async () => {
+        const pid = projectSelect.value;
+        moduleSelect.innerHTML = `<option value="">Loading modules...</option>`;
+        studentSelect.innerHTML = `<option value="">Select module first</option>`;
+        if (!pid) {
+          moduleSelect.innerHTML = `<option value="">Select project first</option>`;
           return;
         }
-
-        alert(
-          `Certificates issued to all eligible students on "${project}".`
-        );
-
-        modalRoot.innerHTML = '';
+        try {
+          const project = await fetchProjectDetail(pid);
+          const modules = Array.isArray(project?.modules) ? project.modules : [];
+          if (!modules.length) {
+            moduleSelect.innerHTML = `<option value="">No modules found for this project. Create a module first.</option>`;
+            return;
+          }
+          moduleSelect.innerHTML = `<option value="">Select a module</option>`;
+          modules.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = `${m.module_name} (${m.status === 'completed' ? 'Completed' : m.status.replace('_', ' ')})`;
+            opt.disabled = m.status !== 'completed';
+            moduleSelect.appendChild(opt);
+          });
+        } catch (err) {
+          moduleSelect.innerHTML = `<option value="">Unable to load modules</option>`;
+        }
       });
+
+      // When module selected, populate students eligible via module_student
+      moduleSelect.addEventListener('change', async () => {
+        const moduleId = moduleSelect.value;
+        studentSelect.innerHTML = `<option value="">Loading students...</option>`;
+        if (!moduleId) {
+          studentSelect.innerHTML = `<option value="">Select module first</option>`;
+          return;
+        }
+        try {
+          const { data: eligible, message } = await fetchModuleEligibleStudents(moduleId);
+          if (!eligible.length) {
+            studentSelect.innerHTML = `<option value="">${message || 'No eligible students for this module'}</option>`;
+            return;
+          }
+          studentSelect.innerHTML = `<option value="">Select a student</option>`;
+          eligible.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name + (s.email ? ` (${s.email})` : '');
+            studentSelect.appendChild(opt);
+          });
+        } catch (err) {
+          studentSelect.innerHTML = `<option value="">Unable to load students</option>`;
+        }
+      });
+
+      // Confirm issue handler
+      modalRoot.querySelector('#confirm-issue')?.addEventListener('click', async () => {
+        const errEl = modalRoot.querySelector('#issue-error');
+        errEl.textContent = '';
+        const projectId = Number(projectSelect.value || 0);
+        const moduleId = Number(moduleSelect.value || 0);
+        const studentId = Number(studentSelect.value || 0);
+        const issueDate = modalRoot.querySelector('#certificate-date').value;
+        const certificateFile = (modalRoot.querySelector('#certificate-file').value || '').trim();
+
+        if (!projectId) return errEl.textContent = 'Please select a project.';
+        if (!moduleId) return errEl.textContent = 'Please select a module.';
+        if (!studentId) return errEl.textContent = 'Please select a student.';
+        if (!issueDate) return errEl.textContent = 'Please select an issue date.';
+
+        try {
+          await postCertificate({
+            project_id: projectId,
+            module_id: moduleId,
+            student_id: studentId,
+            issue_date: issueDate,
+            certificate_file: certificateFile || undefined,
+          });
+          alert('Certificate issued successfully');
+          modalRoot.innerHTML = '';
+          try {
+            await fetchCertificates();
+            renderCertificates(certificates);
+          } catch (e) {
+            console.error('Failed to refresh certificates', e);
+          }
+        } catch (err) {
+          console.error(err);
+          errEl.textContent = err.message || 'Failed to issue certificate';
+        }
+      });
+    })();
   }
 
   render();

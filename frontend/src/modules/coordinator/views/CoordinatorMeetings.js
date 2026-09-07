@@ -1,33 +1,80 @@
-export function CoordinatorMeetings(route, router) {
+import { authStore } from '@/core/stores/auth.js';
+
+function getAuthToken() {
+  return authStore?.token || localStorage.getItem('token') || localStorage.getItem('access_token') || null;
+}
+
+async function fetchMeetings() {
+  const token = getAuthToken();
+  if (!token) return [];
+
+  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/meetings', {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resp.ok) return [];
+  const body = await resp.json().catch(() => ({}));
+  return Array.isArray(body?.data) ? body.data : (Array.isArray(body) ? body : []);
+}
+
+async function fetchProjects() {
+  const token = getAuthToken();
+  if (!token) return [];
+
+  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/projects', {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resp.ok) return [];
+  const body = await resp.json().catch(() => ({}));
+  return Array.isArray(body?.data) ? body.data : (Array.isArray(body) ? body : []);
+}
+
+export async function CoordinatorMeetings(route, router) {
   const container = document.createElement('div');
   container.className = 'coordinator-dashboard';
 
-  const meetings = [
-    {
-      date: '12 Aug 2026',
-      time: '10:30 AM',
-      title: 'Client Requirement Discussion',
-      project: 'Smart Campus Management',
-      participants: 'Anjali, Rahul, Dr. Thomas',
-      status: 'Scheduled'
-    },
-    {
-      date: '13 Aug 2026',
-      time: '2:00 PM',
-      title: 'Project Progress Review',
-      project: 'Online Food Ordering',
-      participants: 'Neha, Arjun, Coordinator',
-      status: 'Scheduled'
-    },
-    {
-      date: '10 Aug 2026',
-      time: '11:00 AM',
-      title: 'Initial Client Meeting',
-      project: 'Hospital Appointment System',
-      participants: 'Meera, Client Team',
-      status: 'Completed'
+  let meetings = [];
+  try {
+    meetings = await fetchMeetings();
+  } catch (err) {
+    console.error('Failed to load meetings:', err);
+  }
+
+  function renderTableRows(data) {
+    if (!data.length) {
+      return `<tr><td colspan="6" style="text-align:center; padding:2rem;">No meetings scheduled yet.</td></tr>`;
     }
-  ];
+    return data.map(meeting => `
+      <tr>
+        <td>
+          <strong>${meeting.date}</strong><br>
+          <small>${meeting.time}</small>
+        </td>
+        <td>${meeting.title}</td>
+        <td>${meeting.project}</td>
+        <td>${meeting.participants || 'Coordinator, Students'}</td>
+        <td>
+          <span class="project-status ${String(meeting.status).toLowerCase()}">
+            ${meeting.status}
+          </span>
+        </td>
+        <td>
+          ${meeting.meeting_link
+            ? `<a href="${meeting.meeting_link}" target="_blank" rel="noopener noreferrer">Join</a>`
+            : '—'}
+        </td>
+      </tr>
+    `).join('');
+  }
 
   function render() {
     container.innerHTML = `
@@ -59,32 +106,11 @@ export function CoordinatorMeetings(route, router) {
                 <th>Project</th>
                 <th>Participants</th>
                 <th>Status</th>
+                <th>Link</th>
               </tr>
             </thead>
-
-            <tbody>
-              ${meetings.map(meeting => `
-                <tr>
-                  <td>
-                    <strong>${meeting.date}</strong><br>
-                    <small>${meeting.time}</small>
-                  </td>
-
-                  <td>${meeting.title}</td>
-
-                  <td>${meeting.project}</td>
-
-                  <td>${meeting.participants}</td>
-
-                  <td>
-                    <span class="project-status ${
-                      meeting.status.toLowerCase()
-                    }">
-                      ${meeting.status}
-                    </span>
-                  </td>
-                </tr>
-              `).join('')}
+            <tbody id="meetings-table-body">
+              ${renderTableRows(meetings)}
             </tbody>
           </table>
         </div>
@@ -93,50 +119,40 @@ export function CoordinatorMeetings(route, router) {
       <div id="meeting-modal-root"></div>
     `;
 
-    container
-      .querySelector('#add-meeting-btn')
-      ?.addEventListener('click', showMeetingForm);
+    container.querySelector('#add-meeting-btn')?.addEventListener('click', showMeetingForm);
   }
 
-  function showMeetingForm() {
+  async function showMeetingForm() {
     const root = container.querySelector('#meeting-modal-root');
+    const projects = await fetchProjects();
+
+    const projectOptionsHtml = projects.length
+      ? projects.map(p => `<option value="${p.title}">${p.title}</option>`).join('')
+      : '<option value="">No active projects</option>';
 
     root.innerHTML = `
       <div class="coordinator-modal-overlay">
-
         <div class="coordinator-modal">
-
           <div class="coordinator-modal-header">
             <div>
               <h2>Arrange Meeting</h2>
               <p>Schedule a project-related meeting.</p>
             </div>
-
-            <button id="close-meeting" class="coordinator-close-btn">
-              ×
-            </button>
+            <button id="close-meeting" class="coordinator-close-btn">×</button>
           </div>
 
           <form id="meeting-form">
-
             <div class="coordinator-form-grid">
-
               <div class="coordinator-form-group">
                 <label>Meeting Title *</label>
-                <input
-                  name="title"
-                  placeholder="e.g. Client Requirement Discussion"
-                  required
-                >
+                <input name="title" placeholder="e.g. Client Requirement Discussion" required>
               </div>
 
               <div class="coordinator-form-group">
                 <label>Project *</label>
                 <select name="project" required>
                   <option value="">Select project</option>
-                  <option>Smart Campus Management</option>
-                  <option>Online Food Ordering</option>
-                  <option>Hospital Appointment System</option>
+                  ${projectOptionsHtml}
                 </select>
               </div>
 
@@ -152,57 +168,69 @@ export function CoordinatorMeetings(route, router) {
 
               <div class="coordinator-form-group full-width">
                 <label>Participants</label>
-                <input
-                  name="participants"
-                  placeholder="Students / Faculty / Client"
-                >
+                <input name="participants" placeholder="Students / Faculty / Client">
+              </div>
+
+              <div class="coordinator-form-group full-width">
+                <label>Meeting Link</label>
+                <input type="url" name="meeting_link" placeholder="e.g. https://meet.google.com/xyz-abc-def">
               </div>
 
               <div class="coordinator-form-group full-width">
                 <label>Meeting Notes</label>
-                <textarea
-                  rows="4"
-                  placeholder="Add meeting agenda or notes..."
-                ></textarea>
+                <textarea name="agenda" rows="4" placeholder="Add meeting agenda or notes..."></textarea>
               </div>
-
             </div>
 
             <div class="coordinator-modal-footer">
-
-              <button
-                type="button"
-                id="cancel-meeting"
-                class="coordinator-secondary-btn">
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                class="coordinator-primary-btn">
-                Schedule Meeting
-              </button>
-
+              <button type="button" id="cancel-meeting" class="coordinator-secondary-btn">Cancel</button>
+              <button type="submit" class="coordinator-primary-btn">Schedule Meeting</button>
             </div>
-
           </form>
-
         </div>
       </div>
     `;
 
-    const close = () => {
-      root.innerHTML = '';
-    };
+    const close = () => { root.innerHTML = ''; };
 
-    root.querySelector('#close-meeting').addEventListener('click', close);
-    root.querySelector('#cancel-meeting').addEventListener('click', close);
+    root.querySelector('#close-meeting')?.addEventListener('click', close);
+    root.querySelector('#cancel-meeting')?.addEventListener('click', close);
 
-    root.querySelector('#meeting-form').addEventListener('submit', e => {
+    root.querySelector('#meeting-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
 
-      alert('Meeting scheduled successfully!');
-      close();
+      const token = getAuthToken();
+      if (!token) return alert('Authentication required');
+
+      try {
+        const resp = await fetch('http://127.0.0.1:8000/api/coordinator/meetings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const body = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(body.error || body.message || 'Failed to schedule meeting');
+
+        alert('Meeting scheduled successfully!');
+        close();
+
+        // Refresh meeting list
+        meetings = await fetchMeetings();
+        const tbody = container.querySelector('#meetings-table-body');
+        if (tbody) tbody.innerHTML = renderTableRows(meetings);
+
+      } catch (err) {
+        console.error(err);
+        alert(`Error: ${err.message}`);
+      }
     });
   }
 
