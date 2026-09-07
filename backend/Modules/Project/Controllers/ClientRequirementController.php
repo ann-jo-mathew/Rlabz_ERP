@@ -13,12 +13,16 @@ class ClientRequirementController extends Controller
     {
         $user = $request->input('auth_user');
         $role = $user['role'] ?? '';
+        $permissions = $user['permissions'] ?? [];
 
-        if (in_array($permission, ['project.client_requirements.create', 'project.client_requirements.update', 'project.client_requirements.delete']) && in_array($role, ['coordinator', 'director'])) {
+        if (in_array($role, ['director', 'coordinator', 'admin'])) {
             return;
         }
 
-        $permissions = $user['permissions'] ?? [];
+        if ($permission === 'project.client_requirements.view' && in_array($role, ['faculty', 'student'])) {
+            return;
+        }
+
         if (!in_array($permission, $permissions)) {
             abort(403, 'Forbidden: Missing permission ' . $permission);
         }

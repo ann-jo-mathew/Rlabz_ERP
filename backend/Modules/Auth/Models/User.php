@@ -43,4 +43,9 @@ class User extends Authenticatable
         'permissions' => 'array',
         
     ];
+
+    public function studentProfile()
+    {
+        return $this->hasOne(\Modules\Student\Models\StudentProfile::class, 'student_id');
+    }
 }

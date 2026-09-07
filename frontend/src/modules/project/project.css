@@ -101,6 +101,39 @@
   background: var(--primary-light);
 }
 
+.btn-back-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main, #0f172a);
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+.btn-back-nav:hover {
+  color: var(--primary, #059669);
+  border-color: var(--primary, #059669);
+  background: var(--primary-light, #ecfdf5);
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+  transform: translateX(-3px);
+}
+
+.btn-back-nav svg {
+  transition: transform 0.2s ease;
+}
+
+.btn-back-nav:hover svg {
+  transform: translateX(-2px);
+}
+
 .btn-primary.shadow-hover {
   box-shadow: var(--shadow-md);
 }

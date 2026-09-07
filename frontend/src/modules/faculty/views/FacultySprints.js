@@ -180,16 +180,22 @@ export function FacultySprints() {
         const modules = projectDetail.modules || [];
         const tasks = projectDetail.tasks || [];
 
-        const projectTitle = project.title || 'Project Details';
+        const rawTitle = project.title || 'Project Details';
+        const projectTitle = rawTitle.replace(/\s*[-–—]\s*Student Portal/gi, '').replace(/Student Portal/gi, '').trim() || 'Project Details';
         const projectDesc = project.requirements || project.deliverables || 'Academic project under faculty supervision.';
         const clientName = project.client_name || 'Rajagiri College';
         const status = (project.status || 'in_progress').toLowerCase();
+        const isClosed = status === 'closed';
 
         container.innerHTML = `
             <!-- Top bar with Back button -->
             <div style="margin-bottom: 1.25rem;">
-                <button id="btn-back-projects" class="btn btn-outline btn-sm">
-                    ← Back to Projects
+                <button id="btn-back-projects" class="btn-back-nav" title="Return to Projects">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Back to Projects</span>
                 </button>
             </div>
 
@@ -216,13 +222,26 @@ export function FacultySprints() {
                 </div>
             </div>
 
+            ${isClosed ? `
+                <div style="background: #fff1f2; border: 1px solid #fecaca; color: #991b1b; padding: 0.9rem 1.25rem; border-radius: 10px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #dc2626; flex-shrink: 0;">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <div>
+                        <strong style="display: block; font-size: 0.93rem; color: #991b1b;">Project Closed</strong>
+                        <span style="font-size: 0.86rem; color: #7f1d1d;">This project has been marked as closed. Creating new modules, assigning modules, and assigning tasks are disabled.</span>
+                    </div>
+                </div>
+            ` : ''}
+
             <!-- Sub Navigation Tabs: Assign Module | Assign Task | Existing Modules | Existing Tasks -->
             <div class="project-tabs" style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0); margin-bottom: 1.5rem; flex-wrap: wrap;">
                 <button id="tab-btn-assign-module" class="tab-btn ${activeTab === 'assign-module' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'assign-module' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'assign-module' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
-                    ${iconFolder} Assign Module
+                    ${iconFolder} Assign Module ${isClosed ? '<span style="font-size: 0.7rem; background: #fee2e2; color: #991b1b; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700; margin-left: 0.25rem;">Closed</span>' : ''}
                 </button>
                 <button id="tab-btn-assign-task" class="tab-btn ${activeTab === 'assign-task' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'assign-task' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'assign-task' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
-                    ${iconTask} Assign Task
+                    ${iconTask} Assign Task ${isClosed ? '<span style="font-size: 0.7rem; background: #fee2e2; color: #991b1b; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700; margin-left: 0.25rem;">Closed</span>' : ''}
                 </button>
                 <button id="tab-btn-existing-modules" class="tab-btn ${activeTab === 'existing-modules' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'existing-modules' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'existing-modules' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
                     ${iconLayers} Existing Modules
@@ -262,6 +281,31 @@ export function FacultySprints() {
     // 1. SECTION: ASSIGN MODULE FORM (FOCUSED VIEW WITHOUT LIST SQUISHING)
     // -------------------------------------------------------------
     function renderAssignModuleSection() {
+        const project = projectDetail.project || {};
+        const isClosed = (project.status || '').toLowerCase() === 'closed';
+
+        if (isClosed) {
+            return `
+                <div style="max-width: 680px; margin: 0 auto;">
+                    <div class="faculty-card-panel" style="text-align: center; padding: 3rem 2rem; border: 1px dashed #fca5a5; border-radius: 12px; background: #fff5f5;">
+                        <div style="width: 54px; height: 54px; margin: 0 auto 1.25rem; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center;">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <h3 style="margin: 0 0 0.5rem; color: #991b1b; font-size: 1.2rem; font-weight: 700;">Module Assignment Disabled</h3>
+                        <p style="color: #7f1d1d; font-size: 0.95rem; line-height: 1.5; margin: 0 auto 1.5rem; max-width: 480px;">
+                            This project has been marked as <strong>Closed</strong>. You cannot create new modules or assign students to modules for closed projects.
+                        </p>
+                        <button type="button" id="btn-view-existing-modules" class="btn btn-outline btn-sm" style="color: #991b1b; border-color: #fca5a5; background: #ffffff;">
+                            View Existing Modules →
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
         const students = projectDetail.project_students || [];
         const modules = projectDetail.modules || [];
 
@@ -373,6 +417,31 @@ export function FacultySprints() {
     // 2. SECTION: ASSIGN TASK FORM (FOCUSED VIEW WITHOUT LIST SQUISHING)
     // -------------------------------------------------------------
     function renderAssignTaskSection() {
+        const project = projectDetail.project || {};
+        const isClosed = (project.status || '').toLowerCase() === 'closed';
+
+        if (isClosed) {
+            return `
+                <div style="max-width: 680px; margin: 0 auto;">
+                    <div class="faculty-card-panel" style="text-align: center; padding: 3rem 2rem; border: 1px dashed #fca5a5; border-radius: 12px; background: #fff5f5;">
+                        <div style="width: 54px; height: 54px; margin: 0 auto 1.25rem; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center;">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <h3 style="margin: 0 0 0.5rem; color: #991b1b; font-size: 1.2rem; font-weight: 700;">Task Assignment Disabled</h3>
+                        <p style="color: #7f1d1d; font-size: 0.95rem; line-height: 1.5; margin: 0 auto 1.5rem; max-width: 480px;">
+                            This project has been marked as <strong>Closed</strong>. You cannot assign new tasks or create tasks for closed projects.
+                        </p>
+                        <button type="button" id="btn-view-existing-tasks" class="btn btn-outline btn-sm" style="color: #991b1b; border-color: #fca5a5; background: #ffffff;">
+                            View Existing Tasks →
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
         const modules = projectDetail.modules || [];
 
         return `
@@ -476,6 +545,8 @@ export function FacultySprints() {
     // 3. SECTION: EXISTING MODULES (DEDICATED FULL-WIDTH VIEW)
     // -------------------------------------------------------------
     function renderExistingModulesSection() {
+        const project = projectDetail.project || {};
+        const isClosed = (project.status || '').toLowerCase() === 'closed';
         const modules = projectDetail.modules || [];
 
         return `
@@ -489,9 +560,11 @@ export function FacultySprints() {
                             All configured modules for this project and their assigned student development team members.
                         </p>
                     </div>
+                    ${!isClosed ? `
                     <button id="btn-goto-assign-module" class="btn btn-primary btn-sm shadow-hover" style="display: inline-flex; align-items: center; gap: 0.45rem; width: max-content; padding: 0.5rem 1.25rem;">
                         ${iconFolder} + Assign Students / Create Module
                     </button>
+                    ` : ''}
                 </div>
 
                 ${modules.length === 0 ? `
@@ -501,9 +574,11 @@ export function FacultySprints() {
                         <p style="margin: 0 0 1.25rem; font-size: 0.88rem; color: var(--text-muted, #64748b);">
                             Get started by creating your first module and assigning student team members.
                         </p>
+                        ${!isClosed ? `
                         <button id="btn-empty-create-module" class="btn btn-primary btn-sm shadow-hover">
                             + Create First Module
                         </button>
+                        ` : ''}
                     </div>
                 ` : `
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.15rem;">
@@ -533,6 +608,7 @@ export function FacultySprints() {
                                             ` : assigned.map(s => `
                                                 <span style="background: var(--primary-light, #ecfdf5); color: var(--primary, #059669); border: 1px solid #a7f3d0; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;">
                                                     ${iconUser} ${s.name} ${s.designation ? `(${s.designation})` : ''}
+                                                    ${!isClosed ? `
                                                     <button
                                                         type="button"
                                                         class="btn-remove-module-student"
@@ -541,6 +617,7 @@ export function FacultySprints() {
                                                         title="Remove student from this module"
                                                         style="background: none; border: none; color: var(--primary, #059669); cursor: pointer; font-weight: bold; font-size: 12px; padding: 0 2px; line-height: 1;"
                                                     >&times;</button>
+                                                    ` : ''}
                                                 </span>
                                             `).join('')}
                                         </div>
@@ -558,6 +635,8 @@ export function FacultySprints() {
     // 4. SECTION: EXISTING TASKS (DEDICATED FULL-WIDTH VIEW)
     // -------------------------------------------------------------
     function renderExistingTasksSection() {
+        const project = projectDetail.project || {};
+        const isClosed = (project.status || '').toLowerCase() === 'closed';
         const tasks = projectDetail.tasks || [];
 
         return `
@@ -571,9 +650,11 @@ export function FacultySprints() {
                             Comprehensive list of all assigned student tasks, associated modules, assignees, deadlines, and delivery statuses.
                         </p>
                     </div>
+                    ${!isClosed ? `
                     <button id="btn-goto-assign-task" class="btn btn-primary btn-sm shadow-hover" style="display: inline-flex; align-items: center; gap: 0.45rem; width: max-content; padding: 0.5rem 1.25rem;">
                         ${iconTask} + Assign New Task
                     </button>
+                    ` : ''}
                 </div>
 
                 ${tasks.length === 0 ? `
@@ -583,9 +664,11 @@ export function FacultySprints() {
                         <p style="margin: 0 0 1.25rem; font-size: 0.88rem; color: var(--text-muted, #64748b);">
                             Assign your first task to a student belonging to a project module.
                         </p>
+                        ${!isClosed ? `
                         <button id="btn-empty-create-task" class="btn btn-primary btn-sm shadow-hover">
                             + Assign First Task
                         </button>
+                        ` : ''}
                     </div>
                 ` : `
                     <div class="faculty-card-panel" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
@@ -695,6 +778,16 @@ export function FacultySprints() {
 
         container.querySelector('#btn-empty-create-task')?.addEventListener('click', () => {
             activeTab = 'assign-task';
+            render();
+        });
+
+        container.querySelector('#btn-view-existing-modules')?.addEventListener('click', () => {
+            activeTab = 'existing-modules';
+            render();
+        });
+
+        container.querySelector('#btn-view-existing-tasks')?.addEventListener('click', () => {
+            activeTab = 'existing-tasks';
             render();
         });
 
@@ -822,6 +915,11 @@ export function FacultySprints() {
         if (formModule) {
             formModule.addEventListener('submit', async (e) => {
                 e.preventDefault();
+
+                if ((projectDetail?.project?.status || '').toLowerCase() === 'closed') {
+                    alert('Cannot assign modules. This project is closed.');
+                    return;
+                }
 
                 const moduleIdVal = selectModule.value;
                 if (!moduleIdVal) {
@@ -1058,6 +1156,11 @@ export function FacultySprints() {
             formTask.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
+                if ((projectDetail?.project?.status || '').toLowerCase() === 'closed') {
+                    alert('Cannot assign tasks. This project is closed.');
+                    return;
+                }
+
                 const moduleId = parseInt(taskModuleSelect.value);
                 const taskIdVal = taskDropdown.value;
                 const studentId = parseInt(taskStudentSelect.value);
@@ -1201,6 +1304,11 @@ export function FacultySprints() {
             const res = await fetch(`${apiBase}/faculty/projects/${projectId}/modules-tasks`, { headers });
             if (res.ok) {
                 projectDetail = await res.json();
+                if ((projectDetail.project?.status || '').toLowerCase() === 'closed') {
+                    activeTab = 'existing-modules';
+                } else {
+                    activeTab = 'assign-module';
+                }
             } else {
                 throw new Error('Failed to fetch project detail');
             }
