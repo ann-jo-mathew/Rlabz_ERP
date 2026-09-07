@@ -30,6 +30,36 @@ const routes = [
         name: 'faculty-students',
         component: () => import('./views/FacultyStudents.js')
       },
+      {
+        path: 'meetings',
+        name: 'faculty-meetings',
+        component: () => import('./views/FacultyMeetings.js')
+      },
+      {
+        path: 'sprints',
+        name: 'faculty-sprints',
+        component: () => import('./views/FacultySprints.js')
+      },
+      {
+        path: 'verify-tasks',
+        name: 'faculty-verify-tasks',
+        component: () => import('./views/FacultyVerifyTasks.js')
+      },
+      {
+        path: 'verify-task',
+        name: 'faculty-verify-task',
+        component: () => import('./views/FacultyVerifyTasks.js')
+      },
+      {
+        path: 'reports',
+        name: 'faculty-reports',
+        component: () => import('./views/FacultyReports.js')
+      },
+      {
+        path: 'notifications',
+        name: 'faculty-notifications',
+        component: () => import('./views/FacultyNotifications.js')
+      },
     ]
   }
 ];

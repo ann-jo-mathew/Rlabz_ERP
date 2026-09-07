@@ -5,6 +5,8 @@ namespace Modules\Student\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class StudentController extends Controller
 {
@@ -118,7 +120,6 @@ class StudentController extends Controller
                 'timeline' => $timeline,
                 'progress' => $progress,
                 'description' => $project->requirements ?: 'No description available.',
-                'tech' => 'HTML5, CSS3, JavaScript, Laravel, MySQL',
                 'members' => $members,
                 'membersList' => $membersList,
                 'clientInfo' => $project->client_name ?: 'Not specified',
@@ -187,12 +188,12 @@ class StudentController extends Controller
                 'id' => $module->id,
                 'projectId' => $module->project_id,
                 'name' => $module->module_name,
-                'objective' => $meta['objective'] ?? 'Milestone development goals.',
-                'startDate' => $meta['startDate'] ?? '2026-08-01',
-                'endDate' => $meta['endDate'] ?? '2026-08-07',
+                'objective' => $meta['objective'] ?? ($module->description ?: 'No objective specified.'),
+                'startDate' => $meta['startDate'] ?? null,
+                'endDate' => $meta['endDate'] ?? null,
                 'status' => $status,
                 'progress' => $progress,
-                'approvalStatus' => $meta['approvalStatus'] ?? 'Approved',
+                'approvalStatus' => $meta['approvalStatus'] ?? ($module->status === 'completed' ? 'Approved' : ($module->status === 'in_progress' ? 'In Progress' : 'Draft')),
                 'feedback' => $meta['feedback'] ?? '',
                 'tasks' => $tasks,
                 'modules' => $meta['modules'] ?? [$module->module_name]
@@ -318,15 +319,29 @@ class StudentController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $reportType = ucfirst(strtolower($request->input('type', 'weekly')));
+        $reportDate = $request->input('date', now()->toDateString());
+
         DB::table('student_reports')->insert([
             'student_id' => $studentId,
-            'report_type' => strtolower($request->input('type', 'weekly')),
-            'report_date' => $request->input('date', now()->toDateString()),
+            'report_type' => strtolower($reportType),
+            'report_date' => $reportDate,
             'work_done' => $request->input('workDone'),
             'submitted_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                'user_id' => $studentId,
+                'type' => 'report',
+                'message' => "{$reportType} Progress Report for {$reportDate} successfully submitted",
+                'is_read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         return response()->json(['success' => true]);
     }
@@ -419,16 +434,29 @@ class StudentController extends Controller
             $taskId = $task->id;
         }
 
+        $workDate = $request->input('date', now()->toDateString());
+
         DB::table('student_work_logs')->insert([
             'project_student_id' => $ps->id,
             'task_id' => $taskId,
-            'work_date' => $request->input('date', now()->toDateString()),
+            'work_date' => $workDate,
             'hours_worked' => $request->input('hours'),
             'description' => $request->input('description'),
             'approval_status' => 'pending',
             'created_at' => now(),
             'updated_at' => now()
         ]);
+
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                'user_id' => $studentId,
+                'type' => 'work_log',
+                'message' => "Daily Work Log for {$workDate} successfully submitted",
+                'is_read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         return response()->json(['success' => true]);
     }
@@ -493,6 +521,17 @@ class StudentController extends Controller
             ]
         );
 
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                'user_id' => $studentId,
+                'type' => 'github',
+                'message' => "GitHub repository URL updated for {$projectTitle}",
+                'is_read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -551,7 +590,6 @@ class StudentController extends Controller
                     'project' => $m->project,
                     'date' => $parts[0],
                     'time' => isset($parts[1]) ? substr($parts[1], 0, 5) : '14:00',
-                    'type' => 'Sprint Review',
                     'status' => ucfirst($m->status),
                     'location' => $m->location . ($m->meeting_link ? ': ' . $m->meeting_link : ''),
                     'notes' => $m->notes
@@ -635,5 +673,157 @@ class StudentController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function getNotifications(Request $request)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if (!Schema::hasTable('notifications')) {
+            return response()->json([]);
+        }
+
+        $notifs = DB::table('notifications')
+            ->where('user_id', $studentId)
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        // If no notifications exist yet in DB for this student, synthesize and store initial real activity notifications
+        if ($notifs->isEmpty()) {
+            $initialNotifs = [];
+
+            // 1. Scheduled meetings for this student
+            $meetings = DB::table('meetings')
+                ->join('meeting_participants', 'meetings.id', '=', 'meeting_participants.meeting_id')
+                ->where('meeting_participants.user_id', $studentId)
+                ->orderBy('meetings.scheduled_at', 'desc')
+                ->limit(3)
+                ->select('meetings.title', 'meetings.scheduled_at')
+                ->get();
+
+            foreach ($meetings as $m) {
+                $schedDate = date('M d', strtotime($m->scheduled_at));
+                $initialNotifs[] = [
+                    'user_id' => $studentId,
+                    'type' => 'meeting',
+                    'message' => "{$m->title} meeting scheduled for {$schedDate}",
+                    'is_read' => false,
+                    'created_at' => Carbon::now()->subHours(2),
+                    'updated_at' => Carbon::now()->subHours(2),
+                ];
+            }
+
+            // 2. Student work logs
+            $workLogs = DB::table('student_work_logs')
+                ->join('project_student', 'project_student.id', '=', 'student_work_logs.project_student_id')
+                ->where('project_student.student_id', $studentId)
+                ->orderBy('student_work_logs.created_at', 'desc')
+                ->limit(2)
+                ->select('student_work_logs.work_date')
+                ->get();
+
+            foreach ($workLogs as $wl) {
+                $logDate = date('M d', strtotime($wl->work_date));
+                $initialNotifs[] = [
+                    'user_id' => $studentId,
+                    'type' => 'work_log',
+                    'message' => "Daily Work Log for {$logDate} successfully submitted",
+                    'is_read' => false,
+                    'created_at' => Carbon::now()->subDays(1),
+                    'updated_at' => Carbon::now()->subDays(1),
+                ];
+            }
+
+            // 3. GitHub repository links for assigned projects
+            $projectIds = DB::table('project_student')
+                ->where('student_id', $studentId)
+                ->pluck('project_id');
+
+            $repos = DB::table('github_repositories')
+                ->join('projects', 'projects.id', '=', 'github_repositories.project_id')
+                ->whereIn('github_repositories.project_id', $projectIds)
+                ->select('projects.title')
+                ->limit(2)
+                ->get();
+
+            foreach ($repos as $r) {
+                $initialNotifs[] = [
+                    'user_id' => $studentId,
+                    'type' => 'github',
+                    'message' => "GitHub repository URL updated for {$r->title}",
+                    'is_read' => false,
+                    'created_at' => Carbon::now()->subDays(2),
+                    'updated_at' => Carbon::now()->subDays(2),
+                ];
+            }
+
+            if (!empty($initialNotifs)) {
+                DB::table('notifications')->insert($initialNotifs);
+                $notifs = DB::table('notifications')
+                    ->where('user_id', $studentId)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(20)
+                    ->get();
+            }
+        }
+
+        $formatted = $notifs->map(function ($n) {
+            $created = Carbon::parse($n->created_at);
+            return [
+                'id' => $n->id,
+                'title' => $n->message,
+                'message' => $n->message,
+                'type' => $n->type,
+                'time' => $created->diffForHumans(),
+                'created_at' => $n->created_at,
+                'is_read' => (bool)$n->is_read,
+            ];
+        });
+
+        return response()->json($formatted);
+    }
+
+    public function getProfile(Request $request)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $user = DB::table('users')->where('id', $studentId)->first();
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $profile = Schema::hasTable('student_profiles')
+            ? DB::table('student_profiles')->where('student_id', $studentId)->first()
+            : null;
+
+        $semesterNum = $profile->semester ?? 3;
+        $suffix = 'th';
+        if ($semesterNum == 1) $suffix = 'st';
+        elseif ($semesterNum == 2) $suffix = 'nd';
+        elseif ($semesterNum == 3) $suffix = 'rd';
+
+        $yearNum = (int)ceil($semesterNum / 2);
+        $yearSuffix = ($yearNum == 1) ? 'st' : (($yearNum == 2) ? 'nd' : (($yearNum == 3) ? 'rd' : 'th'));
+        $semesterText = "{$yearNum}{$yearSuffix} Year / {$semesterNum}{$suffix} Semester";
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'designation' => $profile && $profile->designation ? ucfirst($profile->designation) : 'Nova',
+            'department' => 'Computer Applications',
+            'course' => $profile->course ?? 'MCA',
+            'batch' => $profile->batch ?? '2025-2027',
+            'semester' => $semesterNum,
+            'semester_text' => $semesterText
+        ]);
     }
 }

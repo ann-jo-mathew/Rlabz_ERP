@@ -23,6 +23,12 @@ class AuthStore {
           storedUser.designation = "Spark";
           storedUser.isTeamLead = false;
         }
+        if (storedUser.role === 'student') {
+          storedUser.department = storedUser.department || 'Computer Applications';
+          storedUser.course = storedUser.course || 'MCA';
+          storedUser.semester = storedUser.semester || 3;
+          storedUser.semester_text = storedUser.semester_text || '2nd Year / 3rd Semester';
+        }
       }
     } catch (e) {
       storedUser = null;
@@ -84,6 +90,12 @@ class AuthStore {
           this.user.name = "Student Spark";
           this.user.designation = "Spark";
           this.user.isTeamLead = false;
+        }
+        if (this.user.role === 'student') {
+          this.user.department = this.user.department || 'Computer Applications';
+          this.user.course = this.user.course || 'MCA';
+          this.user.semester = this.user.semester || 3;
+          this.user.semester_text = this.user.semester_text || '2nd Year / 3rd Semester';
         }
 
         localStorage.setItem('token', this.token);

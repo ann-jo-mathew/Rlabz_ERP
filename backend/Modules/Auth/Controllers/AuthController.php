@@ -132,10 +132,26 @@ class AuthController extends Controller
         $userArray['modules'] = $modules[$role] ?? $modules['student'];
         $userArray['permissions'] = is_string($user->permissions) ? json_decode($user->permissions, true) : ($user->permissions ?? []);
 
+        if ($role === 'student' && Schema::hasTable('student_profiles')) {
+            $profile = DB::table('student_profiles')->where('student_id', $user->id)->first();
+            if ($profile) {
+                $userArray['designation'] = $profile->designation ? ucfirst($profile->designation) : 'Nova';
+                $userArray['course'] = $profile->course ?? 'MCA';
+                $userArray['batch'] = $profile->batch ?? '2025-2027';
+                $userArray['semester'] = $profile->semester ?? 3;
+                $sem = $profile->semester ?? 3;
+                $suffix = ($sem == 1) ? 'st' : (($sem == 2) ? 'nd' : (($sem == 3) ? 'rd' : 'th'));
+                $yearNum = (int)ceil($sem / 2);
+                $yearSuffix = ($yearNum == 1) ? 'st' : (($yearNum == 2) ? 'nd' : (($yearNum == 3) ? 'rd' : 'th'));
+                $userArray['semester_text'] = "{$yearNum}{$yearSuffix} Year / {$sem}{$suffix} Semester";
+                $userArray['department'] = 'Computer Applications';
+            }
+        }
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => 3600,
+            'expires_in' => 86400 * 30,
             'user' => $userArray
         ]);
     }
@@ -155,7 +171,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'role' => $user->role,
             'permissions' => $permissions,
-            'exp' => time() + 3600
+            'exp' => time() + 86400 * 30
         ]);
 
         $base64UrlHeader = $this->base64UrlEncode($header);

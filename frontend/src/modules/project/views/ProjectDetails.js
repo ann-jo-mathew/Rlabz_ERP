@@ -37,46 +37,35 @@ export async function ProjectDetails(route, router) {
       <!-- OVERVIEW TAB -->
       <div id="tab-overview" class="tab-content" style="display: block;">
         <div id="project-info" class="card-panel" style="margin-bottom: 2rem; display: none;">
-          <div class="project-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; row-gap: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+          <div class="project-form-grid" style="row-gap: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
             <div>
               <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Type</span>
               <strong id="val-type" style="font-size: 1.1rem; color: var(--text-main);"></strong>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client Name</span>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client</span>
               <strong id="val-client" style="font-size: 1.1rem; color: var(--text-main);"></strong>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Status & Priority</span>
-              <span id="val-status"></span> <span id="val-priority"></span>
-          </div>
-          <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Allocated Budget</span>
-            <strong style="font-size: 1.1rem; color: var(--text-main);">₹<span id="val-budget"></span></strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Status</span>
+              <span id="val-status"></span>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Brought By / Source</span>
-              <strong id="val-source" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Budget</span>
+              <strong style="font-size: 1.1rem; color: var(--text-main);">$<span id="val-budget"></span></strong>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Target Timeline</span>
-              <strong id="val-timeline" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Start Date</span>
+              <strong id="val-start" style="font-size: 1.1rem; color: var(--text-main);"></strong>
             </div>
             <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Client Contact</span>
-              <strong id="val-contact" style="font-size: 1.1rem; color: var(--text-main);"></strong>
+              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">End Date</span>
+              <strong id="val-end" style="font-size: 1.1rem; color: var(--text-main);"></strong>
             </div>
           </div>
-
-          <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
-          <div>
-              <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Project Requirements</span>
-            <p id="val-requirements" style="font-size: 1rem; color: var(--text-main); line-height: 1.6; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></p>
-          </div>
-          <div>
-            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Expected Deliverables</span>
-              <p id="val-deliverables" style="font-size: 1rem; color: var(--text-main); line-height: 1.6; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></p>
-          </div>
+          <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Description</span>
+            <p id="val-desc" style="font-size: 1rem; color: var(--text-main); line-height: 1.6;"></p>
           </div>
         </div>
       </div>
@@ -114,17 +103,18 @@ export async function ProjectDetails(route, router) {
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 0;">Modules & Tasks</h3>
             ${permissions.includes('project.module.create') ? `
-              <button id="btn-add-module" class="btn btn-sm btn-primary shadow-hover"><i class="fa fa-plus"></i> Add Module</button>
+              <button id="btn-add-module" class="btn btn-sm btn-primary shadow-hover" style="width: max-content; padding: 0.5rem 1.5rem;"><i class="fa fa-plus"></i> Add Module</button>
             ` : ''}
           </div>
           
-          <div id="module-form-container" style="display:none; margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px;">
+          <div id="module-form-container" style="display:none; margin-bottom: 1.5rem; padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.01);">
+            <h4 style="margin-bottom: 1rem;">Create New Module</h4>
             <form id="form-module" style="display: flex; flex-direction: column; gap: 1rem;">
               <input type="text" name="name" placeholder="Module Name" class="premium-input" required />
               <textarea name="description" placeholder="Description..." class="premium-input" rows="2"></textarea>
               <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                 <button type="button" id="btn-cancel-module" class="btn btn-outline btn-sm">Cancel</button>
-                <button type="submit" class="btn btn-primary btn-sm">Save Module</button>
+                <button type="submit" class="btn btn-primary btn-sm" style="width: max-content; padding: 0.5rem 1.5rem;">Save Module</button>
               </div>
             </form>
           </div>
@@ -270,23 +260,13 @@ export async function ProjectDetails(route, router) {
         container.querySelector('#project-title').textContent = p.title || 'Project Details';
         container.querySelector('#val-type').textContent = p.project_type || 'N/A';
         container.querySelector('#val-client').textContent = p.client_name || 'N/A';
-
         const statusSpan = container.querySelector('#val-status');
-        statusSpan.textContent = (p.status || 'N/A').toUpperCase();
+        statusSpan.textContent = p.status || 'N/A';
         statusSpan.className = `status-badge ${p.status || 'active'}`;
-
-        const prioritySpan = container.querySelector('#val-priority');
-        prioritySpan.textContent = p.priority ? p.priority.toUpperCase() + ' PRIORITY' : 'NORMAL PRIORITY';
-        prioritySpan.className = `status-badge ${p.priority === 'urgent' ? 'rejected' : 'in_progress'}`;
-
-        container.querySelector('#val-budget').textContent = p.budget ? Number(p.budget).toLocaleString('en-IN') : '0.00';
-        container.querySelector('#val-source').textContent = (p.brought_by ? p.brought_by + ' (' + (p.source_type || 'External') + ')' : (p.source_type || 'N/A'));
-        container.querySelector('#val-timeline').textContent = p.expected_timeline || 'N/A';
-        container.querySelector('#val-contact').textContent = (p.contact_email || '') + (p.contact_phone ? ' • ' + p.contact_phone : '');
-        container.querySelector('#val-requirements').textContent = p.requirements || 'No specific requirements listed.';
-        container.querySelector('#val-deliverables').textContent = p.deliverables || 'No deliverables specified.';
-
-        container.querySelector('#project-info').style.display = 'block';
+        container.querySelector('#val-budget').textContent = p.budget || '0.00';
+        container.querySelector('#val-start').textContent = p.start_date || 'N/A';
+        container.querySelector('#val-end').textContent = p.end_date || 'N/A';
+        container.querySelector('#val-desc').textContent = p.description || 'No description provided.';
 
         container.querySelector('#project-info').style.display = 'block';
 
@@ -337,35 +317,48 @@ export async function ProjectDetails(route, router) {
         if (modContainer) {
           if (p.modules && p.modules.length > 0) {
             modContainer.innerHTML = p.modules.map(m => `
-              <div class="module-card" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: var(--bg-surface);">
+              <div class="module-card" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; background: var(--bg-card); box-shadow: var(--shadow-sm);">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem;">
                   <div>
-                    <h4 style="margin: 0; font-size: 1.1rem;">${m.name}</h4>
-                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-muted);">${m.description || ''}</p>
+                    <h4 style="margin: 0; font-size: 1.15rem; font-weight: 700;">${m.module_name || m.name || 'Untitled Module'}</h4>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">${m.description || ''}</p>
                   </div>
-                  ${permissions.includes('project.task.create') ? `<button class="btn btn-sm btn-outline btn-add-task" data-module-id="${m.id}"><i class="fa fa-plus"></i> Task</button>` : ''}
+                  ${permissions.includes('project.task.create') ? `<button class="btn btn-sm btn-outline btn-add-task" data-module-id="${m.id}" style="padding: 0.4rem 1rem;"><i class="fa fa-plus"></i> Task</button>` : ''}
                 </div>
                 
-                <div class="tasks-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div class="tasks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
                   ${(m.tasks && m.tasks.length > 0) ? m.tasks.map(t => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-body); border-radius: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; transition: var(--transition);">
                       <div>
-                        <strong style="display: block;">${t.title}</strong>
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">Priority: ${t.priority || 'medium'}</span>
+                        <strong style="display: block; font-size: 0.95rem;">${t.title}</strong>
+                        ${t.description ? `<span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">${t.description}</span>` : ''}
                       </div>
                       <div style="display: flex; align-items: center; gap: 1rem;">
-                        <span class="status-badge ${t.status.toLowerCase().replace(' ', '-')}">${t.status}</span>
+                        <span class="status-badge ${t.status}">${t.status.replace('_', ' ').toUpperCase()}</span>
                         ${permissions.includes('project.task.update') ? `
-                          <select class="premium-input task-status-select" data-task-id="${t.id}" style="padding: 0.25rem 0.5rem; width: auto;">
-                            <option value="To Do" ${t.status === 'To Do' ? 'selected' : ''}>To Do</option>
-                            <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                            <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>Completed</option>
-                            <option value="Blocked" ${t.status === 'Blocked' ? 'selected' : ''}>Blocked</option>
+                          <select class="premium-input task-status-select" data-task-id="${t.id}" style="padding: 0.3rem 0.6rem; width: auto; font-size: 0.85rem; background-color: #ffffff;">
+                            <option value="todo" ${t.status === 'todo' ? 'selected' : ''}>To Do</option>
+                            <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="completed" ${t.status === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="blocked" ${t.status === 'blocked' ? 'selected' : ''}>Blocked</option>
                           </select>
                         ` : ''}
                       </div>
                     </div>
-                  `).join('') : '<p style="color:var(--text-muted); font-size: 0.9rem;">No tasks created for this module.</p>'}
+                  `).join('') : '<p style="color:var(--text-muted); font-size: 0.9rem; font-style: italic;">No tasks created for this module.</p>'}
+                </div>
+
+                <!-- Inline Task Form Container -->
+                <div class="task-form-container" id="task-form-${m.id}" style="display:none; margin-top: 1.25rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(16, 185, 129, 0.03);">
+                  <h5 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-main);">Create New Task</h5>
+                  <form class="form-add-task" data-module-id="${m.id}" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <input type="text" name="title" placeholder="Task Title" class="premium-input" required />
+                    <textarea name="description" placeholder="Task Description (Optional)" class="premium-input" rows="2"></textarea>
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                      <button type="button" class="btn btn-outline btn-sm btn-cancel-task" data-module-id="${m.id}">Cancel</button>
+                      <button type="submit" class="btn btn-primary btn-sm" style="width: max-content; padding: 0.4rem 1.25rem;">Save Task</button>
+                    </div>
+                  </form>
                 </div>
               </div>
             `).join('');
@@ -387,21 +380,55 @@ export async function ProjectDetails(route, router) {
               });
             });
 
-            // Bind Add Task buttons
+            // Bind Add Task buttons to show the inline form
             modContainer.querySelectorAll('.btn-add-task').forEach(btn => {
-              btn.addEventListener('click', async (e) => {
+              btn.addEventListener('click', (e) => {
                 const moduleId = e.target.closest('button').getAttribute('data-module-id');
-                const title = prompt('Enter Task Title:');
+                const formContainer = modContainer.querySelector('#task-form-' + moduleId);
+                if (formContainer) formContainer.style.display = 'block';
+                e.target.closest('button').style.display = 'none'; // hide the Task button temporarily
+              });
+            });
+
+            // Bind Cancel Task buttons
+            modContainer.querySelectorAll('.btn-cancel-task').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                const moduleId = e.target.getAttribute('data-module-id');
+                const formContainer = modContainer.querySelector('#task-form-' + moduleId);
+                if (formContainer) formContainer.style.display = 'none';
+                
+                // Show the "Task" button again
+                const taskBtn = modContainer.querySelector('.btn-add-task[data-module-id="'+moduleId+'"]');
+                if (taskBtn) taskBtn.style.display = 'inline-block';
+              });
+            });
+
+            // Bind Task Form submit
+            modContainer.querySelectorAll('.form-add-task').forEach(form => {
+              form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const moduleId = form.getAttribute('data-module-id');
+                const formData = new FormData(form);
+                const title = formData.get('title');
+                const description = formData.get('description');
+                
                 if (title) {
                   try {
                     const t = localStorage.getItem('token');
+                    const btnSave = form.querySelector('button[type="submit"]');
+                    btnSave.disabled = true;
+                    btnSave.textContent = 'Saving...';
+                    
                     await fetch(`http://127.0.0.1:8000/api/projects/modules/${moduleId}/tasks`, {
                       method: 'POST',
                       headers: { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ title, priority: 'medium' })
+                      body: JSON.stringify({ title, description })
                     });
-                    loadProject();
-                  } catch (err) { }
+                    loadProject(); // This re-renders and resets the forms
+                  } catch (err) { 
+                    console.error('Error saving task', err);
+                    alert('Error saving task');
+                  }
                 }
               });
             });

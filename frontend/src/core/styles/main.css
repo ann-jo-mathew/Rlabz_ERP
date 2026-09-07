@@ -53,7 +53,8 @@ body {
 }
 
 #app {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -203,17 +204,25 @@ body {
    ========================================================================== */
 .dashboard-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
 }
 
 .sidebar {
   width: 260px;
+  height: 100vh;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  z-index: 100;
   transition: var(--transition);
 }
 
@@ -317,6 +326,8 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -480,7 +491,27 @@ body {
   flex: 1;
   padding: 32px;
   overflow-y: auto;
+  overflow-x: hidden;
   background-color: var(--bg-main);
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 rgba(0, 0, 0, 0.03);
+}
+
+.content-outlet::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content-outlet::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.content-outlet::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.content-outlet::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* ==========================================================================

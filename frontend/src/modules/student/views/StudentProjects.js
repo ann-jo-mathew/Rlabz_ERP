@@ -15,17 +15,20 @@ export async function StudentProjects(route, router) {
 
   // 1. Fetch mock projects assigned to the mock student
   const projects = getProjects() || [];
-  const assignedProjects = projects.filter(p => 
+  let assignedProjects = projects.filter(p => 
     p.members && p.members.toLowerCase().includes(currentUser?.name?.toLowerCase() || 'student nova')
   );
+  if (assignedProjects.length === 0 && projects.length > 0) {
+    assignedProjects = projects;
+  }
 
   assignedProjects.forEach(p => {
     p.designation = currentUser?.designation || p.designation;
   });
 
   // State
-  let selectedProjectId = null;
-  let isDetailView = false;
+  let selectedProjectId = route?.params?.id ? parseInt(route.params.id, 10) : null;
+  let isDetailView = Boolean(selectedProjectId);
   let activeTab = 'overview'; // 'overview', 'team', 'sprints', 'tasks', 'modules', 'github'
   let selectedModuleName = null;
 
@@ -53,11 +56,11 @@ export async function StudentProjects(route, router) {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="student-form-group">
               <label for="sprint-start" style="font-weight: 600; font-size: 0.85rem;">Start Date</label>
-              <input type="date" id="sprint-start" class="student-input" required value="${sprintToEdit ? sprintToEdit.startDate : ''}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+              <input type="date" id="sprint-start" class="student-input" value="${sprintToEdit && sprintToEdit.startDate ? sprintToEdit.startDate : ''}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
             </div>
             <div class="student-form-group">
               <label for="sprint-end" style="font-weight: 600; font-size: 0.85rem;">End Date</label>
-              <input type="date" id="sprint-end" class="student-input" required value="${sprintToEdit ? sprintToEdit.endDate : ''}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+              <input type="date" id="sprint-end" class="student-input" value="${sprintToEdit && sprintToEdit.endDate ? sprintToEdit.endDate : ''}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
             </div>
           </div>
 
@@ -349,13 +352,6 @@ export async function StudentProjects(route, router) {
                   <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary); min-width: 48px; text-align: right;">${selectedProject.progress}%</span>
                 </div>
               </div>
-
-              <div class="student-detail-field" style="margin-top: 20px;">
-                <div class="student-detail-label">Technologies Framework</div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
-                  ${selectedProject.tech.split(',').map(t => `<span class="student-badge" style="background:#f1f5f9; color:var(--text-muted); border: 1px solid var(--border-color); font-weight: 500;">${t.trim()}</span>`).join('')}
-                </div>
-              </div>
             </div>
           `;
         } else if (activeTab === 'team') {
@@ -425,7 +421,7 @@ export async function StudentProjects(route, router) {
                 <div class="sprint-block-card-header">
                   <div>
                     <h4 class="sprint-block-title">${s.name}</h4>
-                    <span class="sprint-date-span">Duration: ${s.startDate} to ${s.endDate}</span>
+                    <span class="sprint-date-span">${s.startDate && s.endDate ? `Duration: ${s.startDate} to ${s.endDate}` : (s.startDate ? `Started: ${s.startDate}` : (s.endDate ? `Due: ${s.endDate}` : 'Dates: Not scheduled'))}</span>
                   </div>
                   <div style="display: flex; gap: 8px;">
                     <span class="student-badge ${s.status === 'COMPLETED' ? 'student-badge-success' : s.status === 'IN PROGRESS' ? 'student-badge-warning' : 'student-badge-info'}">${s.status}</span>
@@ -696,8 +692,13 @@ export async function StudentProjects(route, router) {
       });
     } else {
       container.querySelector('.btn-back-to-cards')?.addEventListener('click', () => {
-        isDetailView = false;
-        render();
+        if (route?.params?.id && router) {
+          router.push('/student/projects');
+        } else {
+          isDetailView = false;
+          selectedProjectId = null;
+          render();
+        }
       });
 
       container.querySelectorAll('.project-tab-btn').forEach(btn => {
