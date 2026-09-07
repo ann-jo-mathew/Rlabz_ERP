@@ -12,6 +12,12 @@ class ClientRequirementController extends Controller
     private function checkPermission(Request $request, $permission)
     {
         $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
+
+        if (in_array($permission, ['project.client_requirements.create', 'project.client_requirements.update', 'project.client_requirements.delete']) && in_array($role, ['coordinator', 'director'])) {
+            return;
+        }
+
         $permissions = $user['permissions'] ?? [];
         if (!in_array($permission, $permissions)) {
             abort(403, 'Forbidden: Missing permission ' . $permission);

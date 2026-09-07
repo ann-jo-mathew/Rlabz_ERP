@@ -13,6 +13,12 @@ class ProjectAssignmentController extends Controller
     private function checkPermission(Request $request, $permission)
     {
         $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
+
+        if (in_array($permission, ['project.assign_faculty', 'project.assign_students']) && in_array($role, ['director', 'coordinator'])) {
+            return;
+        }
+
         $permissions = $user['permissions'] ?? [];
         if (!in_array($permission, $permissions)) {
             abort(403, 'Forbidden: Missing permission ' . $permission);

@@ -102,7 +102,7 @@ export async function ProjectDetails(route, router) {
         <div class="card-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 0;">Modules & Tasks</h3>
-            ${permissions.includes('project.module.create') ? `
+            ${(permissions.includes('project.module.create') || role === 'faculty' || role === 'coordinator') ? `
               <button id="btn-add-module" class="btn btn-sm btn-primary shadow-hover" style="width: max-content; padding: 0.5rem 1.5rem;"><i class="fa fa-plus"></i> Add Module</button>
             ` : ''}
           </div>
@@ -325,7 +325,7 @@ export async function ProjectDetails(route, router) {
                     <h4 style="margin: 0; font-size: 1.15rem; font-weight: 700;">${m.module_name || m.name || 'Untitled Module'}</h4>
                     <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">${m.description || ''}</p>
                   </div>
-                  ${permissions.includes('project.task.create') ? `<button class="btn btn-sm btn-outline btn-add-task" data-module-id="${m.id}" style="padding: 0.4rem 1rem;"><i class="fa fa-plus"></i> Task</button>` : ''}
+                  ${(permissions.includes('project.task.create') || role === 'faculty' || role === 'coordinator') ? `<button class="btn btn-sm btn-outline btn-add-task" data-module-id="${m.id}" style="padding: 0.4rem 1rem;"><i class="fa fa-plus"></i> Task</button>` : ''}
                 </div>
                 
                 <div class="tasks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -337,7 +337,7 @@ export async function ProjectDetails(route, router) {
                       </div>
                       <div style="display: flex; align-items: center; gap: 1rem;">
                         <span class="status-badge ${t.status}">${t.status.replace('_', ' ').toUpperCase()}</span>
-                        ${permissions.includes('project.task.update') ? `
+                        ${(permissions.includes('project.task.update') || role === 'faculty' || role === 'coordinator' || role === 'student') ? `
                           <select class="premium-input task-status-select" data-task-id="${t.id}" style="padding: 0.3rem 0.6rem; width: auto; font-size: 0.85rem; background-color: #ffffff;">
                             <option value="todo" ${t.status === 'todo' ? 'selected' : ''}>To Do</option>
                             <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In Progress</option>

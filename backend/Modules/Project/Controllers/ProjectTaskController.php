@@ -14,6 +14,16 @@ class ProjectTaskController extends Controller
     private function checkPermission(Request $request, $permission)
     {
         $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
+        
+        // Allow role-based bypass for specific permissions
+        if (in_array($permission, ['project.module.create', 'project.task.create']) && in_array($role, ['coordinator', 'faculty'])) {
+            return;
+        }
+        if ($permission === 'project.task.update' && in_array($role, ['coordinator', 'faculty', 'student'])) {
+            return;
+        }
+
         $permissions = $user['permissions'] ?? [];
         if (!in_array($permission, $permissions)) {
             abort(403, 'Forbidden: Missing permission ' . $permission);
