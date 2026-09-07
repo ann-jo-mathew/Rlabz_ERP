@@ -100,6 +100,18 @@ class FinanceService {
     const res = await this._fetch('/finance/projects');
     return (res || []).map(p => ({id: p.id, name: p.title || p.name}));
   }
+
+  async getStudentHourlyRateHistory() {
+    return await this._fetch('/finance/student-hourly-rate/history') || [];
+  }
+
+  async updateStudentHourlyRate(data) {
+    return this._fetch('/finance/student-hourly-rate', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async renewSsl(hostingChargeId, data) {
+    return this._fetch(`/finance/hosting-charges/${hostingChargeId}/renew`, { method: 'POST', body: JSON.stringify(data) });
+  }
 }
 
 export const financeService = new FinanceService();

@@ -14,6 +14,7 @@ export async function OperationalCosts(route, router) {
   };
 
   let allCosts = [];
+  let renewalHistory = [];
   let currentFilter = 'ssl'; // default filter
 
   container.innerHTML = `
@@ -64,6 +65,31 @@ export async function OperationalCosts(route, router) {
         </table>
       </div>
     </div>
+    
+    <div class="fin-panel" style="margin-top:2rem;">
+      <div class="fin-panel-header">
+        <div class="fin-panel-title">SSL Renewal History</div>
+        <div class="fin-panel-subtitle">Historical log of all SSL certificate renewals</div>
+      </div>
+      <div class="fin-table-wrap">
+        <table class="fin-table" style="font-size: 0.85rem">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Project / Details</th>
+              <th>Prev Expiry</th>
+              <th>New Expiry</th>
+              <th>Amount</th>
+              <th>Reference</th>
+              <th>Renewed By</th>
+            </tr>
+          </thead>
+          <tbody id="ssl-history-tbody">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted)">Loading renewal history...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   `;
 
   const renderTable = () => {
@@ -95,7 +121,7 @@ export async function OperationalCosts(route, router) {
       }
 
       const actionHtml = (cost.category_raw === 'ssl' || cost.category_raw === 'domain' || cost.category_raw === 'hosting') ? 
-        `<button class="fin-btn outline sm renew-btn" data-pfid="${cost.pfid}" data-type="${cost.category_raw}" data-provider="${cost.details}">Renew</button>` : '-';
+        `<button class="fin-btn outline sm renew-btn" data-pfid="${cost.pfid}" data-hcid="${cost.hcid}" data-type="${cost.category_raw}" data-provider="${cost.details}">Renew</button>` : '-';
       
       return `
       <tr>
@@ -117,9 +143,10 @@ export async function OperationalCosts(route, router) {
     container.querySelectorAll('.renew-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const pfid = btn.dataset.pfid;
+        const hcid = btn.dataset.hcid;
         const type = btn.dataset.type;
         const prov = btn.dataset.provider;
-        openResourceModal(pfid, type, prov, true);
+        openResourceModal(pfid, type, prov, true, hcid);
       });
     });
   };
@@ -137,6 +164,7 @@ export async function OperationalCosts(route, router) {
         if (pf.hosting_charges && pf.hosting_charges.length > 0) {
           pf.hosting_charges.forEach(hc => {
             allCosts.push({
+              hcid: hc.id,
               pfid: pf.id,
               project: projName,
               category: (hc.charge_type || 'hosting').toUpperCase(),
@@ -173,9 +201,40 @@ export async function OperationalCosts(route, router) {
       });
 
       renderTable();
+      
+      try {
+        renewalHistory = await financeService._fetch('/finance/ssl-renewal-history') || [];
+        renderRenewalHistory();
+      } catch (err) {
+        console.error('Failed to load SSL history:', err);
+      }
     } catch (e) {
       container.querySelector('#opcosts-tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:#ef4444;padding:2rem">Failed to load operational costs: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:10px">Retry</button></td></tr>`;
     }
+  };
+
+  const renderRenewalHistory = () => {
+    const tbody = container.querySelector('#ssl-history-tbody');
+    if (!tbody) return;
+    if (renewalHistory.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">No SSL renewals found</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = renewalHistory.map(h => `
+      <tr>
+        <td>${fmtDate(h.renewal_date)}</td>
+        <td>
+          <div style="font-weight:600">${h.project_name || 'Unknown Project'}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted)">${h.hosting_details || ''}</div>
+        </td>
+        <td style="color:var(--text-muted)">${fmtDate(h.previous_expiry_date)}</td>
+        <td style="font-weight:600">${fmtDate(h.new_expiry_date)}</td>
+        <td style="font-weight:700">${fmt(h.renewal_amount)}</td>
+        <td style="font-family:monospace">${h.payment_reference || '-'}</td>
+        <td>${h.renewed_by_name || 'System'}</td>
+      </tr>
+    `).join('');
   };
 
   container.querySelector('#type-filter').addEventListener('change', (e) => {
@@ -183,7 +242,7 @@ export async function OperationalCosts(route, router) {
     renderTable();
   });
 
-  const openResourceModal = async (defaultPfId = '', defaultType = 'ssl', defaultProvider = '', isRenewal = false) => {
+  const openResourceModal = async (defaultPfId = '', defaultType = 'ssl', defaultProvider = '', isRenewal = false, hcid = null) => {
     const projects = await financeService.getProjectFinances();
     const validProjects = projects.filter(p => p.project_finance && p.project_finance.id);
 
@@ -209,7 +268,7 @@ export async function OperationalCosts(route, router) {
           </select>
         </div>
         <div class="fin-form-group">
-          <label>Amount</label>
+          <label>Amount ${isRenewal ? '(Renewal Amount)' : ''}</label>
           <input type="number" class="fin-input" id="rr-amount" step="0.01" required>
         </div>
         <div style="display:flex; gap:1rem;">
@@ -246,14 +305,24 @@ export async function OperationalCosts(route, router) {
       }
 
       try {
-        await financeService.addResourceCost({
-          project_finance_id: pfid,
-          charge_type: type,
-          amount: amt,
-          purchase_date: modal.querySelector('#rr-purchase').value,
-          expiry_date: modal.querySelector('#rr-expiry').value,
-          reference_details: modal.querySelector('#rr-ref').value
-        });
+        if (isRenewal && hcid) {
+            await financeService.renewSsl(hcid, {
+                renewal_date: modal.querySelector('#rr-purchase').value,
+                new_expiry_date: modal.querySelector('#rr-expiry').value,
+                renewal_amount: amt,
+                payment_reference: modal.querySelector('#rr-ref').value,
+                remarks: 'Renewal'
+            });
+        } else {
+            await financeService.addResourceCost({
+                project_finance_id: pfid,
+                charge_type: type,
+                amount: amt,
+                purchase_date: modal.querySelector('#rr-purchase').value,
+                expiry_date: modal.querySelector('#rr-expiry').value,
+                reference_details: modal.querySelector('#rr-ref').value
+            });
+        }
         modal.remove();
         loadData();
       } catch (err) {

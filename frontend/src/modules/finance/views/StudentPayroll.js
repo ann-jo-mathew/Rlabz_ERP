@@ -16,6 +16,8 @@ export async function StudentPayroll(route, router) {
 
   let payrollData = [];
   let allProjects = [];
+  let rateHistory = [];
+  let currentGlobalRate = 0;
 
   // ─── Receipt PDF Generation ───────────────────────────────────
   const generateReceipt = (pr) => {
@@ -292,6 +294,47 @@ export async function StudentPayroll(route, router) {
         </div>
       </div>
 
+      <!-- Hourly Rate Manager -->
+      <div class="fin-panel" style="margin-bottom: 2rem;">
+        <div class="fin-panel-header">
+          <div>
+            <div class="fin-panel-title">Global Student Hourly Rate</div>
+            <div class="fin-panel-subtitle">Manage the base hourly rate applied to all student payrolls</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:2rem; align-items:flex-start; padding:1.5rem;">
+          <div style="flex:1; max-width: 300px; background:#f8fafb; border:1px solid #e2e8f0; border-radius:8px; padding:1rem;">
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem">Current Base Rate</div>
+            <div style="font-size:2rem; font-weight:700; color:var(--primary); margin-bottom:1rem" id="current-rate-display">₹0</div>
+            <div class="fin-form-group" style="margin-bottom:0.5rem">
+              <label>Update Rate (₹)</label>
+              <input type="number" class="fin-input" id="new-rate-input" placeholder="New hourly rate" min="0" step="0.01">
+            </div>
+            <button class="fin-btn primary w-full" id="update-rate-btn">Update Rate</button>
+          </div>
+          
+          <div style="flex:2;">
+            <div style="font-size:0.9rem; font-weight:600; margin-bottom:0.75rem">Rate History</div>
+            <div class="fin-table-wrap" style="max-height: 200px; overflow-y: auto;">
+              <table class="fin-table" style="font-size:0.85rem">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Old Rate</th>
+                    <th>New Rate</th>
+                    <th>Updated By</th>
+                  </tr>
+                </thead>
+                <tbody id="rate-history-tbody">
+                  <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Loading history...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <!-- Project-first picker -->
       <div class="fin-project-picker">
         <div class="fin-project-picker-title">Project Context</div>
@@ -380,11 +423,56 @@ export async function StudentPayroll(route, router) {
         projectFilter.innerHTML = '<option value="All">All Projects</option>' + allProjects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
         
         renderTable();
+        
+        // Fetch and render rate history
+        rateHistory = await financeService.getStudentHourlyRateHistory();
+        if (payrollData.length > 0) {
+           currentGlobalRate = payrollData[0].hourly_rate; // Or fetch separately if needed
+           container.querySelector('#current-rate-display').textContent = '₹' + currentGlobalRate;
+        }
+        renderRateHistory();
+
       } catch (e) {
         container.querySelector('#payroll-tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#ef4444">Failed to load payroll data: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:10px">Retry</button></td></tr>`;
       }
     };
 
+    const renderRateHistory = () => {
+      const tbody = container.querySelector('#rate-history-tbody');
+      if (!tbody) return;
+      if (rateHistory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No history available.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rateHistory.map(h => `
+        <tr>
+          <td>${new Date(h.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+          <td>₹${h.old_rate}</td>
+          <td style="font-weight:600; color:var(--primary)">₹${h.new_rate}</td>
+          <td>${h.updated_by_name}</td>
+        </tr>
+      `).join('');
+    };
+
+    // Bind Update Rate Button
+    container.querySelector('#update-rate-btn')?.addEventListener('click', async () => {
+      const newRateStr = container.querySelector('#new-rate-input').value;
+      const newRate = parseFloat(newRateStr);
+      if (isNaN(newRate) || newRate < 0) return alert('Enter a valid positive rate');
+      
+      const btn = container.querySelector('#update-rate-btn');
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+      try {
+        await financeService.updateStudentHourlyRate({ new_rate: newRate });
+        alert('Global student hourly rate updated successfully!');
+        window.location.reload(); // Reload to refresh history and potentially payroll calculation
+      } catch (e) {
+        alert('Failed to update rate: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = 'Update Rate';
+      }
+    });
 
     const projectFilter = container.querySelector('#project-filter');
     const searchInput = container.querySelector('#search-input');

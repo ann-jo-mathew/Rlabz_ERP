@@ -113,24 +113,24 @@ export async function FinanceDashboard(route, router) {
     <!-- KPI Strip -->
     <div class="fin-kpi-strip">
       <div class="fin-kpi-card primary">
-        <div class="kpi-label">Total Project Billing</div>
+        <div class="kpi-label">Project Billing</div>
         <div class="kpi-value">${fmt(summary.totalBilling)}</div>
-        <div class="kpi-sub">Total revenue billed</div>
+        <div class="kpi-sub">Total revenue billed across projects</div>
       </div>
       <div class="fin-kpi-card teal">
-        <div class="kpi-label">Amount Collected</div>
+        <div class="kpi-label">Collected</div>
         <div class="kpi-value">${fmt(summary.totalCollected)}</div>
-        <div class="kpi-sub">${recvPct}% of billed amount</div>
+        <div class="kpi-sub">${recvPct}% collected | Pending: ${fmt(summary.pendingFromClient || 0)}</div>
       </div>
-      <div class="fin-kpi-card warning">
-        <div class="kpi-label">Outstanding Receivables</div>
-        <div class="kpi-value">${fmt(summary.outstanding)}</div>
-        <div class="kpi-sub">Pending collection</div>
+      <div class="fin-kpi-card danger">
+        <div class="kpi-label">Total Expenses</div>
+        <div class="kpi-value">${fmt(summary.totalExpenses)}</div>
+        <div class="kpi-sub">Actual expenses recorded</div>
       </div>
       <div class="fin-kpi-card indigo">
-        <div class="kpi-label">Total Project Expenses</div>
-        <div class="kpi-value">${fmt(summary.totalExpenses)}</div>
-        <div class="kpi-sub">Across all projects</div>
+        <div class="kpi-label">Project Profit</div>
+        <div class="kpi-value">${fmt(summary.projectProfit || 0)}</div>
+        <div class="kpi-sub">Collected - Expenses</div>
       </div>
     </div>
 
@@ -155,12 +155,12 @@ export async function FinanceDashboard(route, router) {
           </div>
           <div class="fin-legend-item">
             <span class="fin-legend-dot" style="background:#0891b2"></span>
-            <span class="leg-label">Faculty/Resource</span>
+            <span class="leg-label">Faculty Payments</span>
             <span class="leg-pct">${fmt(summary.totalFaculty)}</span>
           </div>
           <div class="fin-legend-item">
             <span class="fin-legend-dot" style="background:#6366f1"></span>
-            <span class="leg-label">Hosting & Other</span>
+            <span class="leg-label">Hosting & Other Costs</span>
             <span class="leg-pct">${fmt(summary.totalOtherExpenses)}</span>
           </div>
         </div>
@@ -170,8 +170,8 @@ export async function FinanceDashboard(route, router) {
       <div class="fin-panel" style="margin-bottom:0">
         <div class="fin-panel-header">
           <div>
-            <div class="fin-panel-title">Receivables / Collection Status</div>
-            <div class="fin-panel-subtitle">Received vs. pending per project</div>
+            <div class="fin-panel-title">Financial Summary by Project</div>
+            <div class="fin-panel-subtitle">Received vs Pending from Client</div>
           </div>
         </div>
         <div class="fin-chart-wrap">

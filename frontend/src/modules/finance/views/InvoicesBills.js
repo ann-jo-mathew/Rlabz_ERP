@@ -301,6 +301,16 @@ export async function InvoicesBills(route, router) {
                 <input type="number" class="fin-input" id="ci-amount" step="0.01" required>
                 <small style="color:var(--text-muted); font-size:0.8rem;">Enter the actual billable amount (excluding GST).</small>
               </div>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.9rem">
+                  <span style="color:var(--text-muted)">GST Amount</span>
+                  <span id="ci-calc-gst" style="font-weight:600">₹0</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:1.1rem; border-top:1px solid #e2e8f0; padding-top:0.5rem">
+                  <span style="font-weight:700">Grand Total</span>
+                  <span id="ci-calc-total" style="font-weight:700; color:var(--primary)">₹0</span>
+                </div>
+              </div>
               <div class="fin-form-group">
                 <label>Description</label>
                 <textarea class="fin-input" id="ci-desc" rows="2" placeholder="Optional description"></textarea>
@@ -318,8 +328,23 @@ export async function InvoicesBills(route, router) {
             const selected = e.target.options[e.target.selectedIndex];
             if (selected && selected.dataset.budget) {
               modal.querySelector('#ci-amount').value = selected.dataset.budget;
+              updateCalculation();
             }
           });
+
+          const updateCalculation = () => {
+            const amtStr = modal.querySelector('#ci-amount').value;
+            const gstStr = modal.querySelector('#ci-gst').value;
+            const amt = parseFloat(amtStr) || 0;
+            const gst = parseFloat(gstStr) || 0;
+            const gstAmount = amt * (gst / 100);
+            const total = amt + gstAmount;
+            modal.querySelector('#ci-calc-gst').textContent = fmt(gstAmount);
+            modal.querySelector('#ci-calc-total').textContent = fmt(total);
+          };
+
+          modal.querySelector('#ci-amount').addEventListener('input', updateCalculation);
+          modal.querySelector('#ci-gst').addEventListener('input', updateCalculation);
 
           modal.querySelector('#cancel-ci').addEventListener('click', () => modal.remove());
           modal.querySelector('#confirm-ci').addEventListener('click', async () => {

@@ -25,18 +25,23 @@ class FinanceService
         $totalCollected = Invoice::get()->sum('total_paid'); // using accessor sum
 
         $hostingCharges = HostingCharge::sum('amount');
+        $sslRenewals = DB::table('ssl_renewal_history')->sum('renewal_amount');
         $maintenanceCharges = \Modules\Finance\Models\MaintenanceSupportCharge::sum('amount');
         $studentPayments = StudentPayment::sum('amount');
         $facultyPayments = \Modules\Finance\Models\FacultyPayment::sum('amount');
 
+        $totalOtherExpenses = $hostingCharges + $sslRenewals + $maintenanceCharges;
+        $totalExpenses = $studentPayments + $facultyPayments + $totalOtherExpenses;
+
         return [
             'totalBilling' => round($totalInvoiced, 2),
             'totalCollected' => round($totalCollected, 2),
-            'outstanding' => max(0, round($totalInvoiced - $totalCollected, 2)),
+            'pendingFromClient' => max(0, round($totalInvoiced - $totalCollected, 2)),
             'totalPayroll' => round($studentPayments, 2),
             'totalFaculty' => round($facultyPayments, 2),
-            'totalOtherExpenses' => round($hostingCharges + $maintenanceCharges, 2),
-            'totalExpenses' => round($hostingCharges + $maintenanceCharges + $studentPayments + $facultyPayments, 2)
+            'totalOtherExpenses' => round($totalOtherExpenses, 2),
+            'totalExpenses' => round($totalExpenses, 2),
+            'projectProfit' => round($totalCollected - $totalExpenses, 2)
         ];
     }
 

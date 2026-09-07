@@ -143,4 +143,88 @@ class FinanceController extends Controller
             'data' => $payment
         ]);
     }
+    public function getStudentHourlyRateHistory()
+    {
+        $history = \DB::table('student_hourly_rate_history')
+            ->join('users', 'student_hourly_rate_history.updated_by', '=', 'users.id')
+            ->select('student_hourly_rate_history.*', 'users.name as updated_by_name')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return response()->json($history);
+    }
+
+    public function updateStudentHourlyRate(Request $request)
+    {
+        $validated = $request->validate([
+            'new_rate' => 'required|numeric|min:0'
+        ]);
+
+        $setting = \DB::table('finance_settings')->first();
+        $oldRate = $setting ? $setting->student_hourly_rate : 0;
+
+        \DB::table('student_hourly_rate_history')->insert([
+            'old_rate' => $oldRate,
+            'new_rate' => $validated['new_rate'],
+            'updated_by' => auth()->id() ?? 1,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        if ($setting) {
+            \DB::table('finance_settings')->update(['student_hourly_rate' => $validated['new_rate'], 'updated_at' => now()]);
+        } else {
+            \DB::table('finance_settings')->insert(['student_hourly_rate' => $validated['new_rate'], 'created_at' => now(), 'updated_at' => now()]);
+        }
+
+        return response()->json(['message' => 'Rate updated successfully', 'new_rate' => $validated['new_rate']]);
+    }
+
+    public function renewSsl(Request $request, $hostingChargeId)
+    {
+        $validated = $request->validate([
+            'renewal_date' => 'required|date',
+            'new_expiry_date' => 'required|date',
+            'renewal_amount' => 'required|numeric|min:0',
+            'payment_reference' => 'nullable|string',
+            'remarks' => 'nullable|string'
+        ]);
+
+        $hostingCharge = \Modules\Finance\Models\HostingCharge::findOrFail($hostingChargeId);
+
+        \DB::table('ssl_renewal_history')->insert([
+            'hosting_charge_id' => $hostingCharge->id,
+            'renewal_date' => $validated['renewal_date'],
+            'previous_expiry_date' => $hostingCharge->expiry_date,
+            'new_expiry_date' => $validated['new_expiry_date'],
+            'renewal_amount' => $validated['renewal_amount'],
+            'payment_reference' => $validated['payment_reference'],
+            'remarks' => $validated['remarks'],
+            'renewed_by' => auth()->id() ?? 1,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        $hostingCharge->expiry_date = $validated['new_expiry_date'];
+        $hostingCharge->save();
+
+        return response()->json(['message' => 'SSL renewed successfully', 'data' => $hostingCharge]);
+    }
+
+    public function getSslRenewalHistory()
+    {
+        $history = \DB::table('ssl_renewal_history')
+            ->join('hosting_charges', 'ssl_renewal_history.hosting_charge_id', '=', 'hosting_charges.id')
+            ->join('project_finances', 'hosting_charges.project_finance_id', '=', 'project_finances.id')
+            ->join('projects', 'project_finances.project_id', '=', 'projects.id')
+            ->leftJoin('users', 'ssl_renewal_history.renewed_by', '=', 'users.id')
+            ->select(
+                'ssl_renewal_history.*',
+                'projects.title as project_name',
+                'hosting_charges.reference_details as hosting_details',
+                'users.name as renewed_by_name'
+            )
+            ->orderBy('renewal_date', 'desc')
+            ->get();
+        return response()->json($history);
+    }
 }

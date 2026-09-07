@@ -22,4 +22,9 @@ Route::group(['prefix' => 'finance', 'middleware' => ['auth.jwt']], function () 
     Route::get('/faculty-payments', [FinanceController::class, 'getFacultyPayments']);
     Route::get('/invoices', [FinanceController::class, 'getInvoices']);
     Route::get('/transactions', [FinanceController::class, 'getTransactions']);
+
+    Route::get('/student-hourly-rate/history', [FinanceController::class, 'getStudentHourlyRateHistory']);
+    Route::post('/student-hourly-rate', [FinanceController::class, 'updateStudentHourlyRate']);
+    Route::get('/ssl-renewal-history', [FinanceController::class, 'getSslRenewalHistory']);
+    Route::post('/hosting-charges/{id}/renew', [FinanceController::class, 'renewSsl']);
 });
