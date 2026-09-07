@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Auth\Models\User;
 use Modules\Project\Models\Project;
+use Modules\Project\Models\Module;
 
 class Certificate extends Model
 {
@@ -15,6 +16,7 @@ class Certificate extends Model
 
     protected $fillable = [
         'project_id',
+        'module_id',
         'student_id',
         'certificate_number',
         'description',
@@ -30,6 +32,11 @@ class Certificate extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function module()
+    {
+        return $this->belongsTo(Module::class);
     }
 
     public function student()

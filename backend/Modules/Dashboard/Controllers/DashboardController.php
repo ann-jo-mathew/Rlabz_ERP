@@ -9,6 +9,51 @@ use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
+    private function isDirector(Request $request): bool
+    {
+        return ($request->input('auth_user')['role'] ?? null) === 'director';
+    }
+
+    private function currentUserId(Request $request): ?int
+    {
+        return $request->input('auth_user')['sub'] ?? null;
+    }
+
+    /**
+     * Best-effort audit log insert — never lets a logging failure turn an otherwise
+     * successful request into a 500 (e.g. no resolvable current-user id), and never
+     * writes an invalid/hardcoded foreign key either.
+     */
+    private function logAudit(Request $request, string $action, string $description): void
+    {
+        if (!Schema::hasTable('audit_logs')) {
+            return;
+        }
+
+        $logData = [
+            'action' => $action,
+            'description' => $description,
+            'created_at' => now(),
+        ];
+
+        $canInsert = true;
+        if (Schema::hasColumn('audit_logs', 'user_id')) {
+            $currentUserId = $this->currentUserId($request);
+            $canInsert = $currentUserId && DB::table('users')->where('id', $currentUserId)->exists();
+            if ($canInsert) {
+                $logData['user_id'] = $currentUserId;
+            }
+        }
+
+        if ($canInsert) {
+            try {
+                DB::table('audit_logs')->insert($logData);
+            } catch (\Throwable $e) {
+                // Swallow — the main operation already succeeded.
+            }
+        }
+    }
+
     /**
      * Get Director Dashboard KPI Overview Metrics
      */
@@ -395,31 +440,41 @@ class DashboardController extends Controller
      */
     public function updateProposalStatus(Request $request, $proposalId)
     {
+        if (!$this->isDirector($request)) {
+            return response()->json(['error' => 'Forbidden: only a Director can accept or reject a proposal'], 403);
+        }
+
         $request->validate([
             'status' => 'required|in:accepted,rejected',
             'faculty_id' => 'nullable|string',
             'notes' => 'nullable|string'
         ]);
 
-        $newStatus = $request->status === 'accepted' ? 'in_progress' : 'rejected';
-        
-        $updated = DB::table('projects')->where('id', $proposalId)->update([
+        $project = DB::table('projects')->where('id', $proposalId)->first();
+        if (!$project) {
+            return response()->json(['error' => 'Proposal not found'], 404);
+        }
+
+        if ($project->status !== 'proposed') {
+            return response()->json([
+                'error' => "Only a 'proposed' project can be accepted or rejected (current status: {$project->status})",
+            ], 422);
+        }
+
+        // proposed -> accepted (not directly in_progress) so the accepted state is
+        // preserved as its own step in the workflow, matching the projects.status enum.
+        $newStatus = $request->status === 'accepted' ? 'accepted' : 'rejected';
+
+        DB::table('projects')->where('id', $proposalId)->update([
             'status' => $newStatus,
             'updated_at' => now()
         ]);
 
-        // Insert log into audit_logs table
-        if (Schema::hasTable('audit_logs')) {
-            $logData = [
-                'action' => 'Proposal ' . strtoupper($request->status),
-                'description' => "Proposal {$proposalId} updated to {$request->status}. " . ($request->notes ? "Note: {$request->notes}" : ""),
-                'created_at' => now(),
-            ];
-            if (Schema::hasColumn('audit_logs', 'user_id')) {
-                $logData['user_id'] = 1;
-            }
-            DB::table('audit_logs')->insert($logData);
-        }
+        $this->logAudit(
+            $request,
+            $request->status === 'accepted' ? 'Proposal Accepted' : 'Proposal Rejected',
+            "Proposal \"{$project->title}\" (ID: {$proposalId}) {$request->status}." . ($request->notes ? " Note: {$request->notes}" : '')
+        );
 
         return response()->json([
             'status' => 'success',
@@ -430,6 +485,47 @@ class DashboardController extends Controller
                 'assigned_faculty' => $request->faculty_id,
                 'notes' => $request->notes
             ]
+        ]);
+    }
+
+    /**
+     * Start an accepted project: accepted -> in_progress only.
+     */
+    public function startProject(Request $request, $projectId)
+    {
+        if (!$this->isDirector($request)) {
+            return response()->json(['error' => 'Forbidden: only a Director can start a project'], 403);
+        }
+
+        $project = DB::table('projects')->where('id', $projectId)->first();
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        if ($project->status !== 'accepted') {
+            return response()->json([
+                'error' => "Only an 'accepted' project can be started (current status: {$project->status})",
+            ], 422);
+        }
+
+        DB::table('projects')->where('id', $projectId)->update([
+            'status' => 'in_progress',
+            'updated_at' => now(),
+        ]);
+
+        $this->logAudit(
+            $request,
+            'Project Started',
+            "Project \"{$project->title}\" (ID: {$projectId}) started — status changed to in_progress."
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Project {$projectId} started.",
+            'data' => [
+                'project_id' => $projectId,
+                'status' => 'in_progress',
+            ],
         ]);
     }
 
@@ -578,31 +674,49 @@ class DashboardController extends Controller
      */
     public function assignFaculty(Request $request, $projectId)
     {
+        if (!$this->isDirector($request)) {
+            return response()->json(['error' => 'Forbidden: only a Director can assign faculty'], 403);
+        }
+
         $request->validate([
-            'faculty_id' => 'required'
+            'faculty_id' => ['required', 'integer', 'exists:users,id'],
         ]);
 
+        $project = DB::table('projects')->where('id', $projectId)->first();
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        if (!in_array($project->status, ['accepted', 'in_progress'], true)) {
+            return response()->json([
+                'error' => "Faculty can only be assigned to an accepted or in-progress project (current status: {$project->status})",
+            ], 422);
+        }
+
         $faculty = DB::table('users')->where('id', $request->faculty_id)->first();
-        $facultyName = $faculty ? $faculty->name : 'Faculty Member';
+        if (!$faculty || !in_array($faculty->role ?? '', ['faculty', 'director', 'coordinator'], true)) {
+            return response()->json(['error' => 'Selected user is not eligible for faculty assignment'], 422);
+        }
+        $facultyName = $faculty->name;
 
-        if (Schema::hasTable('projects') && Schema::hasColumn('projects', 'faculty_id')) {
-            DB::table('projects')->where('id', $projectId)->update([
-                'faculty_id' => $request->faculty_id,
-                'updated_at' => now()
-            ]);
+        // project_faculty (not a projects.faculty_id column, which does not exist) is the
+        // real relationship — same pivot table the Coordinator side reads for display.
+        if (Schema::hasTable('project_faculty')) {
+            DB::table('project_faculty')->updateOrInsert(
+                ['project_id' => $projectId, 'faculty_id' => $request->faculty_id],
+                [
+                    'assigned_date' => now()->toDateString(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
         }
 
-        if (Schema::hasTable('audit_logs')) {
-            $logData = [
-                'action' => 'Faculty Assigned',
-                'description' => "Assigned {$facultyName} (ID: {$request->faculty_id}) to project {$projectId}.",
-                'created_at' => now(),
-            ];
-            if (Schema::hasColumn('audit_logs', 'user_id')) {
-                $logData['user_id'] = 1;
-            }
-            DB::table('audit_logs')->insert($logData);
-        }
+        $this->logAudit(
+            $request,
+            'Faculty Assigned',
+            "Assigned {$facultyName} (ID: {$request->faculty_id}) to project \"{$project->title}\" (ID: {$projectId})."
+        );
 
         return response()->json([
             'status' => 'success',
