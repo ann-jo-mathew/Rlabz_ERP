@@ -621,18 +621,37 @@ class FacultyController extends Controller
             'project_id' => 'required|integer',
             'student_id' => 'required|integer',
             'comments' => 'required|string',
+            'task_id' => 'nullable|integer',
         ]);
 
-        $feedbackId = DB::table('feedback')->insertGetId([
+        $insertData = [
             'project_id' => $validated['project_id'],
             'faculty_id' => $facultyId,
             'student_id' => $validated['student_id'],
             'comments' => $validated['comments'],
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ];
 
-        return response()->json(['success' => true, 'feedback_id' => $feedbackId]);
+        if (!empty($validated['task_id']) && Schema::hasColumn('feedback', 'task_id')) {
+            $insertData['task_id'] = $validated['task_id'];
+        }
+
+        $feedbackId = DB::table('feedback')->insertGetId($insertData);
+
+        // Notify student
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                'user_id' => $validated['student_id'],
+                'type' => 'feedback',
+                'message' => "Faculty added feedback on your task: {$validated['comments']}",
+                'is_read' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return response()->json(['success' => true, 'feedback_id' => $feedbackId, 'message' => 'Feedback saved successfully.']);
     }
 
     /**
@@ -856,6 +875,10 @@ class FacultyController extends Controller
             return response()->json(['error' => 'Project not found'], 404);
         }
 
+        if (strtolower($project->status ?? '') === 'closed') {
+            return response()->json(['error' => 'Cannot assign modules or tasks. This project is closed.'], 422);
+        }
+
         $moduleId = $validated['module_id'];
 
         if ($moduleId === 'new' || !is_numeric($moduleId)) {
@@ -988,6 +1011,11 @@ class FacultyController extends Controller
         $module = DB::table('modules')->where('id', $validated['module_id'])->first();
         if (!$module) {
             return response()->json(['error' => 'Module not found'], 404);
+        }
+
+        $project = DB::table('projects')->where('id', $module->project_id)->first();
+        if ($project && strtolower($project->status ?? '') === 'closed') {
+            return response()->json(['error' => 'Cannot assign tasks. This project is closed.'], 422);
         }
 
         // STRICT VALIDATION: Student MUST be assigned to this particular module in module_student table!
