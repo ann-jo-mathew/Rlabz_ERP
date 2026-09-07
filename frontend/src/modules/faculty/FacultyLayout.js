@@ -26,7 +26,6 @@ export async function FacultyLayout(contentChild, route, router) {
         { title: 'Assign Module & Task', path: '/faculty/sprints', icon: iconSprints },
         { title: 'Verify Task', path: '/faculty/verify-tasks', icon: iconVerifyTask },
         { title: 'Meetings', path: '/faculty/meetings', icon: iconMeetings },
-        { title: 'GitHub Integration', path: '/github', icon: iconGithub },
         { title: 'Report', path: '/faculty/reports', icon: iconReport },        
         { title: 'Notifications', path: '/faculty/notifications', icon: iconNotifications }
     ];

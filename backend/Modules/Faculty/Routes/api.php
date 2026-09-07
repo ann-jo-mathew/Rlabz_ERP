@@ -24,4 +24,5 @@ Route::prefix('faculty')->group(function () {
     Route::post('/feedback', [FacultyController::class, 'sendFeedback']);
     Route::delete('/modules/{moduleId}/students/{studentId}', [FacultyController::class, 'removeStudentFromModule']);
     Route::get('/notifications', [FacultyController::class, 'getNotifications']);
+    Route::post('/github-repositories/{id}/verify', [FacultyController::class, 'verifyGithubRepository']);
 });
