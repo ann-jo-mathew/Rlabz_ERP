@@ -225,6 +225,7 @@
 .status-badge.in_progress { background: #ecfdf5; color: #047857; }
 .status-badge.completed { background: #ecfdf5; color: #047857; }
 .status-badge.pending { background: #fffbef; color: #b45309; }
+.status-badge.accepted { background: #fffbef; color: #b45309; }
 .status-badge.rejected { background: #fef2f2; color: #b91c1c; }
 
 /* Buttons */

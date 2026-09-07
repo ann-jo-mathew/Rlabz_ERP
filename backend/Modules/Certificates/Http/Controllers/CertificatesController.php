@@ -104,11 +104,26 @@ class CertificatesController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $students = $module->students()->select('users.id', 'users.name', 'users.email')->get();
+        $alreadyCertifiedIds = Certificate::where('module_id', $module->id)->pluck('student_id');
+
+        $students = $module->students()
+            ->select('users.id', 'users.name', 'users.email')
+            ->whereNotIn('users.id', $alreadyCertifiedIds)
+            ->get();
+
+        $message = null;
+        if ($module->status !== 'completed') {
+            $message = 'This module is not marked completed yet — certificates cannot be issued until it is.';
+        } elseif ($students->isEmpty()) {
+            $message = $module->students()->count() === 0
+                ? 'No students are assigned to this module yet.'
+                : 'All students assigned to this module already have a certificate for it.';
+        }
 
         return response()->json([
             'data' => $students,
             'module_status' => $module->status,
+            'message' => $message,
         ]);
     }
 
@@ -142,9 +157,22 @@ class CertificatesController extends Controller
             return response()->json(['error' => 'Selected user is not a student'], 422);
         }
 
+        $isAssignedToProject = $project->students()->where('users.id', $student->id)->exists();
+        if (!$isAssignedToProject) {
+            return response()->json(['error' => 'Selected student is not assigned to this project'], 422);
+        }
+
         $isAssignedToModule = $module->students()->where('users.id', $student->id)->exists();
         if (!$isAssignedToModule) {
             return response()->json(['error' => 'Selected student is not assigned to this module'], 422);
+        }
+
+        $duplicate = Certificate::where('project_id', $project->id)
+            ->where('module_id', $module->id)
+            ->where('student_id', $student->id)
+            ->exists();
+        if ($duplicate) {
+            return response()->json(['error' => 'A certificate has already been issued to this student for this module'], 422);
         }
 
         $issuedBy = $this->currentUserId($request) ?? $request->user()?->id;
@@ -157,7 +185,7 @@ class CertificatesController extends Controller
             'module_id' => $module->id,
             'student_id' => $student->id,
             'certificate_number' => $this->generateCertificateNumber(),
-            'description' => "{$student->name} has successfully completed the {$module->module_name} module of the {$project->title} project.",
+            'description' => "Certificate awarded to {$student->name} for successfully completing the {$module->module_name} module of the {$project->title} project.",
             'issue_date' => $validated['issue_date'] ?? now()->toDateString(),
             'certificate_file' => $validated['certificate_file'] ?? null,
             'issued_by' => $issuedBy,

@@ -94,6 +94,7 @@ export async function CoordinatorProjectDetail(route, router) {
         <div class="coordinator-header-actions">
           <button class="coord-btn coord-btn-secondary" data-action="back">Back to projects</button>
           <button class="coord-btn coord-btn-primary" id="assign-student-btn">Assign Student</button>
+          <button class="coord-btn coord-btn-primary" id="add-module-btn">Add Module</button>
           <button class="coord-btn coord-btn-secondary" id="add-requirement-btn">Add Requirement</button>
           <button class="coord-btn coord-btn-danger" id="close-project-btn">Close Project</button>
         </div>
@@ -211,9 +212,13 @@ export async function CoordinatorProjectDetail(route, router) {
                     ? module.students.map((s) => `<span class="priority-badge normal" style="margin-right:4px;">${s.name}</span>`).join('')
                     : '<em>No students assigned to this module yet.</em>'}
                 </div>
-                <button class="coord-btn coord-btn-secondary btn-assign-module" data-module-id="${module.id}">Assign student to module</button>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                  <button class="coord-btn coord-btn-secondary btn-assign-module" data-module-id="${module.id}">Assign student to module</button>
+                  <button class="coord-btn coord-btn-secondary btn-add-task" data-module-id="${module.id}">Add task</button>
+                  <button class="coord-btn coord-btn-secondary btn-edit-module" data-module-id="${module.id}">Edit module</button>
+                </div>
               </div>
-            `).join('') : '<p class="coordinator-empty-copy">No modules have been created for this project yet.</p>'}
+            `).join('') : '<p class="coordinator-empty-copy">No modules have been created for this project yet. Click "Add Module" above to create one.</p>'}
           </div>
         </div>
 
@@ -303,7 +308,7 @@ export async function CoordinatorProjectDetail(route, router) {
 
     async function fetchEligibleStudents() {
       const token = getAuthToken();
-      const resp = await fetch('http://127.0.0.1:8000/api/coordinator/students/eligible', {
+      const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/students/eligible?project_id=${projectId}`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -315,7 +320,8 @@ export async function CoordinatorProjectDetail(route, router) {
       return Array.isArray(data?.data) ? data.data : [];
     }
 
-    // Assign student — dropdown populated from students not already assigned to ANY project (server-filtered)
+    // Assign student — dropdown populated from students not already assigned to THIS project
+    // (a student may already be on a different project — that's allowed)
     container.querySelector('#assign-student-btn')?.addEventListener('click', async () => {
       const html = `
         <div class="coordinator-modal-header">
@@ -404,6 +410,187 @@ export async function CoordinatorProjectDetail(route, router) {
 
     // Faculty assignment is handled by the Director module — Coordinator only views assigned faculty (above).
 
+    // Add module
+    container.querySelector('#add-module-btn')?.addEventListener('click', () => {
+      const html = `
+        <div class="coordinator-modal-header">
+          <h2>Add Module</h2>
+          <p>Create a new development module for this project.</p>
+          <button class="coordinator-close-btn">×</button>
+        </div>
+        <div class="coordinator-form-grid">
+          <div class="coordinator-form-group full-width"><label>Module Name *</label><input type="text" id="module-name" maxlength="150" /></div>
+          <div class="coordinator-form-group full-width"><label>Description</label><textarea id="module-desc"></textarea></div>
+          <div class="coordinator-form-group"><label>Weight Percentage</label><input type="number" id="module-weight" min="0" max="100" step="0.01" placeholder="0-100" /></div>
+          <div class="coordinator-form-group">
+            <label>Status</label>
+            <select id="module-status">
+              <option value="not_started">Not Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+        <div id="module-form-error" style="color:#b91c1c; margin: 0 1rem 0.5rem;"></div>
+        <div class="coordinator-modal-footer">
+          <button class="coordinator-secondary-btn coordinator-close-btn">Cancel</button>
+          <button class="coordinator-primary-btn" id="module-submit">Create Module</button>
+        </div>
+      `;
+
+      const overlay = openModal(html);
+      overlay.querySelector('#module-submit').addEventListener('click', async () => {
+        const errorEl = overlay.querySelector('#module-form-error');
+        const module_name = overlay.querySelector('#module-name').value.trim();
+        const description = overlay.querySelector('#module-desc').value.trim() || undefined;
+        const weightRaw = overlay.querySelector('#module-weight').value;
+        const weight_percentage = weightRaw === '' ? undefined : Number(weightRaw);
+        const status = overlay.querySelector('#module-status').value;
+
+        if (!module_name) { errorEl.textContent = 'Module name is required.'; return; }
+
+        try {
+          await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/modules`, { module_name, description, weight_percentage, status });
+          alert('Module created successfully');
+          overlay.remove();
+          window.location.reload();
+        } catch (err) {
+          errorEl.textContent = err.message || 'Failed to create module';
+        }
+      });
+    });
+
+    // Edit module
+    container.querySelectorAll('.btn-edit-module').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const moduleId = btn.dataset.moduleId;
+        const module = modules.find((m) => String(m.id) === String(moduleId));
+        if (!module) return;
+
+        const html = `
+          <div class="coordinator-modal-header">
+            <h2>Edit Module</h2>
+            <p>Update module details.</p>
+            <button class="coordinator-close-btn">×</button>
+          </div>
+          <div class="coordinator-form-grid">
+            <div class="coordinator-form-group full-width"><label>Module Name *</label><input type="text" id="edit-module-name" maxlength="150" value="${module.module_name || ''}" /></div>
+            <div class="coordinator-form-group full-width"><label>Description</label><textarea id="edit-module-desc">${module.description || ''}</textarea></div>
+            <div class="coordinator-form-group"><label>Weight Percentage</label><input type="number" id="edit-module-weight" min="0" max="100" step="0.01" value="${module.weight_percentage ?? ''}" /></div>
+            <div class="coordinator-form-group">
+              <label>Status</label>
+              <select id="edit-module-status">
+                <option value="not_started" ${module.status === 'not_started' ? 'selected' : ''}>Not Started</option>
+                <option value="in_progress" ${module.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                <option value="completed" ${module.status === 'completed' ? 'selected' : ''}>Completed</option>
+              </select>
+            </div>
+          </div>
+          <div id="edit-module-error" style="color:#b91c1c; margin: 0 1rem 0.5rem;"></div>
+          <div class="coordinator-modal-footer">
+            <button class="coordinator-secondary-btn coordinator-close-btn">Cancel</button>
+            <button class="coordinator-primary-btn" id="edit-module-submit">Save Changes</button>
+          </div>
+        `;
+
+        const overlay = openModal(html);
+        overlay.querySelector('#edit-module-submit').addEventListener('click', async () => {
+          const errorEl = overlay.querySelector('#edit-module-error');
+          const module_name = overlay.querySelector('#edit-module-name').value.trim();
+          const description = overlay.querySelector('#edit-module-desc').value.trim();
+          const weightRaw = overlay.querySelector('#edit-module-weight').value;
+          const weight_percentage = weightRaw === '' ? null : Number(weightRaw);
+          const status = overlay.querySelector('#edit-module-status').value;
+
+          if (!module_name) { errorEl.textContent = 'Module name is required.'; return; }
+
+          try {
+            const token = getAuthToken();
+            const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/modules/${moduleId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ module_name, description, weight_percentage, status }),
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) throw new Error(data.error || data.message || 'Failed to update module');
+            alert('Module updated successfully');
+            overlay.remove();
+            window.location.reload();
+          } catch (err) {
+            errorEl.textContent = err.message || 'Failed to update module';
+          }
+        });
+      });
+    });
+
+    // Add task to a module — assignee must already be on the project
+    container.querySelectorAll('.btn-add-task').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const moduleId = btn.dataset.moduleId;
+        const module = modules.find((m) => String(m.id) === String(moduleId));
+
+        const html = `
+          <div class="coordinator-modal-header">
+            <h2>Add Task to ${module?.module_name || 'Module'}</h2>
+            <p>Tasks can only be assigned to students already on this project.</p>
+            <button class="coordinator-close-btn">×</button>
+          </div>
+          <div class="coordinator-form-grid">
+            <div class="coordinator-form-group full-width"><label>Title *</label><input type="text" id="task-title" maxlength="255" /></div>
+            <div class="coordinator-form-group full-width"><label>Description</label><textarea id="task-desc"></textarea></div>
+            <div class="coordinator-form-group full-width">
+              <label>Assign to *</label>
+              <select id="task-assignee">
+                <option value="">${students.length ? 'Select a student' : 'No students assigned to this project yet'}</option>
+                ${students.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="coordinator-form-group"><label>Due date</label><input type="date" id="task-due" /></div>
+            <div class="coordinator-form-group">
+              <label>Status</label>
+              <select id="task-status">
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            </div>
+          </div>
+          <div id="task-form-error" style="color:#b91c1c; margin: 0 1rem 0.5rem;"></div>
+          <div class="coordinator-modal-footer">
+            <button class="coordinator-secondary-btn coordinator-close-btn">Cancel</button>
+            <button class="coordinator-primary-btn" id="task-submit">Create Task</button>
+          </div>
+        `;
+
+        const overlay = openModal(html);
+        overlay.querySelector('#task-submit').addEventListener('click', async () => {
+          const errorEl = overlay.querySelector('#task-form-error');
+          const title = overlay.querySelector('#task-title').value.trim();
+          const description = overlay.querySelector('#task-desc').value.trim() || undefined;
+          const assigned_to = Number(overlay.querySelector('#task-assignee').value || 0);
+          const due_date = overlay.querySelector('#task-due').value || undefined;
+          const status = overlay.querySelector('#task-status').value;
+
+          if (!title) { errorEl.textContent = 'Task title is required.'; return; }
+          if (!assigned_to) { errorEl.textContent = 'Please select a student to assign this task to.'; return; }
+
+          try {
+            await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/modules/${moduleId}/tasks`, { title, description, assigned_to, due_date, status });
+            alert('Task created successfully');
+            overlay.remove();
+            window.location.reload();
+          } catch (err) {
+            errorEl.textContent = err.message || 'Failed to create task';
+          }
+        });
+      });
+    });
+
     // Add requirement — task_id is a mandatory FK (client_requirements.task_id is NOT NULL),
     // so the coordinator must pick a real task belonging to one of this project's modules.
     container.querySelector('#add-requirement-btn')?.addEventListener('click', () => {
@@ -412,6 +599,13 @@ export async function CoordinatorProjectDetail(route, router) {
           `<option value="${task.id}">${module.module_name} — ${task.title}</option>`
         )
       ).join('');
+
+      let emptyTaskLabel = 'Select a task';
+      if (!taskOptions) {
+        emptyTaskLabel = modules.length
+          ? 'No tasks yet — click "Add task" on a module below, then try again.'
+          : 'No tasks available. Create a module and task first.';
+      }
 
       const html = `
         <div class="coordinator-modal-header">
@@ -424,7 +618,7 @@ export async function CoordinatorProjectDetail(route, router) {
           <div class="coordinator-form-group full-width">
             <label>Related task *</label>
             <select id="req-task">
-              <option value="">${taskOptions ? 'Select a task' : 'No tasks available — create a module/task first'}</option>
+              <option value="">${emptyTaskLabel}</option>
               ${taskOptions}
             </select>
           </div>

@@ -11,10 +11,14 @@ Route::group(['prefix' => 'coordinator', 'middleware' => ['auth.jwt']], function
     Route::get('/students/eligible', [CoordinatorController::class, 'eligibleStudents']);
     Route::post('/projects/{project}/students', [CoordinatorController::class, 'assignStudent']);
     Route::delete('/projects/{project}/students/{studentId}', [CoordinatorController::class, 'removeStudent']);
+    Route::post('/projects/{project}/modules', [CoordinatorController::class, 'storeModule']);
+    Route::put('/projects/{project}/modules/{module}', [CoordinatorController::class, 'updateModule']);
     Route::post('/projects/{project}/modules/{module}/students', [CoordinatorController::class, 'assignStudentToModule']);
+    Route::post('/projects/{project}/modules/{module}/tasks', [CoordinatorController::class, 'storeTask']);
 
-    Route::post('/projects/{project}/faculty', [CoordinatorController::class, 'assignFaculty']);
-    Route::delete('/projects/{project}/faculty/{facultyId}', [CoordinatorController::class, 'removeFaculty']);
+    // Faculty assignment is a Director responsibility (see Modules\Dashboard) — the
+    // Coordinator module intentionally has no faculty assignment/removal endpoint.
+    // Read-only faculty listing (GET /faculty) remains, for display purposes only.
 
     Route::get('/projects/{project}/requirements', [CoordinatorController::class, 'requirements']);
     Route::post('/projects/{project}/requirements', [CoordinatorController::class, 'storeRequirement']);

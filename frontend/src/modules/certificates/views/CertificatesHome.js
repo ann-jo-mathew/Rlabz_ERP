@@ -596,6 +596,7 @@ export function CertificatesHome(route, router) {
             <div style="margin-bottom:0.5rem;">
               <label><strong>Module</strong></label>
               <select id="certificate-module"><option value="">Select project first</option></select>
+              <small id="certificate-module-hint" style="display:block;color:#6b7280;margin-top:0.25rem;">Only modules marked "Completed" can be selected for certificate issuance.</small>
             </div>
 
             <div style="margin-bottom:0.5rem;">
@@ -669,9 +670,13 @@ export function CertificatesHome(route, router) {
           Authorization: `Bearer ${token}`
         }
       });
-      if (!resp.ok) return { data: [], module_status: null };
+      if (!resp.ok) return { data: [], module_status: null, message: 'Unable to load eligible students.' };
       const body = await resp.json().catch(() => ({}));
-      return { data: Array.isArray(body?.data) ? body.data : [], module_status: body?.module_status };
+      return {
+        data: Array.isArray(body?.data) ? body.data : [],
+        module_status: body?.module_status,
+        message: body?.message || null,
+      };
     }
 
     async function postCertificate(payload) {
@@ -701,9 +706,12 @@ export function CertificatesHome(route, router) {
       const projectSelect = modalRoot.querySelector('#certificate-project');
       const moduleSelect = modalRoot.querySelector('#certificate-module');
       const studentSelect = modalRoot.querySelector('#certificate-student');
-      projectSelect.innerHTML = `<option value="">Select a project</option>`;
+      // Keep the initial "Loading projects..." placeholder (set in the modal's HTML) until
+      // the fetch actually resolves — do not overwrite it with "Select a project" first,
+      // or the dropdown looks empty/broken while the (occasionally slow) request is in flight.
       try {
         const projects = await fetchProjects();
+        projectSelect.innerHTML = `<option value="">Select a project</option>`;
         projects.forEach(p => {
           const opt = document.createElement('option');
           opt.value = p.id;
@@ -727,7 +735,7 @@ export function CertificatesHome(route, router) {
           const project = await fetchProjectDetail(pid);
           const modules = Array.isArray(project?.modules) ? project.modules : [];
           if (!modules.length) {
-            moduleSelect.innerHTML = `<option value="">No modules found for this project</option>`;
+            moduleSelect.innerHTML = `<option value="">No modules found for this project. Create a module first.</option>`;
             return;
           }
           moduleSelect.innerHTML = `<option value="">Select a module</option>`;
@@ -752,9 +760,9 @@ export function CertificatesHome(route, router) {
           return;
         }
         try {
-          const { data: eligible } = await fetchModuleEligibleStudents(moduleId);
+          const { data: eligible, message } = await fetchModuleEligibleStudents(moduleId);
           if (!eligible.length) {
-            studentSelect.innerHTML = `<option value="">No students assigned to this module</option>`;
+            studentSelect.innerHTML = `<option value="">${message || 'No eligible students for this module'}</option>`;
             return;
           }
           studentSelect.innerHTML = `<option value="">Select a student</option>`;

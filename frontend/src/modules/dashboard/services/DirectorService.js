@@ -214,6 +214,8 @@ export class DirectorService {
     return this.getFinanceSummary();
   }
 
+  // proposalId here MUST be the real numeric database id (proposal.raw_id from the
+  // API response), not the display-formatted "PROP-014" string.
   static async updateProposalStatusAsync(proposalId, status, notes = '', facultyId = null) {
     try {
       const headers = await getAuthHeadersAsync();
@@ -222,14 +224,43 @@ export class DirectorService {
         headers,
         body: JSON.stringify({ status, notes, faculty_id: facultyId })
       });
-      if (response.ok) {
-        this.updateProposalStatus(proposalId, status, notes, facultyId);
-        return true;
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error || body.message || 'Failed to update proposal status');
       }
+      // Re-sync from the real database rather than fabricating a local project/proposal
+      // object — MySQL is the source of truth, never a locally-invented one.
+      // Sequential, not Promise.all: each fetch does its own loadState()/saveState()
+      // read-modify-write cycle against the same shared localStorage blob, so running
+      // them concurrently lets whichever finishes last silently discard the other's write.
+      await this.fetchProposalsRemote();
+      await this.fetchProjectsRemote();
+      return true;
     } catch (e) {
-      console.warn('API update proposal status failed, using local fallback:', e);
+      console.error('Failed to update proposal status:', e);
+      throw e;
     }
-    return this.updateProposalStatus(proposalId, status, notes, facultyId);
+  }
+
+  // projectId here MUST be the real numeric database id (project.raw_id from the API
+  // response), not the display-formatted "PROJ-014" string.
+  static async startProjectAsync(projectId) {
+    try {
+      const headers = await getAuthHeadersAsync();
+      const response = await fetch(`${API_BASE}/projects/${projectId}/start`, {
+        method: 'POST',
+        headers,
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error || body.message || 'Failed to start project');
+      }
+      await this.fetchProjectsRemote();
+      return true;
+    } catch (e) {
+      console.error('Failed to start project:', e);
+      throw e;
+    }
   }
 
   static async getOverviewAsync(forceFresh = false) {
@@ -341,6 +372,8 @@ export class DirectorService {
     return null;
   }
 
+  // projectId here MUST be the real numeric database id (project.raw_id from the API
+  // response), not the display-formatted "PROJ-014" string.
   static async assignFacultyAsync(projectId, facultyId) {
     try {
       const headers = await getAuthHeadersAsync();
@@ -349,14 +382,19 @@ export class DirectorService {
         headers,
         body: JSON.stringify({ faculty_id: facultyId })
       });
-      if (response.ok) {
-        this.assignFaculty(projectId, facultyId);
-        return true;
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error || body.message || 'Failed to assign faculty');
       }
+      // Re-sync from the real database instead of hand-mutating a local cached object.
+      // Sequential — see the comment in updateProposalStatusAsync above.
+      await this.fetchProjectsRemote();
+      await this.fetchFacultiesRemote();
+      return true;
     } catch (e) {
-      console.warn('API assign faculty failed, using local fallback:', e);
+      console.error('Failed to assign faculty:', e);
+      throw e;
     }
-    return this.assignFaculty(projectId, facultyId);
   }
 
   static async getAuditLogsAsync() {
@@ -535,77 +573,4 @@ export class DirectorService {
     return loadState().auditLogs;
   }
 
-  static updateProposalStatus(proposalId, action, reason = '', facultyId = null) {
-    const data = loadState();
-    const proposalIndex = data.proposals.findIndex(p => p.id === proposalId);
-    if (proposalIndex === -1) return false;
-
-    const proposal = data.proposals[proposalIndex];
-    proposal.status = action; // 'accepted' or 'rejected'
-    proposal.reviewNotes = reason;
-
-    if (action === 'accepted') {
-      const selectedFaculty = data.faculties.find(f => f.id === facultyId) || data.faculties[0];
-      const newProject = {
-        id: `PROJ-${Math.floor(100 + Math.random() * 900)}`,
-        title: proposal.title,
-        type: proposal.type,
-        source: proposal.source,
-        sourceName: proposal.sourceName,
-        clientName: proposal.clientName,
-        clientContact: proposal.contactEmail,
-        status: 'in_progress',
-        priority: proposal.priority,
-        progress: 0,
-        timeline: proposal.expectedTimeline,
-        budget: proposal.estimatedBudget,
-        spent: 0,
-        facultyId: selectedFaculty.id,
-        facultyName: selectedFaculty.name,
-        assignedStudents: [],
-        deliverables: proposal.deliverables,
-        requirementDocs: ['approved_proposal_spec.pdf']
-      };
-      data.projects.unshift(newProject);
-    }
-
-    // Add Audit Log
-    data.auditLogs.unshift({
-      id: `LOG-${Date.now().toString().slice(-4)}`,
-      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-      user: 'Director (Admin)',
-      role: 'Director',
-      event: `Proposal ${action.toUpperCase()}`,
-      details: `${action === 'accepted' ? 'Accepted' : 'Rejected'} proposal "${proposal.title}". ${reason ? 'Note: ' + reason : ''}`,
-      type: action === 'accepted' ? 'success' : 'warning'
-    });
-
-    saveState(data);
-    return true;
-  }
-
-  static assignFaculty(projectId, facultyId) {
-    const data = loadState();
-    const project = data.projects.find(p => p.id === projectId);
-    const faculty = data.faculties.find(f => f.id === facultyId);
-
-    if (project && faculty) {
-      project.facultyId = faculty.id;
-      project.facultyName = faculty.name;
-
-      data.auditLogs.unshift({
-        id: `LOG-${Date.now().toString().slice(-4)}`,
-        timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-        user: 'Director (Admin)',
-        role: 'Director',
-        event: 'Faculty Assigned',
-        details: `Assigned ${faculty.name} as Lead Faculty for "${project.title}"`,
-        type: 'info'
-      });
-
-      saveState(data);
-      return true;
-    }
-    return false;
-  }
 }

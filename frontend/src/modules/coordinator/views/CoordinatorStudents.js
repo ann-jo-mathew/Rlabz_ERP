@@ -25,40 +25,6 @@ async function fetchStudents() {
   return Array.isArray(body?.data) ? body.data : (Array.isArray(body) ? body : []);
 }
 
-async function fetchProjects() {
-  const token = getAuthToken();
-  if (!token) return [];
-
-  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/projects', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!resp.ok) return [];
-  const body = await resp.json().catch(() => ({}));
-  return Array.isArray(body?.data) ? body.data : (Array.isArray(body) ? body : []);
-}
-
-async function fetchEligibleStudents() {
-  const token = getAuthToken();
-  if (!token) return [];
-
-  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/students/eligible', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!resp.ok) return [];
-  const body = await resp.json().catch(() => ({}));
-  return Array.isArray(body?.data) ? body.data : [];
-}
-
 export async function CoordinatorStudents(route, router) {
   const container = document.createElement('div');
   container.className = 'coordinator-dashboard';
@@ -72,44 +38,106 @@ export async function CoordinatorStudents(route, router) {
     students = [];
   }
 
+  const ROLE_LABELS = {
+    project_lead: 'Project Lead',
+    developer: 'Developer',
+    designer: 'Designer',
+    tester: 'Tester',
+    other: 'Other',
+  };
+
+  function roleKey(designation) {
+    const label = String(designation || '').toLowerCase().replace(/\s+/g, '_');
+    return Object.keys(ROLE_LABELS).includes(label) ? label : 'other';
+  }
+
+  function assignmentsOf(student) {
+    return Array.isArray(student.assignments) ? student.assignments : [];
+  }
+
+  function getUniqueProjects(data) {
+    const map = new Map();
+    data.forEach((s) => {
+      assignmentsOf(s).forEach((a) => {
+        if (a.project_id && !map.has(a.project_id)) map.set(a.project_id, a.project_title);
+      });
+    });
+    return Array.from(map.entries()).map(([id, title]) => ({ id, title }));
+  }
+
+  // A student may belong to multiple projects at once — render one row per student
+  // (never duplicate rows), listing every assignment within that row's cells.
   function renderTableRows(data) {
     if (!data.length) {
-      return `<tr><td colspan="6" style="text-align:center; padding:2rem;">No students found.</td></tr>`;
+      return `<tr><td colspan="7" style="text-align:center; padding:2rem;">No students found.</td></tr>`;
     }
-    return data.map(student => `
-      <tr data-designation="${student.designation}">
+    return data.map(student => {
+      const assignments = assignmentsOf(student);
+      const roleAttr = assignments.map(a => roleKey(a.designation)).join(' ');
+      const projectIdAttr = assignments.map(a => a.project_id).join(' ');
+
+      const designationCell = assignments.length
+        ? assignments.map(a => `<span class="student-track ${roleKey(a.designation)}">${ROLE_LABELS[roleKey(a.designation)] || a.designation}</span>`).join('<br>')
+        : '—';
+      const projectCell = assignments.length
+        ? assignments.map(a => a.project_title).join('<br>')
+        : 'Unassigned';
+      const dateCell = assignments.length
+        ? assignments.map(a => a.assigned_date || '—').join('<br>')
+        : '—';
+
+      return `
+      <tr data-roles="${roleAttr}" data-project-ids="${projectIdAttr}">
         <td><strong>${student.name}</strong></td>
-        <td>${student.id}</td>
-        <td>${student.course}</td>
+        <td>${student.email}</td>
+        <td>${student.phone || '—'}</td>
+        <td>${designationCell}</td>
+        <td>${projectCell}</td>
+        <td>${dateCell}</td>
         <td>
-          <span class="student-track ${String(student.designation || '').toLowerCase()}">
-            ${student.designation}
-          </span>
-        </td>
-        <td>${student.project}</td>
-        <td>
-          <span class="project-status ${String(student.status || 'active').toLowerCase()}">
+          <span class="project-status ${String(student.status || 'unassigned').toLowerCase()}">
             ${student.status}
           </span>
         </td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
+  }
+
+  function sortStudents(data, sortBy) {
+    const copy = [...data];
+    copy.sort((a, b) => {
+      if (sortBy === 'email') return String(a.email).localeCompare(String(b.email));
+      if (sortBy === 'status') return String(a.status).localeCompare(String(b.status));
+      if (sortBy === 'project') {
+        const pa = assignmentsOf(a)[0]?.project_title || '';
+        const pb = assignmentsOf(b)[0]?.project_title || '';
+        return pa.localeCompare(pb) || a.name.localeCompare(b.name);
+      }
+      if (sortBy === 'designation') {
+        const da = assignmentsOf(a)[0]?.designation || '';
+        const db = assignmentsOf(b)[0]?.designation || '';
+        return da.localeCompare(db) || a.name.localeCompare(b.name);
+      }
+      return a.name.localeCompare(b.name);
+    });
+    return copy;
   }
 
   function render() {
-    const novaCount = students.filter(s => String(s.designation).toLowerCase() === 'nova').length;
-    const orbitCount = students.filter(s => String(s.designation).toLowerCase() === 'orbit').length;
-    const sparkCount = students.filter(s => String(s.designation).toLowerCase() === 'spark').length;
+    const unassignedCount = students.filter(s => s.status === 'Unassigned').length;
+    const assignedCount = students.length - unassignedCount;
+    const projects = getUniqueProjects(students);
 
     container.innerHTML = `
       <div class="coordinator-header">
         <div>
           <h1>Students</h1>
-          <p>Manage students, project assignments and RLabZ designations.</p>
+          <p>Manage student accounts and view project assignments.</p>
         </div>
 
         <button class="coordinator-primary-btn" id="add-student-btn">
-          + Assign Student
+          + Add Student
         </button>
       </div>
 
@@ -122,21 +150,15 @@ export async function CoordinatorStudents(route, router) {
         </div>
 
         <div class="coordinator-kpi-card">
-          <span>Nova</span>
-          <strong id="kpi-nova">${novaCount}</strong>
-          <small>Lead Developer Track</small>
+          <span>Assigned</span>
+          <strong id="kpi-assigned">${assignedCount}</strong>
+          <small>Currently on a project</small>
         </div>
 
         <div class="coordinator-kpi-card">
-          <span>Orbit</span>
-          <strong id="kpi-orbit">${orbitCount}</strong>
-          <small>Developer Track</small>
-        </div>
-
-        <div class="coordinator-kpi-card">
-          <span>Spark</span>
-          <strong id="kpi-spark">${sparkCount}</strong>
-          <small>Learner Intern Track</small>
+          <span>Unassigned</span>
+          <strong id="kpi-unassigned">${unassignedCount}</strong>
+          <small>Not yet on a project</small>
         </div>
       </div>
 
@@ -148,12 +170,30 @@ export async function CoordinatorStudents(route, router) {
             <p>View students and their current project assignments.</p>
           </div>
 
-          <select id="designation-filter">
-            <option value="all">All Designations</option>
-            <option value="Nova">Nova</option>
-            <option value="Orbit">Orbit</option>
-            <option value="Spark">Spark</option>
-          </select>
+          <div style="display:flex; gap:0.5rem;">
+            <select id="designation-filter">
+              <option value="all">All</option>
+              <option value="unassigned">Unassigned</option>
+              <option value="project_lead">Project Lead</option>
+              <option value="developer">Developer</option>
+              <option value="designer">Designer</option>
+              <option value="tester">Tester</option>
+              <option value="other">Other</option>
+            </select>
+
+            <select id="project-filter">
+              <option value="all">All Projects</option>
+              ${projects.map(p => `<option value="${p.id}">${p.title}</option>`).join('')}
+            </select>
+
+            <select id="sort-by">
+              <option value="name">Sort: Name</option>
+              <option value="email">Sort: Email</option>
+              <option value="project">Sort: Project</option>
+              <option value="designation">Sort: Designation</option>
+              <option value="status">Sort: Status</option>
+            </select>
+          </div>
         </div>
 
         <div class="coordinator-table-wrapper">
@@ -161,10 +201,11 @@ export async function CoordinatorStudents(route, router) {
             <thead>
               <tr>
                 <th>Student</th>
-                <th>ID</th>
-                <th>Course</th>
+                <th>Email</th>
+                <th>Phone</th>
                 <th>Designation</th>
-                <th>Current Project</th>
+                <th>Project</th>
+                <th>Assigned Date</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -178,40 +219,51 @@ export async function CoordinatorStudents(route, router) {
       <div id="student-modal-root"></div>
     `;
 
-    container.querySelector('#designation-filter')?.addEventListener('change', filterStudents);
+    container.querySelector('#designation-filter')?.addEventListener('change', applyFiltersAndSort);
+    container.querySelector('#project-filter')?.addEventListener('change', applyFiltersAndSort);
+    container.querySelector('#sort-by')?.addEventListener('change', applyFiltersAndSort);
     container.querySelector('#add-student-btn')?.addEventListener('click', showAddStudentModal);
   }
 
-  function filterStudents(event) {
-    const selected = event.target.value;
+  function applyFiltersAndSort() {
+    const roleFilter = container.querySelector('#designation-filter')?.value || 'all';
+    const projectFilter = container.querySelector('#project-filter')?.value || 'all';
+    const sortBy = container.querySelector('#sort-by')?.value || 'name';
+
+    const tbody = container.querySelector('#students-table-body');
+    if (tbody) tbody.innerHTML = renderTableRows(sortStudents(students, sortBy));
+
     container.querySelectorAll('#students-table-body tr').forEach(row => {
-      if (selected === 'all' || row.dataset.designation?.toLowerCase() === selected.toLowerCase()) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
+      if (row.dataset.roles === undefined) return; // empty-state row has no dataset.roles
+
+      const roles = row.dataset.roles ? row.dataset.roles.split(' ') : [];
+      const projectIds = row.dataset.projectIds ? row.dataset.projectIds.split(' ') : [];
+
+      let show = true;
+      if (roleFilter === 'unassigned') {
+        show = roles.length === 0;
+      } else if (roleFilter !== 'all') {
+        show = roles.includes(roleFilter);
       }
+
+      if (show && projectFilter !== 'all') {
+        show = projectIds.includes(projectFilter);
+      }
+
+      row.style.display = show ? '' : 'none';
     });
   }
 
   async function showAddStudentModal() {
     const modalRoot = container.querySelector('#student-modal-root');
-    const [projects, eligibleStudents] = await Promise.all([fetchProjects(), fetchEligibleStudents()]);
-
-    const projectOptionsHtml = projects.length
-      ? projects.map(p => `<option value="${p.id}">${p.title}</option>`).join('')
-      : '<option value="">No projects available</option>';
-
-    const studentOptionsHtml = eligibleStudents.length
-      ? eligibleStudents.map(s => `<option value="${s.id}">${s.name}${s.email ? ` (${s.email})` : ''}</option>`).join('')
-      : '<option value="">No unassigned students available</option>';
 
     modalRoot.innerHTML = `
       <div class="coordinator-modal-overlay">
         <div class="coordinator-modal">
           <div class="coordinator-modal-header">
             <div>
-              <h2>Assign Student</h2>
-              <p>Assign an existing, unassigned student to a project.</p>
+              <h2>Add Student</h2>
+              <p>Create a new student account.</p>
             </div>
             <button id="close-student-modal" class="coordinator-close-btn">×</button>
           </div>
@@ -219,41 +271,36 @@ export async function CoordinatorStudents(route, router) {
           <form id="new-student-form">
             <div class="coordinator-form-grid">
               <div class="coordinator-form-group full-width">
-                <label>Student *</label>
-                <select name="student_id" required>
-                  <option value="">Select a student</option>
-                  ${studentOptionsHtml}
-                </select>
+                <label>Name *</label>
+                <input type="text" name="name" placeholder="Enter student name" required>
               </div>
 
               <div class="coordinator-form-group full-width">
-                <label>Project *</label>
-                <select name="project_id" required>
-                  <option value="">Select a project</option>
-                  ${projectOptionsHtml}
-                </select>
+                <label>Email *</label>
+                <input type="email" name="email" placeholder="name@rajagiri.edu" required>
               </div>
 
               <div class="coordinator-form-group">
-                <label>Role *</label>
-                <select name="role" required>
-                  <option value="project_lead">Project Lead</option>
-                  <option value="developer">Developer</option>
-                  <option value="designer">Designer</option>
-                  <option value="tester">Tester</option>
-                  <option value="other">Other</option>
-                </select>
+                <label>Password *</label>
+                <input type="password" name="password" placeholder="Minimum 6 characters" minlength="6" required>
               </div>
 
               <div class="coordinator-form-group">
-                <label>Assigned Date</label>
-                <input type="date" name="assigned_date">
+                <label>Phone</label>
+                <input type="text" name="phone" placeholder="Optional">
+              </div>
+
+              <div class="coordinator-form-group">
+                <label>Role</label>
+                <input type="text" value="Student" disabled>
               </div>
             </div>
 
+            <div id="student-form-error" style="color:#b91c1c; margin: 0 1rem 0.5rem;"></div>
+
             <div class="coordinator-modal-footer">
               <button type="button" id="cancel-student" class="coordinator-secondary-btn">Cancel</button>
-              <button type="submit" class="coordinator-primary-btn">Assign Student</button>
+              <button type="submit" class="coordinator-primary-btn">Add Student</button>
             </div>
           </form>
         </div>
@@ -265,21 +312,22 @@ export async function CoordinatorStudents(route, router) {
 
     modalRoot.querySelector('#new-student-form')?.addEventListener('submit', async (event) => {
       event.preventDefault();
+      const errorEl = modalRoot.querySelector('#student-form-error');
+      errorEl.textContent = '';
+
       const form = event.target;
       const formData = new FormData(form);
       const payload = Object.fromEntries(formData.entries());
-      const projectId = payload.project_id;
-      delete payload.project_id;
-      if (!payload.assigned_date) delete payload.assigned_date;
+      if (!payload.phone) delete payload.phone;
 
       const token = getAuthToken();
       if (!token) {
-        alert('Authentication required. Please log in.');
+        errorEl.textContent = 'Authentication required. Please log in.';
         return;
       }
 
       try {
-        const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/students`, {
+        const resp = await fetch('http://127.0.0.1:8000/api/coordinator/students', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -291,26 +339,22 @@ export async function CoordinatorStudents(route, router) {
 
         const body = await resp.json().catch(() => ({}));
         if (!resp.ok) {
-          throw new Error(body.error || body.message || 'Failed to assign student');
+          const message = body.errors
+            ? Object.values(body.errors).flat().join(', ')
+            : (body.error || body.message || 'Failed to add student');
+          throw new Error(message);
         }
 
-        alert('Student assigned successfully!');
+        alert('Student added successfully!');
         closeModal();
 
-        // Refresh list from backend
+        // Refresh full view from backend (also refreshes the project filter dropdown)
         students = await fetchStudents();
-        const tbody = container.querySelector('#students-table-body');
-        if (tbody) tbody.innerHTML = renderTableRows(students);
-
-        // Update KPI stats
-        container.querySelector('#kpi-total').textContent = students.length;
-        container.querySelector('#kpi-nova').textContent = students.filter(s => String(s.designation).toLowerCase() === 'nova').length;
-        container.querySelector('#kpi-orbit').textContent = students.filter(s => String(s.designation).toLowerCase() === 'orbit').length;
-        container.querySelector('#kpi-spark').textContent = students.filter(s => String(s.designation).toLowerCase() === 'spark').length;
+        render();
 
       } catch (err) {
         console.error(err);
-        alert(`Error: ${err.message}`);
+        errorEl.textContent = err.message;
       }
     });
   }

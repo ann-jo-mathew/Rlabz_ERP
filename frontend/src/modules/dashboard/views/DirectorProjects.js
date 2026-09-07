@@ -12,12 +12,17 @@ export function DirectorProjects(route, router) {
   let currentTab = 'proposals'; // 'proposals', 'active', 'all'
   let selectedProposal = null;
 
-  function render(faculties = DirectorService.getFaculties()) {
-    const proposals = DirectorService.getProposals() || [];
-    const projects = DirectorService.getProjects() || [];
-
-    const pendingProposals = proposals.filter(p => p.status === 'pending');
-    const activeProjects = projects.filter(p => p.status === 'in_progress');
+  // proposals/projects can be passed in directly (fresh from a just-completed API fetch)
+  // to avoid re-reading DirectorService's shared localStorage cache, which is written by
+  // three independent, concurrently-running fetches (see loadAllData below) and can briefly
+  // reflect a stale snapshot for whichever of the three loses that race.
+  function render(faculties = DirectorService.getFaculties(), proposals = DirectorService.getProposals() || [], projects = DirectorService.getProjects() || []) {
+    // The real database status is 'proposed', never the literal string 'pending' —
+    // 'pending' only ever appeared as a query-filter fallback value, not real data.
+    const pendingProposals = proposals.filter(p => p.status === 'proposed' || p.status === 'pending');
+    // Include 'accepted' alongside 'in_progress' — an accepted proposal is now its own
+    // workflow step (not yet started) rather than jumping straight to in_progress.
+    const activeProjects = projects.filter(p => p.status === 'in_progress' || p.status === 'accepted');
 
     container.innerHTML = `
       <div class="director-header">
@@ -132,11 +137,12 @@ export function DirectorProjects(route, router) {
               <tr>
                 <th>Project ID & Title</th>
                 <th>Client</th>
+                <th>Status</th>
                 <th>Faculty Lead</th>
                 <th>Assigned Students</th>
                 <th>Progress</th>
                 <th>Budget / Spent</th>
-                <th>Faculty Assignment</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -147,9 +153,14 @@ export function DirectorProjects(route, router) {
                     <small style="color:#6b7280">${p.id} • ${p.type || 'Web'}</small>
                   </td>
                   <td>${p.clientName || 'N/A'}</td>
+                  <td>
+                    <span class="status-badge ${p.status === 'accepted' ? 'accepted' : 'in_progress'}">
+                      ${p.status === 'accepted' ? 'Accepted' : 'In Progress'}
+                    </span>
+                  </td>
                   <td><strong>${p.facultyName || 'Unassigned'}</strong></td>
                   <td>
-                    ${(!p.assignedStudents || p.assignedStudents.length === 0) ? '<small style="color:#9ca3af">None</small>' : 
+                    ${(!p.assignedStudents || p.assignedStudents.length === 0) ? '<small style="color:#9ca3af">None</small>' :
                       p.assignedStudents.map(s => `<span class="track-badge ${(s.track || 'nova').toLowerCase()}" style="margin:2px;">${s.name} (${s.track || 'Nova'})</span>`).join('')}
                   </td>
                   <td>
@@ -161,7 +172,12 @@ export function DirectorProjects(route, router) {
                   <td>
                     ₹${formatMoney(p.spent)} / ₹${formatMoney(p.budget)}
                   </td>
-                  <td>
+                  <td style="display:flex; flex-direction:column; gap:0.35rem;">
+                    ${p.status === 'accepted' ? `
+                      <button class="btn-director btn-director-success btn-start-project" data-id="${p.id}">
+                        Start Project
+                      </button>
+                    ` : ''}
                     <button class="btn-director btn-director-outline btn-assign-faculty" data-id="${p.id}">
                       Reassign Faculty
                     </button>
@@ -221,6 +237,22 @@ export function DirectorProjects(route, router) {
       });
     });
 
+    // Start Project (accepted -> in_progress)
+    container.querySelectorAll('.btn-start-project').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.target.getAttribute('data-id');
+        const project = DirectorService.getProjects().find(p => p.id === id);
+        if (!project) return;
+        if (!confirm(`Start "${project.title}"? This will move it from Accepted to In Progress.`)) return;
+        try {
+          await DirectorService.startProjectAsync(project.raw_id);
+          await render();
+        } catch (err) {
+          alert(err.message || 'Failed to start project');
+        }
+      });
+    });
+
     // Open Assign Faculty Modal
     container.querySelectorAll('.btn-assign-faculty').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -231,7 +263,6 @@ export function DirectorProjects(route, router) {
     });
   }
 
-  function showProposalModal(proposal, faculties) {
   function showFacultyProjectsPopup(parentHost, faculty) {
     const projectsList = faculty.activeProjects || [];
     const popupOverlay = document.createElement('div');
@@ -340,16 +371,24 @@ export function DirectorProjects(route, router) {
       const selectedRadio = modalHost.querySelector('input[name="proposal_faculty_choice"]:checked');
       const facId = selectedRadio ? selectedRadio.value : (faculties[0] ? faculties[0].id : null);
       const notes = modalHost.querySelector('#modal-review-notes').value;
-      await DirectorService.updateProposalStatusAsync(proposal.id, 'accepted', notes, facId);
-      modalHost.innerHTML = '';
-      await render();
+      try {
+        await DirectorService.updateProposalStatusAsync(proposal.raw_id, 'accepted', notes, facId);
+        modalHost.innerHTML = '';
+        await render();
+      } catch (err) {
+        alert(err.message || 'Failed to accept proposal');
+      }
     });
 
     modalHost.querySelector('.btn-reject-prop').addEventListener('click', async () => {
       const notes = modalHost.querySelector('#modal-review-notes').value;
-      await DirectorService.updateProposalStatusAsync(proposal.id, 'rejected', notes);
-      modalHost.innerHTML = '';
-      await render();
+      try {
+        await DirectorService.updateProposalStatusAsync(proposal.raw_id, 'rejected', notes);
+        modalHost.innerHTML = '';
+        await render();
+      } catch (err) {
+        alert(err.message || 'Failed to reject proposal');
+      }
     });
   }
 
@@ -411,19 +450,26 @@ export function DirectorProjects(route, router) {
     modalHost.querySelector('.btn-save-faculty').addEventListener('click', async () => {
       const selectedRadio = modalHost.querySelector('input[name="project_faculty_choice"]:checked');
       const facId = selectedRadio ? selectedRadio.value : (faculties[0] ? faculties[0].id : null);
-      await DirectorService.assignFacultyAsync(project.id, facId);
-      modalHost.innerHTML = '';
-      await render();
+      try {
+        await DirectorService.assignFacultyAsync(project.raw_id, facId);
+        modalHost.innerHTML = '';
+        await render();
+      } catch (err) {
+        alert(err.message || 'Failed to assign faculty');
+      }
     });
   }
 
   const loadAllData = async () => {
-    const [projects, proposals, faculties] = await Promise.all([
-      DirectorService.getProjectsAsync(),
-      DirectorService.getProposalsAsync(),
-      DirectorService.getFacultiesAsync()
-    ]);
-    render(faculties || []);
+    // Sequential, not Promise.all: DirectorService caches each of these in the same
+    // shared localStorage blob via an independent load/modify/save cycle, so running
+    // them concurrently would let whichever finishes last discard the others' writes.
+    // Click handlers below (Reassign Faculty, Start Project) read that cache directly
+    // at click time, so it must end up fully consistent, not just this render() call.
+    const projects = await DirectorService.getProjectsAsync();
+    const proposals = await DirectorService.getProposalsAsync();
+    const faculties = await DirectorService.getFacultiesAsync();
+    render(faculties || [], proposals || [], projects || []);
   };
 
   render();
