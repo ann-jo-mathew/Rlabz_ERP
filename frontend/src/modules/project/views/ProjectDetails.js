@@ -200,10 +200,12 @@ export async function ProjectDetails(route, router) {
             ` : ''}
           </div>
           
-          <div style="padding: 1.5rem; border: 1px dashed var(--border-color); border-radius: 8px; text-align: center; background: var(--bg-surface); margin-bottom: 2rem;">
-            <i class="fa fa-github" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-            <h4 style="margin-bottom: 0.5rem;">No Repository Linked</h4>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Connect a GitHub repository to track commits, pull requests, and code progress directly from the ERP.</p>
+          <div id="github-repo-details">
+            <div style="padding: 1.5rem; border: 1px dashed var(--border-color); border-radius: 8px; text-align: center; background: var(--bg-surface); margin-bottom: 2rem;">
+              <i class="fa fa-github" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+              <h4 style="margin-bottom: 0.5rem;">No Repository Linked</h4>
+              <p style="color: var(--text-muted); font-size: 0.95rem;">Connect a GitHub repository to track commits, pull requests, and code progress directly from the ERP.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -657,6 +659,111 @@ export async function ProjectDetails(route, router) {
   container.querySelector('[data-tab="finance"]').addEventListener('click', () => {
     loadFinance();
   });
+
+  // GitHub Logic
+  const loadGithub = async () => {
+    const detailsContainer = container.querySelector('#github-repo-details');
+    if (!detailsContainer) return;
+
+    detailsContainer.innerHTML = '<div class="spinner" style="border-top-color: var(--primary); margin: 20px auto; display: block; width: 24px; height: 24px;"></div>';
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://127.0.0.1:8000/api/faculty/projects/${projectId}/report`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await response.json();
+
+      if (data && data.repositories && data.repositories.length > 0) {
+        detailsContainer.innerHTML = data.repositories.map(repo => `
+          <div style="padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+              <div>
+                <h4 style="margin: 0 0 0.35rem 0; font-size: 1.15rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa fa-github" style="font-size: 1.25rem;"></i>
+                  ${repo.repository_name || 'Repository'}
+                </h4>
+                <div style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  <strong style="color: var(--text-main);">Repository URL:</strong>
+                  <a href="${repo.repository_url}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline; word-break: break-all; margin-left: 0.25rem;">
+                    ${repo.repository_url}
+                  </a>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span class="status-badge ${repo.is_verified ? 'completed' : 'pending'}" style="font-size: 0.8rem; padding: 0.25rem 0.6rem;">
+                  ${repo.is_verified ? 'Verified' : 'Pending Verification'}
+                </span>
+                ${(!repo.is_verified && (role === 'faculty' || role === 'director' || role === 'coordinator')) ? `
+                  <button class="btn btn-sm btn-primary btn-verify-github-repo" data-repo-id="${repo.id}" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+                    <i class="fa fa-check-circle"></i> Verify
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            ${repo.submitted_date ? `
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
+                Submitted Date: ${repo.submitted_date}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+
+        // Bind Verify button click
+        detailsContainer.querySelectorAll('.btn-verify-github-repo').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const repoId = e.currentTarget.getAttribute('data-repo-id');
+            if (!repoId) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Verifying...';
+
+            try {
+              const token = localStorage.getItem('token');
+              const res = await fetch(`http://127.0.0.1:8000/api/faculty/github-repositories/${repoId}/verify`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': 'Bearer ' + token,
+                  'Content-Type': 'application/json'
+                }
+              });
+              const resData = await res.json();
+              if (res.ok && resData.success) {
+                await loadGithub();
+              } else {
+                alert(resData.error || 'Failed to verify repository.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-check-circle"></i> Verify';
+              }
+            } catch (err) {
+              console.error(err);
+              alert('Error verifying repository.');
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fa fa-check-circle"></i> Verify';
+            }
+          });
+        });
+      } else {
+        detailsContainer.innerHTML = `
+          <div style="padding: 2rem; border: 1px dashed var(--border-color); border-radius: 8px; text-align: center; background: var(--bg-surface);">
+            <i class="fa fa-github" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+            <h4 style="margin-bottom: 0.5rem;">No Repository Linked</h4>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">No GitHub repository records found for this project in github_repositories.</p>
+          </div>
+        `;
+      }
+    } catch (err) {
+      console.error(err);
+      detailsContainer.innerHTML = '<p style="color: red; padding: 1rem;">Error loading GitHub repository details.</p>';
+    }
+  };
+
+  // Load GitHub on tab switch
+  const tabGithubBtn = container.querySelector('[data-tab="github"]');
+  if (tabGithubBtn) {
+    tabGithubBtn.addEventListener('click', () => {
+      loadGithub();
+    });
+  }
 
   // Assign Faculty
   const formFaculty = container.querySelector('#form-assign-faculty');

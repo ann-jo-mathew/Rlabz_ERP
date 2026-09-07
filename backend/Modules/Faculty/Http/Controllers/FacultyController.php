@@ -913,6 +913,26 @@ class FacultyController extends Controller
             }
         }
 
+        // Insert selected student's id to modules table and update status as assigned
+        if (!empty($assignedStudentIds)) {
+            $firstStudentId = $assignedStudentIds[0];
+            $moduleUpdate = [
+                'status' => 'assigned',
+                'updated_at' => now(),
+            ];
+            if (Schema::hasColumn('modules', 'student_id')) {
+                $moduleUpdate['student_id'] = $firstStudentId;
+            }
+            if (Schema::hasColumn('modules', 'assigned_to')) {
+                // If assigned_to has a foreign key to student_profiles, find matching profile id
+                $profileId = DB::table('student_profiles')->where('student_id', $firstStudentId)->value('id');
+                if ($profileId) {
+                    $moduleUpdate['assigned_to'] = $profileId;
+                }
+            }
+            DB::table('modules')->where('id', $moduleId)->update($moduleUpdate);
+        }
+
         $module = DB::table('modules')->where('id', $moduleId)->first();
         $module->assigned_students = DB::table('module_student')
             ->join('users', 'users.id', '=', 'module_student.student_id')
@@ -1337,5 +1357,35 @@ class FacultyController extends Controller
             'task' => $updatedTask
         ], 200);
     }
+
+    /**
+     * Verify a GitHub repository link for a project.
+     * Updates is_verified, verified_by, and verified_at in github_repositories table.
+     */
+    public function verifyGithubRepository($id, Request $request)
+    {
+        $facultyId = $this->getFacultyId($request);
+
+        $repo = DB::table('github_repositories')->where('id', $id)->first();
+        if (!$repo) {
+            return response()->json(['error' => 'Repository not found.'], 404);
+        }
+
+        DB::table('github_repositories')->where('id', $id)->update([
+            'is_verified' => 1,
+            'verified_by' => $facultyId,
+            'verified_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $updatedRepo = DB::table('github_repositories')->where('id', $id)->first();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'GitHub repository link verified successfully.',
+            'repository' => $updatedRepo
+        ], 200);
+    }
 }
+
 
