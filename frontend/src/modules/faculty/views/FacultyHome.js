@@ -253,9 +253,14 @@ export function FacultyHome(route, router) {
                                         <div style="padding: 0.9rem 1rem; background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px;">
                                             <strong style="font-size: 0.9rem; color: var(--text-main, #0f172a); display: block; margin-bottom: 0.2rem;">${m.title}</strong>
                                             <div style="font-size: 0.8rem; color: var(--primary, #059669); font-weight: 600; margin-bottom: 0.35rem;">${m.project_name}</div>
-                                            <div style="display: flex; gap: 0.75rem; font-size: 0.78rem; color: var(--text-muted, #64748b); flex-wrap: wrap;">
+                                            <div style="display: flex; gap: 0.75rem; font-size: 0.78rem; color: var(--text-muted, #64748b); flex-wrap: wrap; align-items: center;">
                                                 <span>${iconMiniCalendar} ${dateFormatted}</span>
                                                 <span>${iconMapPin} ${m.location || 'Google Meet'}</span>
+                                                ${m.meeting_link ? `
+                                                    <a href="${m.meeting_link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary, #059669); font-weight: 600; text-decoration: underline;">
+                                                        Join Meeting ↗
+                                                    </a>
+                                                ` : ''}
                                             </div>
                                         </div>
                                     `;

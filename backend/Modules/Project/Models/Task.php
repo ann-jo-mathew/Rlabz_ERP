@@ -14,6 +14,7 @@ class Task extends Model
         'module_id',
         'title',
         'description',
+        'weight',
         'assigned_to',
         'status',
         'due_date',

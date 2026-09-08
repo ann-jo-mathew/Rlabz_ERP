@@ -99,22 +99,56 @@ class FacultyController extends Controller
             ->distinct('student_id')
             ->count('student_id');
 
-        // Meetings today
+        $facultyProjectIds = DB::table('project_faculty')
+            ->where('faculty_id', $facultyId)
+            ->pluck('project_id');
+
+        $participantMeetingIds = Schema::hasTable('meeting_participants')
+            ? DB::table('meeting_participants')->where('user_id', $facultyId)->pluck('meeting_id')
+            : collect([]);
+
+        // Meetings today for logged in faculty
         $todayStart = date('Y-m-d 00:00:00');
         $todayEnd = date('Y-m-d 23:59:59');
         $meetingsTodayCount = DB::table('meetings')
-            ->whereIn('project_id', $projectIds)
+            ->where('status', '!=', 'cancelled')
+            ->where(function ($q) use ($facultyProjectIds, $facultyId, $participantMeetingIds, $projectIds) {
+                $q->where('meetings.created_by', $facultyId);
+                if ($facultyProjectIds->isNotEmpty()) {
+                    $q->orWhereIn('meetings.project_id', $facultyProjectIds);
+                } elseif ($projectIds->isNotEmpty()) {
+                    $q->orWhereIn('meetings.project_id', $projectIds);
+                }
+                if ($participantMeetingIds->isNotEmpty()) {
+                    $q->orWhereIn('meetings.id', $participantMeetingIds);
+                }
+            })
             ->whereBetween('scheduled_at', [$todayStart, $todayEnd])
             ->count();
 
-        // Upcoming meetings
+        // Upcoming meetings for logged in faculty
+        $nowStr = date('Y-m-d H:i:s');
         $upcomingMeetings = DB::table('meetings')
             ->join('projects', 'projects.id', '=', 'meetings.project_id')
-            ->whereIn('meetings.project_id', $projectIds)
-            ->where('meetings.scheduled_at', '>=', now())
+            ->where('meetings.status', '!=', 'cancelled')
+            ->where(function ($q) use ($facultyProjectIds, $facultyId, $participantMeetingIds, $projectIds) {
+                $q->where('meetings.created_by', $facultyId);
+                if ($facultyProjectIds->isNotEmpty()) {
+                    $q->orWhereIn('meetings.project_id', $facultyProjectIds);
+                } elseif ($projectIds->isNotEmpty()) {
+                    $q->orWhereIn('meetings.project_id', $projectIds);
+                }
+                if ($participantMeetingIds->isNotEmpty()) {
+                    $q->orWhereIn('meetings.id', $participantMeetingIds);
+                }
+            })
+            ->where(function ($q) use ($nowStr) {
+                $q->where('meetings.scheduled_at', '>=', now())
+                  ->orWhere('meetings.scheduled_at', '>=', $nowStr);
+            })
             ->select('meetings.id', 'meetings.title', 'meetings.scheduled_at', 'meetings.location', 'meetings.meeting_link', 'projects.title as project_name')
             ->orderBy('meetings.scheduled_at', 'asc')
-            ->limit(3)
+            ->limit(5)
             ->get();
 
         // Past meetings pending notes

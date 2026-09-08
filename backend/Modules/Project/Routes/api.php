@@ -11,6 +11,8 @@ Route::group(['prefix' => 'projects', 'middleware' => [JwtMiddleware::class]], f
     Route::get('/', [ProjectController::class, 'index']);
     Route::post('/', [ProjectController::class, 'store']);
     Route::get('/{id}', [ProjectController::class, 'show']);
+    Route::get('/{id}/github', [ProjectController::class, 'getGithubRepo']);
+    Route::post('/{id}/github/verify', [ProjectController::class, 'verifyGithubRepo']);
     Route::post('/{id}/close', [ProjectController::class, 'close']);
 
     Route::post('/{id}/faculty', [ProjectAssignmentController::class, 'assignFaculty']);
@@ -21,6 +23,7 @@ Route::group(['prefix' => 'projects', 'middleware' => [JwtMiddleware::class]], f
     Route::put('/requirements/{id}', [ClientRequirementController::class, 'update']);
 
     Route::post('/{id}/modules', [ProjectTaskController::class, 'storeModule']);
+    Route::patch('/modules/{id}/status', [ProjectTaskController::class, 'updateModuleStatus']);
     Route::post('/modules/{id}/tasks', [ProjectTaskController::class, 'storeTask']);
     Route::patch('/tasks/{id}/status', [ProjectTaskController::class, 'updateTaskStatus']);
 });

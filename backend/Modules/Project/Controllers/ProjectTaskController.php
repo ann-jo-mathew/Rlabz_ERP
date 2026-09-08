@@ -79,7 +79,8 @@ class ProjectTaskController extends Controller
         $request->validate([
             'title' => 'required|string',
             'description' => 'nullable|string',
-            'priority' => 'string'
+            'weight' => 'nullable|numeric|min:1|max:10',
+            'priority' => 'nullable|string'
         ]);
 
         $module = Module::find($moduleId);
@@ -98,6 +99,7 @@ class ProjectTaskController extends Controller
             'module_id' => $moduleId,
             'title' => $request->title,
             'description' => $request->description,
+            'weight' => $request->weight ? (int) $request->weight : 1,
             'status' => 'todo',
             'created_by' => $userId
         ]);
@@ -139,6 +141,68 @@ class ProjectTaskController extends Controller
         $task->status = $statusMap[$request->status];
         $task->save();
 
+        // Check if all tasks in the module are completed to update module status to completed
+        if ($task->module_id) {
+            $this->checkAndUpdateModuleCompletion($task->module_id);
+        }
+
         return response()->json(['status' => 'success', 'data' => $task]);
+    }
+
+    public function updateModuleStatus(Request $request, $moduleId)
+    {
+        $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
+
+        // Only allow faculty, coordinator, and director
+        if (!in_array($role, ['faculty', 'coordinator', 'director'])) {
+            return response()->json(['error' => 'Forbidden: Only faculty or coordinators can update module status.'], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|string|in:blocked,in_progress,not_started,completed'
+        ]);
+
+        $module = Module::find($moduleId);
+        if (!$module) {
+            return response()->json(['error' => 'Module not found'], 404);
+        }
+
+        $module->status = $request->status;
+        $module->save();
+
+        return response()->json(['status' => 'success', 'data' => $module]);
+    }
+
+    private function checkAndUpdateModuleCompletion($moduleId)
+    {
+        $module = Module::with('tasks')->find($moduleId);
+        if (!$module) return;
+
+        // If module was explicitly blocked by faculty, don't automatically override to completed unless unblocked
+        if ($module->status === 'blocked') return;
+
+        $tasks = $module->tasks;
+        if ($tasks->count() > 0) {
+            $allCompleted = $tasks->every(function ($t) {
+                return in_array(strtolower($t->status), ['completed']);
+            });
+
+            if ($allCompleted) {
+                if ($module->status !== 'completed') {
+                    $module->status = 'completed';
+                    $module->save();
+                }
+            } else {
+                // If not all completed and previously marked completed, update to in_progress or not_started
+                if ($module->status === 'completed') {
+                    $hasAnyInProgressOrCompleted = $tasks->contains(function ($t) {
+                        return in_array(strtolower($t->status), ['in_progress', 'completed']);
+                    });
+                    $module->status = $hasAnyInProgressOrCompleted ? 'in_progress' : 'not_started';
+                    $module->save();
+                }
+            }
+        }
     }
 }

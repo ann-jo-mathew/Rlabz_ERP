@@ -86,6 +86,14 @@ export function FacultySprints() {
                     </tbody>
                 </table>
             </div>
+            <style>
+                .faculty-sprints .project-row-clickable:hover {
+                    background: var(--bg-surface, #f8fafc) !important;
+                }
+                .faculty-sprints .project-row-clickable:hover td:first-child {
+                    color: var(--primary, #059669) !important;
+                }
+            </style>
         `;
 
         setupProjectListListeners();
@@ -112,7 +120,7 @@ export function FacultySprints() {
             const status = (p.status || 'in_progress').toLowerCase();
 
             return `
-                <tr style="border-bottom: 1px solid var(--border-color, #e2e8f0); transition: background 0.15s ease;">
+                <tr class="project-row-clickable" data-project-id="${p.id}" style="border-bottom: 1px solid var(--border-color, #e2e8f0); transition: background 0.15s ease; cursor: pointer;">
                     <td style="padding: 1.1rem 1.5rem; font-weight: 700; color: var(--text-main, #0f172a); font-size: 0.95rem;">
                         ${title}
                     </td>
@@ -153,11 +161,14 @@ export function FacultySprints() {
     }
 
     function setupViewButtons() {
-        container.querySelectorAll('.view-project-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const pId = parseInt(btn.getAttribute('data-id'));
-                selectedProjectId = pId;
-                loadProjectDetail(pId);
+        container.querySelectorAll('#projects-table-body tr.project-row-clickable').forEach(row => {
+            row.addEventListener('click', (e) => {
+                const btn = e.target.closest('.view-project-btn');
+                const pId = parseInt(btn ? btn.getAttribute('data-id') : row.getAttribute('data-project-id'));
+                if (pId) {
+                    selectedProjectId = pId;
+                    loadProjectDetail(pId);
+                }
             });
         });
     }
