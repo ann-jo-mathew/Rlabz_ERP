@@ -68,7 +68,12 @@ public function requirements()
 
 public function requirementChanges()
 {
-    return $this->hasMany(RequirementChange::class);
+    return $this->hasManyThrough(
+        RequirementChange::class,
+        ClientRequirement::class,
+        'project_id',
+        'client_requirement_id'
+    );
 }
 
 public function closure()
