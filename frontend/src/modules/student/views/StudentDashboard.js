@@ -25,8 +25,9 @@ export async function StudentDashboard(route, router) {
   const activeProjectsCount = projects.filter(p => p.status === 'In Progress').length;
   const upcomingMeetingsCount = meetings.filter(m => m.status === 'Scheduled').length;
 
-  // 4. Live notifications fetched from database
-  const notifications = getNotifications() || [];
+  // 4. Live notifications fetched from database (latest 3)
+  const allNotifications = getNotifications() || [];
+  const notifications = allNotifications.slice(0, 3);
 
   // 5. Render projects rows
   const projectRows = projects.map(p => `
@@ -50,31 +51,38 @@ export async function StudentDashboard(route, router) {
 
   // 6. Build HTML
   container.innerHTML = `
-    <div class="student-header">
-      <h1>Student Dashboard</h1>
-      <p>Manage your academic projects, submissions, logs, and communication.</p>
+    <div class="student-dashboard-header">
+      <div class="student-header-text">
+        <h1>Student Dashboard</h1>
+        <p>Manage your academic projects, submissions, logs, and communication.</p>
+      </div>
     </div>
-
 
     <!-- KPI Strip -->
     <div class="student-kpi-grid">
       <div class="student-kpi-card" id="kpi-projects">
         <div class="student-kpi-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         </div>
         <div class="student-kpi-info">
           <span class="student-kpi-value">${activeProjectsCount}</span>
           <span class="student-kpi-label">Active Projects</span>
         </div>
+        <div class="student-kpi-arrow">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
       </div>
 
       <div class="student-kpi-card" id="kpi-meetings">
         <div class="student-kpi-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </div>
         <div class="student-kpi-info">
           <span class="student-kpi-value">${upcomingMeetingsCount}</span>
           <span class="student-kpi-label">Upcoming Meetings</span>
+        </div>
+        <div class="student-kpi-arrow">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </div>
       </div>
     </div>
@@ -83,7 +91,12 @@ export async function StudentDashboard(route, router) {
     <div class="student-dashboard-grid">
       <!-- Projects Table Card -->
       <div class="student-card">
-        <div class="student-card-title">My Projects</div>
+        <div class="student-card-header">
+          <div class="student-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            <span>My Projects</span>
+          </div>
+        </div>
         <div class="student-table-container">
           <table class="student-table">
             <thead>
@@ -96,7 +109,7 @@ export async function StudentDashboard(route, router) {
               </tr>
             </thead>
             <tbody>
-              ${projectRows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No projects assigned.</td></tr>'}
+              ${projectRows || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No projects assigned.</td></tr>'}
             </tbody>
           </table>
         </div>
@@ -104,16 +117,30 @@ export async function StudentDashboard(route, router) {
 
       <!-- Notifications Card -->
       <div class="student-card">
-        <div class="student-card-title">Recent Notifications</div>
-        <div style="display: flex; flex-direction: column;">
+        <div class="student-card-header">
+          <div class="student-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span>Recent Notifications</span>
+          </div>
+        </div>
+        <div class="student-notif-list">
           ${notifications.length > 0 ? notifications.map(n => `
             <div class="student-notif-item">
-              <span class="student-notif-title">${n.title || n.message}</span>
-              <span class="student-notif-time">${n.time || 'Recently'}</span>
+              <div class="student-notif-icon-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              </div>
+              <div class="student-notif-content">
+                <span class="student-notif-title">${n.title || n.message}</span>
+                <span class="student-notif-time">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  ${n.time || 'Recently'}
+                </span>
+              </div>
             </div>
           `).join('') : `
-            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.875rem;">
-              No recent notifications found in database.
+            <div class="student-notif-empty">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #94a3b8;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <div>No recent notifications found.</div>
             </div>
           `}
         </div>

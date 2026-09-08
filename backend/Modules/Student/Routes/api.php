@@ -9,6 +9,7 @@ Route::group(['prefix' => 'student', 'middleware' => ['auth.jwt']], function () 
     Route::post('/sprints', [StudentController::class, 'saveSprint']);
     Route::get('/reports', [StudentController::class, 'getReports']);
     Route::post('/reports', [StudentController::class, 'saveReport']);
+    Route::get('/reports/{id}/download', [StudentController::class, 'downloadReportFile']);
     Route::get('/work-logs', [StudentController::class, 'getWorkLogs']);
     Route::post('/work-logs', [StudentController::class, 'saveWorkLog']);
     Route::get('/github', [StudentController::class, 'getGithub']);

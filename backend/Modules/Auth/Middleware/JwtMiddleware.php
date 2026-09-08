@@ -15,7 +15,7 @@ class JwtMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $token = $request->bearerToken();
+        $token = $request->bearerToken() ?: $request->query('token');
         if (!$token) {
             return response()->json(['status' => 'Authorization Token not found'], 401);
         }

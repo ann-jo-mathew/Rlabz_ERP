@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class FacultyController extends Controller
 {
@@ -20,8 +22,8 @@ class FacultyController extends Controller
             return $authUser['sub'];
         }
 
-        // 2. Try parsing Bearer token directly
-        $token = $request->bearerToken();
+        // 2. Try parsing Bearer token or query param token
+        $token = $request->bearerToken() ?: $request->query('token');
         if ($token) {
             $parts = explode('.', $token);
             if (count($parts) === 3) {
@@ -584,8 +586,13 @@ class FacultyController extends Controller
             ->leftJoin('projects', 'projects.id', '=', 'student_reports.project_id')
             ->leftJoin('users', 'users.id', '=', 'student_reports.student_id');
 
-        if ($projectIds->isNotEmpty()) {
-            $query->whereIn('student_reports.project_id', $projectIds);
+        if ($request->filled('project_id')) {
+            $query->where('student_reports.project_id', $request->input('project_id'));
+        } elseif ($projectIds->isNotEmpty()) {
+            $query->where(function($q) use ($projectIds) {
+                $q->whereIn('student_reports.project_id', $projectIds)
+                  ->orWhereNull('student_reports.project_id');
+            });
         }
 
         $reports = $query->select(
@@ -594,20 +601,124 @@ class FacultyController extends Controller
             'projects.title as project_title',
             'student_reports.student_id',
             'users.name as student_name',
-            'student_reports.task_id',
+            'users.email as student_email',
             'student_reports.report_type',
             'student_reports.report_date',
             'student_reports.work_done',
-            'student_reports.challenges',
-            'student_reports.next_plan',
+            'student_reports.report_file',
             'student_reports.approval_status',
             'student_reports.feedback',
             'student_reports.submitted_at'
         )
         ->orderBy('student_reports.submitted_at', 'desc')
-        ->get();
+        ->get()
+        ->map(function ($r) {
+            $fileName = $r->report_file ? basename($r->report_file) : null;
+            return [
+                'id' => $r->id,
+                'project_id' => $r->project_id,
+                'project_title' => $r->project_title ?: 'General Project',
+                'student_id' => $r->student_id,
+                'student_name' => $r->student_name ?: 'Student',
+                'student_email' => $r->student_email ?: '',
+                'report_type' => ucfirst($r->report_type),
+                'report_date' => $r->report_date,
+                'work_done' => $r->work_done,
+                'approval_status' => ucfirst($r->approval_status ?: 'pending'),
+                'feedback' => $r->feedback,
+                'submitted_at' => $r->submitted_at,
+                'report_file' => $r->report_file,
+                'file_name' => $fileName,
+                'file_url' => $r->report_file ? asset('storage/' . $r->report_file) : null,
+                'download_url' => $r->report_file ? url('api/faculty/reports/' . $r->id . '/download') : null,
+            ];
+        });
 
         return response()->json($reports);
+    }
+
+    /**
+     * Approve or reject a student progress report with feedback.
+     */
+    public function reviewReport(Request $request, $id)
+    {
+        $facultyId = $this->getFacultyId($request);
+
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:approved,rejected,pending,Approved,Rejected,Pending',
+            'feedback' => 'nullable|string|max:2000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()->first()], 422);
+        }
+
+        $report = DB::table('student_reports')->where('id', $id)->first();
+        if (!$report) {
+            return response()->json(['error' => 'Student report not found.'], 404);
+        }
+
+        $statusLower = strtolower($request->input('status'));
+
+        DB::table('student_reports')->where('id', $id)->update([
+            'approval_status' => $statusLower,
+            'feedback' => $request->filled('feedback') ? $request->input('feedback') : $report->feedback,
+            'updated_at' => now(),
+        ]);
+
+        // Notify student
+        if (Schema::hasTable('notifications')) {
+            $statusText = ucfirst($statusLower);
+            $reportType = ucfirst($report->report_type);
+            $msg = "Your {$reportType} Report for {$report->report_date} was {$statusText} by faculty.";
+            if ($request->filled('feedback')) {
+                $msg .= " Feedback: " . $request->input('feedback');
+            }
+
+            DB::table('notifications')->insert([
+                'user_id' => $report->student_id,
+                'type' => 'report_review',
+                'message' => $msg,
+                'is_read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Report status updated successfully.',
+            'status' => ucfirst($statusLower),
+            'feedback' => $request->input('feedback') ?: $report->feedback
+        ]);
+    }
+
+    /**
+     * Download attached progress report file for faculty.
+     */
+    public function downloadReportFile(Request $request, $id)
+    {
+        $facultyId = $this->getFacultyId($request);
+        if (!$facultyId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $report = DB::table('student_reports')->where('id', $id)->first();
+        if (!$report || !$report->report_file) {
+            return response()->json(['error' => 'Report file not found'], 404);
+        }
+
+        if (!Storage::disk('public')->exists($report->report_file)) {
+            return response()->json(['error' => 'File not found on storage'], 404);
+        }
+
+        $filePath = Storage::disk('public')->path($report->report_file);
+        $ext = pathinfo($report->report_file, PATHINFO_EXTENSION);
+        $studentName = DB::table('users')->where('id', $report->student_id)->value('name') ?: 'Student';
+        $safeStudentName = preg_replace('/[^A-Za-z0-9_]/', '_', $studentName);
+        $downloadName = "Weekly_Report_{$safeStudentName}_{$report->report_date}_{$report->id}.{$ext}";
+
+        return response()->download($filePath, $downloadName);
     }
 
     /**

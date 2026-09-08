@@ -1,6 +1,7 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
 import { getProjects, ensureDataLoaded } from './studentStore.js';
 import { useAuthStore } from '@/core/stores/auth.js';
+import { StudentSwal } from '../studentAlerts.js';
 import '../student.css';
 
 export async function StudentCertificates(route, router) {
@@ -13,8 +14,10 @@ export async function StudentCertificates(route, router) {
   const authStore = useAuthStore();
   const studentName = authStore.user?.name || 'Student Nova';
 
-  // Modal State
+  // Modal & Filter State
   let activeCertificate = null;
+  let certSearch = '';
+  let certSort = 'newest'; // 'newest' | 'oldest' | 'alpha'
 
   function render() {
     const projects = getProjects() || [];
@@ -26,7 +29,39 @@ export async function StudentCertificates(route, router) {
       return isCompleted && isMember;
     });
 
-    const certificateCards = completedProjects.map(p => {
+    // Apply Search Filter
+    let filteredCertificates = completedProjects.filter(p => {
+      if (certSearch.trim()) {
+        const q = certSearch.toLowerCase().trim();
+        const matchTitle = (p.title || '').toLowerCase().includes(q);
+        const matchFaculty = (p.faculty || '').toLowerCase().includes(q);
+        const matchRole = (p.designation || '').toLowerCase().includes(q);
+        if (!matchTitle && !matchFaculty && !matchRole) return false;
+      }
+      return true;
+    });
+
+    // Apply Sorting
+    filteredCertificates.sort((a, b) => {
+      if (certSort === 'alpha') {
+        return (a.title || '').localeCompare(b.title || '');
+      }
+      // Date comparison based on timeline end
+      const getDateVal = (p) => {
+        if (p.timeline && p.timeline.includes(' - ')) {
+          return new Date(p.timeline.split(' - ')[1]).getTime() || 0;
+        }
+        return 0;
+      };
+      if (certSort === 'oldest') {
+        return getDateVal(a) - getDateVal(b);
+      }
+      return getDateVal(b) - getDateVal(a);
+    });
+
+    const isFiltersActive = certSearch.trim() !== '' || certSort !== 'newest';
+
+    const certificateCards = filteredCertificates.map(p => {
       // Parse dates or use default
       let issuedDate = '30 Sep 2026';
       if (p.timeline) {
@@ -55,7 +90,15 @@ export async function StudentCertificates(route, router) {
             </div>
             <div class="cert-detail-item">
               <span class="cert-detail-lbl">Status:</span>
-              <span class="student-badge student-badge-success">Issued</span>
+              <span class="student-badge student-badge-success">Issued & Verified</span>
+            </div>
+            <div class="cert-detail-item">
+              <span class="cert-detail-lbl">Supervisor:</span>
+              <span class="cert-detail-val">${p.faculty || 'Faculty Lead'}</span>
+            </div>
+            <div class="cert-detail-item">
+              <span class="cert-detail-lbl">Role Track:</span>
+              <span class="cert-detail-val">${p.designation || 'Specialist'}</span>
             </div>
           </div>
 
@@ -75,6 +118,12 @@ export async function StudentCertificates(route, router) {
               </svg>
               Download
             </button>
+            <button class="student-action-icon-btn btn-copy-cert-info" data-id="${p.id}" title="Copy Certificate Verification ID">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
           </div>
         </div>
       `;
@@ -83,7 +132,7 @@ export async function StudentCertificates(route, router) {
     container.innerHTML = `
       <div class="student-header">
         <h1>My Certificates</h1>
-        <p>View and download official project completion certificates issued by the academy.</p>
+        <p>View, verify, and download official project completion certificates issued by the academy.</p>
       </div>
 
       ${completedProjects.length === 0 ? `
@@ -95,9 +144,46 @@ export async function StudentCertificates(route, router) {
           </p>
         </div>
       ` : `
-        <div class="cert-grid-student">
-          ${certificateCards}
+        <!-- Filter & Search Bar -->
+        <div class="student-filter-bar">
+          <div class="student-search-wrapper">
+            <svg class="student-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="cert-search-input" class="student-search-input" placeholder="Search certificates by project, supervisor, or track..." value="${certSearch}">
+          </div>
+
+          <select id="cert-sort-select" class="student-filter-select">
+            <option value="newest" ${certSort === 'newest' ? 'selected' : ''}>Sort: Newest Issued</option>
+            <option value="oldest" ${certSort === 'oldest' ? 'selected' : ''}>Sort: Oldest</option>
+            <option value="alpha" ${certSort === 'alpha' ? 'selected' : ''}>Sort: Alphabetical</option>
+          </select>
+
+          ${isFiltersActive ? `
+            <button type="button" id="btn-clear-cert-filters" class="student-filter-btn-clear" title="Reset filters">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              Reset
+            </button>
+          ` : ''}
         </div>
+
+        ${filteredCertificates.length === 0 ? `
+          <div class="student-card">
+            <div class="student-empty-filter">
+              <div class="student-empty-filter-icon">🔍</div>
+              <div class="student-empty-filter-text">No certificates match your search query</div>
+              <div class="student-empty-filter-sub">Try searching by a different project title or clear the filter.</div>
+              <button type="button" id="btn-empty-clear-cert" class="student-btn student-btn-outline student-btn-sm" style="margin: 0 auto;">
+                Clear Search
+              </button>
+            </div>
+          </div>
+        ` : `
+          <div class="cert-grid-student">
+            ${certificateCards}
+          </div>
+        `}
       `}
 
       <!-- Certificate Preview Modal -->
@@ -139,13 +225,20 @@ export async function StudentCertificates(route, router) {
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; width: 100%;">
             <button class="student-btn student-btn-outline" id="btn-modal-close-action">Close</button>
+            <button class="student-btn student-btn-outline" id="btn-modal-copy-action">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Verification Text
+            </button>
             <button class="student-btn student-btn-primary" id="btn-modal-download-action">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
-              Download PDF
+              Download
             </button>
           </div>
         </div>
@@ -153,6 +246,30 @@ export async function StudentCertificates(route, router) {
     `;
 
     // Bind Event Listeners
+    const searchInput = container.querySelector('#cert-search-input');
+    searchInput?.addEventListener('input', (e) => {
+      certSearch = e.target.value;
+      render();
+      const newInput = container.querySelector('#cert-search-input');
+      if (newInput) {
+        newInput.focus();
+        newInput.setSelectionRange(newInput.value.length, newInput.value.length);
+      }
+    });
+
+    container.querySelector('#cert-sort-select')?.addEventListener('change', (e) => {
+      certSort = e.target.value;
+      render();
+    });
+
+    const clearCertFilters = () => {
+      certSearch = '';
+      certSort = 'newest';
+      render();
+    };
+    container.querySelector('#btn-clear-cert-filters')?.addEventListener('click', clearCertFilters);
+    container.querySelector('#btn-empty-clear-cert')?.addEventListener('click', clearCertFilters);
+
     container.querySelectorAll('.btn-view-cert').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = parseInt(btn.dataset.id);
@@ -174,10 +291,22 @@ export async function StudentCertificates(route, router) {
       });
     });
 
+    // Copy certificate verification details
+    container.querySelectorAll('.btn-copy-cert-info').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = parseInt(btn.dataset.id);
+        const proj = projects.find(p => p.id === id);
+        if (proj) {
+          copyCertSummary(proj);
+        }
+      });
+    });
+
     const modal = container.querySelector('#cert-preview-modal');
     const closeBtn = container.querySelector('#btn-close-modal');
     const closeActionBtn = container.querySelector('#btn-modal-close-action');
     const downloadActionBtn = container.querySelector('#btn-modal-download-action');
+    const copyActionBtn = container.querySelector('#btn-modal-copy-action');
 
     const hideModal = () => {
       modal.style.display = 'none';
@@ -194,10 +323,32 @@ export async function StudentCertificates(route, router) {
       }
     });
 
+    copyActionBtn?.addEventListener('click', () => {
+      if (activeCertificate) {
+        copyCertSummary(activeCertificate);
+      }
+    });
+
     function showModal(proj) {
       container.querySelector('#modal-project-name').textContent = proj.title;
       container.querySelector('#modal-faculty-name').textContent = proj.faculty || 'Project Supervisor';
       modal.style.display = 'flex';
+    }
+
+    function copyCertSummary(proj) {
+      const text = `RLabZ Academy Certificate of Completion\nRecipient: ${studentName}\nProject: ${proj.title}\nSupervisor: ${proj.faculty || 'Faculty Lead'}\nStatus: Issued & Verified`;
+      navigator.clipboard?.writeText(text).then(() => {
+        StudentSwal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Verification Info Copied!',
+          text: `Certificate details for "${proj.title}" copied.`,
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true
+        });
+      });
     }
 
     function downloadMockCertificate(proj) {
@@ -226,23 +377,16 @@ export async function StudentCertificates(route, router) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Create a premium overlay toast/alert to wow the user
-      showToast(`Successfully downloaded certificate for ${proj.title}!`);
+      // SweetAlert download notification
+      StudentSwal.fire({
+        icon: 'success',
+        title: 'Certificate Downloaded!',
+        text: `Official project completion certificate for "${proj.title}" downloaded successfully.`,
+        timer: 3000,
+        showConfirmButton: false,
+        timerProgressBar: true
+      });
     }
-  }
-
-  function showToast(message) {
-    let toast = document.querySelector('.cert-toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.className = 'cert-toast';
-      document.body.appendChild(toast);
-    }
-    toast.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3000);
   }
 
   render();

@@ -21,6 +21,8 @@ Route::prefix('faculty')->group(function () {
     Route::post('/meetings/{id}/status', [FacultyController::class, 'updateMeetingStatus']);
     Route::get('/sprints', [FacultyController::class, 'getSprints']);
     Route::get('/reports', [FacultyController::class, 'getReports']);
+    Route::post('/reports/{id}/review', [FacultyController::class, 'reviewReport']);
+    Route::get('/reports/{id}/download', [FacultyController::class, 'downloadReportFile']);
     Route::post('/feedback', [FacultyController::class, 'sendFeedback']);
     Route::delete('/modules/{moduleId}/students/{studentId}', [FacultyController::class, 'removeStudentFromModule']);
     Route::get('/notifications', [FacultyController::class, 'getNotifications']);
