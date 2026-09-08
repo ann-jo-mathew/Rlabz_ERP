@@ -37,7 +37,8 @@ const routes = [
       },
       {
         path: 'sprints',
-        name: 'faculty-sprints',
+        name: 'project-modules-and-tasks',
+        title: 'PROJECT MODULES & TASKS',
         component: () => import('./views/FacultySprints.js')
       },
       {

@@ -78,6 +78,10 @@
 .status-badge.rejected { background: #fee2e2; color: #dc2626; }
 .status-badge.in_progress { background: #fce7f3; color: #db2777; }
 .status-badge.closed { background: #d1fae5; color: #059669; }
+.status-badge.completed { background: #d1fae5; color: #059669; }
+.status-badge.todo { background: #e0f2fe; color: #0284c7; }
+.status-badge.pending { background: #fffbef; color: #b45309; }
+.status-badge.blocked { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
 
 /* Buttons */
 .btn-sm {

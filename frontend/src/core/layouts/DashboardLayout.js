@@ -185,7 +185,7 @@ export async function DashboardLayout(contentChild, route, router) {
 
     <div class="main-wrapper">
       <header class="topbar">
-        <div class="topbar-title">${route.name ? route.name.toUpperCase().replace('-', ' ') : 'RLABZ ERP'}</div>
+        <div class="topbar-title">${route.title || (route.name === 'faculty-sprints' ? 'PROJECT MODULES & TASKS' : (route.name ? route.name.toUpperCase().replace(/-/g, ' ') : 'RLABZ ERP'))}</div>
         <div class="user-profile" id="user-profile-header">
           <div class="avatar">${initial}</div>
           <div class="user-details">
