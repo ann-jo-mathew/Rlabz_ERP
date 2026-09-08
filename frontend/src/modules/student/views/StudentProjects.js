@@ -226,7 +226,7 @@ export async function StudentProjects(route, router) {
             </div>
           </div>
 
-          <button class="student-btn student-btn-primary btn-view-details" data-id="${p.id}" style="width: 100%; justify-content: center; margin-top: 8px;">
+          <button class="student-btn student-btn-primary btn-view-details" data-id="${p.id}" style="width: auto; padding: 0.4rem 1.25rem; align-self: flex-start; margin-top: 8px;">
             View Details
           </button>
         </div>
