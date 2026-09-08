@@ -308,9 +308,12 @@ export async function StudentPayroll(route, router) {
             <div style="font-size:2rem; font-weight:700; color:var(--primary); margin-bottom:1rem" id="current-rate-display">₹0</div>
             <div class="fin-form-group" style="margin-bottom:0.5rem">
               <label>Update Rate (₹)</label>
-              <input type="number" class="fin-input" id="new-rate-input" placeholder="New hourly rate" min="0" step="0.01">
+              <input type="number" class="fin-input" id="new-rate-input" placeholder="New hourly rate" min="0" step="0.01" disabled>
             </div>
-            <button class="fin-btn primary w-full" id="update-rate-btn">Update Rate</button>
+            <div style="display:flex; gap:0.5rem;">
+              <button class="fin-btn outline w-full" id="edit-rate-btn">Edit Rate</button>
+              <button class="fin-btn primary w-full" id="update-rate-btn" style="display:none;">Save Rate</button>
+            </div>
           </div>
           
           <div style="flex:2;">
@@ -454,6 +457,14 @@ export async function StudentPayroll(route, router) {
       `).join('');
     };
 
+    // Bind Edit Rate Button
+    container.querySelector('#edit-rate-btn')?.addEventListener('click', () => {
+      container.querySelector('#new-rate-input').disabled = false;
+      container.querySelector('#new-rate-input').focus();
+      container.querySelector('#edit-rate-btn').style.display = 'none';
+      container.querySelector('#update-rate-btn').style.display = 'block';
+    });
+
     // Bind Update Rate Button
     container.querySelector('#update-rate-btn')?.addEventListener('click', async () => {
       const newRateStr = container.querySelector('#new-rate-input').value;
@@ -462,7 +473,7 @@ export async function StudentPayroll(route, router) {
       
       const btn = container.querySelector('#update-rate-btn');
       btn.disabled = true;
-      btn.textContent = 'Updating...';
+      btn.textContent = 'Saving...';
       try {
         await financeService.updateStudentHourlyRate({ new_rate: newRate });
         alert('Global student hourly rate updated successfully!');
