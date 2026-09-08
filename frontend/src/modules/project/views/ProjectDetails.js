@@ -76,7 +76,7 @@ export async function ProjectDetails(route, router) {
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 0;">Client Requirements</h3>
             ${permissions.includes('project.client_requirements.create') ? `
-              <button id="btn-add-requirement" class="btn btn-sm btn-primary shadow-hover"><i class="fa fa-plus"></i> Add</button>
+              <button id="btn-add-requirement" class="btn btn-sm btn-primary shadow-hover" style="width: max-content; padding: 0.5rem 1.5rem;"><i class="fa fa-plus"></i> Add</button>
             ` : ''}
           </div>
           
