@@ -187,6 +187,13 @@ body {
   transform: none;
 }
 
+/* Small button modifier — overrides the full-width default from .btn-primary */
+.btn-sm {
+  width: auto !important;
+  padding: 0.4rem 1rem !important;
+  font-size: 0.85rem !important;
+}
+
 .alert-error {
   background: var(--danger-light);
   color: var(--danger);
