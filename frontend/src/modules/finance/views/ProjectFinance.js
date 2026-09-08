@@ -49,14 +49,14 @@ export async function ProjectFinance(route, router) {
 
         <div class="fin-kpi-strip">
           <div class="fin-kpi-card teal">
-            <div class="kpi-label">Amount Collected</div>
+            <div class="kpi-label">Collected</div>
             <div class="kpi-value">${fmt(projectData.total_collected || 0)}</div>
             <div class="kpi-sub">${recvPct}% of billed revenue</div>
           </div>
           <div class="fin-kpi-card ${projectData.pending_amount > 0 ? 'warning' : 'primary'}">
-            <div class="kpi-label">Amount Outstanding</div>
+            <div class="kpi-label">Pending from Client</div>
             <div class="kpi-value">${fmt(projectData.pending_amount || 0)}</div>
-            <div class="kpi-sub">${projectData.pending_amount > 0 ? 'Pending from client' : 'Fully collected ✓'}</div>
+            <div class="kpi-sub">${projectData.pending_amount > 0 ? 'Outstanding balance' : 'Fully collected ✓'}</div>
           </div>
           <div class="fin-kpi-card indigo">
             <div class="kpi-label">Total Expenses</div>
@@ -64,9 +64,9 @@ export async function ProjectFinance(route, router) {
             <div class="kpi-sub">Actual project expenditure</div>
           </div>
           <div class="fin-kpi-card primary">
-            <div class="kpi-label">Project Margin</div>
-            <div class="kpi-value">${fmt((projectData.total_invoiced || 0) - (projectData.total_expenses || 0))}</div>
-            <div class="kpi-sub">Based on actuals</div>
+            <div class="kpi-label">Project Profit</div>
+            <div class="kpi-value">${fmt((projectData.total_collected || 0) - (projectData.total_expenses || 0))}</div>
+            <div class="kpi-sub">Collected - Expenses</div>
           </div>
         </div>
 
@@ -300,9 +300,9 @@ export async function ProjectFinance(route, router) {
                 <th>Est. Cost</th>
                 <th>Total Billing</th>
                 <th style="color:var(--primary)">Collected</th>
-                <th style="color:var(--warning-text,#92400e)">Outstanding</th>
+                <th style="color:var(--warning-text,#92400e)">Pending from Client</th>
                 <th>Expenses</th>
-                <th>Margin</th>
+                <th>Project Profit</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -348,8 +348,9 @@ export async function ProjectFinance(route, router) {
           const client = p.client_name || 'Unknown Client';
           const status = p.status || 'proposed';
           const billing = pf.total_invoiced || 0;
+          const collected = pf.total_collected || 0;
           const expenses = pf.total_expenses || 0;
-          const margin = billing - expenses;
+          const profit = collected - expenses;
           
           return `
           <tr>
@@ -358,12 +359,12 @@ export async function ProjectFinance(route, router) {
               <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${client}</div>
             </td>
             <td><span class="fin-badge ${status === 'closed' ? 'success' : 'info'}">${status.replace('_', ' ')}</span></td>
-            <td>${fmt(p.estimated_cost || p.budget || 0)}</td>
+            <td>${fmt(p.budget || 0)}</td>
             <td style="font-weight:600">${fmt(billing)}</td>
             <td style="color:var(--primary);font-weight:700">${fmt(pf.total_collected || 0)}</td>
             <td style="color:#d97706;font-weight:700">${fmt(pf.pending_amount || 0)}</td>
             <td>${fmt(expenses)}</td>
-            <td style="font-weight:700;color:${margin >= 0 ? 'var(--primary)' : '#ef4444'}">${fmt(margin)}</td>
+            <td style="font-weight:700;color:${profit >= 0 ? 'var(--primary)' : '#ef4444'}">${fmt(profit)}</td>
             <td>
               <button class="fin-btn outline sm view-details-btn" data-id="${p.id}">View Details</button>
             </td>

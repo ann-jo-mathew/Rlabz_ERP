@@ -14,6 +14,11 @@ class PaymentController extends Controller
 {
     protected $financeService;
 
+    private function currentUserId(Request $request): ?int
+    {
+        return $request->auth_user['sub'] ?? null;
+    }
+
     public function __construct(FinanceService $financeService)
     {
         $this->financeService = $financeService;
@@ -95,7 +100,7 @@ class PaymentController extends Controller
             ], 422);
         }
 
-        $validated['recorded_by'] = auth()->id() ?? 1;
+        $validated['recorded_by'] = $this->currentUserId($request);
 
         $payment = ClientPayment::create($validated);
 
@@ -145,7 +150,7 @@ class PaymentController extends Controller
             'description' => 'nullable|string'
         ]);
 
-        $validated['created_by'] = auth()->id() ?? 1;
+        $validated['created_by'] = $this->currentUserId($request);
         $validated['gst_percentage'] = $validated['gst_percentage'] ?? 18.00;
 
         $invoice = \Modules\Finance\Models\Invoice::create($validated);

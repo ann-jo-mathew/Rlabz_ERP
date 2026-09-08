@@ -10,6 +10,11 @@ class FinanceController extends Controller
 {
     protected $financeService;
 
+    private function currentUserId(Request $request): ?int
+    {
+        return $request->auth_user['sub'] ?? null;
+    }
+
     public function __construct(FinanceService $financeService)
     {
         $this->financeService = $financeService;
@@ -38,9 +43,10 @@ class FinanceController extends Controller
         return response()->json($project);
     }
 
-    public function getStudentPayments()
+    public function getStudentPayments(Request $request)
     {
-        $payments = $this->financeService->getAllStudentPayments();
+        $projectId = $request->query('project_id') ? (int) $request->query('project_id') : null;
+        $payments = $this->financeService->getAllStudentPayments($projectId);
         return response()->json($payments);
     }
 
@@ -96,7 +102,7 @@ class FinanceController extends Controller
             'remarks' => 'nullable|string'
         ]);
         
-        $validated['recorded_by'] = auth()->id() ?? 1;
+        $validated['recorded_by'] = $this->currentUserId($request);
 
         $payment = \Modules\Finance\Models\ClientPayment::create($validated);
 
@@ -165,7 +171,7 @@ class FinanceController extends Controller
         \DB::table('student_hourly_rate_history')->insert([
             'old_rate' => $oldRate,
             'new_rate' => $validated['new_rate'],
-            'updated_by' => auth()->id() ?? 1,
+            'updated_by' => $this->currentUserId($request),
             'created_at' => now(),
             'updated_at' => now()
         ]);
@@ -197,9 +203,9 @@ class FinanceController extends Controller
             'previous_expiry_date' => $hostingCharge->expiry_date,
             'new_expiry_date' => $validated['new_expiry_date'],
             'renewal_amount' => $validated['renewal_amount'],
-            'payment_reference' => $validated['payment_reference'],
-            'remarks' => $validated['remarks'],
-            'renewed_by' => auth()->id() ?? 1,
+            'payment_reference' => $validated['payment_reference'] ?? null,
+            'remarks' => $validated['remarks'] ?? null,
+            'renewed_by' => $this->currentUserId($request),
             'created_at' => now(),
             'updated_at' => now()
         ]);
@@ -223,8 +229,15 @@ class FinanceController extends Controller
                 'hosting_charges.reference_details as hosting_details',
                 'users.name as renewed_by_name'
             )
-            ->orderBy('renewal_date', 'desc')
+            ->orderBy('ssl_renewal_history.renewal_date', 'desc')
             ->get();
         return response()->json($history);
+    }
+
+    public function getStudentHourlyRate()
+    {
+        $setting = \DB::table('finance_settings')->first();
+        $rate = $setting ? (float) $setting->student_hourly_rate : 0;
+        return response()->json(['student_hourly_rate' => $rate]);
     }
 }

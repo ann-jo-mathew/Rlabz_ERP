@@ -39,20 +39,27 @@ class FinanceService
             'pendingFromClient' => max(0, round($totalInvoiced - $totalCollected, 2)),
             'totalPayroll' => round($studentPayments, 2),
             'totalFaculty' => round($facultyPayments, 2),
-            'totalOtherExpenses' => round($totalOtherExpenses, 2),
+            // totalOtherExpenses = hosting + ssl renewals only (NOT maintenance, which is separate)
+            'totalOtherExpenses' => round($hostingCharges + $sslRenewals, 2),
+            'totalMaintenance' => round($maintenanceCharges, 2),
             'totalExpenses' => round($totalExpenses, 2),
             'projectProfit' => round($totalCollected - $totalExpenses, 2)
         ];
     }
 
-    public function getAllStudentPayments()
+    public function getAllStudentPayments($projectId = null)
     {
-        $students = DB::table('project_student')
+        $query = DB::table('project_student')
             ->join('users', 'project_student.student_id', '=', 'users.id')
             ->join('projects', 'project_student.project_id', '=', 'projects.id')
             ->leftJoin('student_profiles', 'users.id', '=', 'student_profiles.student_id')
-            ->select('users.name as student_name', 'student_profiles.designation as designation', 'projects.title as project_name', 'projects.id as project_id', 'project_student.id as project_student_id', 'users.id as user_id')
-            ->get();
+            ->select('users.name as student_name', 'student_profiles.designation as designation', 'projects.title as project_name', 'projects.id as project_id', 'project_student.id as project_student_id', 'users.id as user_id');
+
+        if ($projectId) {
+            $query->where('project_student.project_id', $projectId);
+        }
+
+        $students = $query->get();
             
         foreach ($students as $student) {
             $hours = DB::table('student_work_logs')
@@ -80,9 +87,13 @@ class FinanceService
             $student->amount_paid = DB::table('student_payments')->where('project_student_id', $student->project_student_id)->sum('amount');
             $student->remaining_payable = max(0, $student->gross_amount - $student->amount_paid);
             
-            if ($student->gross_amount == 0) $student->status = 'Pending';
-            elseif ($student->remaining_payable == 0) $student->status = 'Paid';
-            else $student->status = 'Partially Paid';
+            if ($student->gross_amount == 0 || $student->amount_paid == 0) {
+                $student->status = 'Pending';
+            } elseif ($student->remaining_payable == 0) {
+                $student->status = 'Paid';
+            } else {
+                $student->status = 'Partially Paid';
+            }
         }
         
         return $students;
@@ -225,7 +236,16 @@ class FinanceService
             
             // Get paid
             $paid = DB::table('student_payments')->where('project_student_id', $student->project_student_id)->sum('amount');
-            $student->status = $paid >= $student->amount && $student->amount > 0 ? 'Paid' : ($student->amount > 0 ? 'Pending' : 'No Work');
+
+            if ($student->amount == 0) {
+                $student->status = 'No Work';
+            } elseif ($paid >= $student->amount) {
+                $student->status = 'Paid';
+            } elseif ($paid > 0) {
+                $student->status = 'Partially Paid';
+            } else {
+                $student->status = 'Pending';
+            }
         }
 
         // Fetch faculty via pivot

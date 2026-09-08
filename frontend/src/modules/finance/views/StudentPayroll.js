@@ -294,49 +294,6 @@ export async function StudentPayroll(route, router) {
         </div>
       </div>
 
-      <!-- Hourly Rate Manager -->
-      <div class="fin-panel" style="margin-bottom: 2rem;">
-        <div class="fin-panel-header">
-          <div>
-            <div class="fin-panel-title">Global Student Hourly Rate</div>
-            <div class="fin-panel-subtitle">Manage the base hourly rate applied to all student payrolls</div>
-          </div>
-        </div>
-        <div style="display:flex; gap:2rem; align-items:flex-start; padding:1.5rem;">
-          <div style="flex:1; max-width: 300px; background:#f8fafb; border:1px solid #e2e8f0; border-radius:8px; padding:1rem;">
-            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem">Current Base Rate</div>
-            <div style="font-size:2rem; font-weight:700; color:var(--primary); margin-bottom:1rem" id="current-rate-display">₹0</div>
-            <div class="fin-form-group" style="margin-bottom:0.5rem">
-              <label>Update Rate (₹)</label>
-              <input type="number" class="fin-input" id="new-rate-input" placeholder="New hourly rate" min="0" step="0.01" disabled>
-            </div>
-            <div style="display:flex; gap:0.5rem;">
-              <button class="fin-btn outline w-full" id="edit-rate-btn">Edit Rate</button>
-              <button class="fin-btn primary w-full" id="update-rate-btn" style="display:none;">Save Rate</button>
-            </div>
-          </div>
-          
-          <div style="flex:2;">
-            <div style="font-size:0.9rem; font-weight:600; margin-bottom:0.75rem">Rate History</div>
-            <div class="fin-table-wrap" style="max-height: 200px; overflow-y: auto;">
-              <table class="fin-table" style="font-size:0.85rem">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Old Rate</th>
-                    <th>New Rate</th>
-                    <th>Updated By</th>
-                  </tr>
-                </thead>
-                <tbody id="rate-history-tbody">
-                  <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Loading history...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
 
       <!-- Project-first picker -->
       <div class="fin-project-picker">
@@ -415,10 +372,18 @@ export async function StudentPayroll(route, router) {
           </div>
         </div>
       </div>
+      
+      <!-- Manage Hourly Rate Button at bottom (secondary priority) -->
+      <div style="margin-top: 1.5rem; text-align: center;">
+        <button id="manage-rate-btn" class="fin-btn outline">Manage Hourly Rate</button>
+      </div>
     `;
 
     const loadData = async () => {
       try {
+        // Fetch current rate from dedicated endpoint (not inferred from payroll data)
+        currentGlobalRate = await financeService.getStudentHourlyRate();
+
         payrollData = await financeService.getStudentPayroll();
         allProjects = await financeService.getProjectsList();
         
@@ -429,10 +394,6 @@ export async function StudentPayroll(route, router) {
         
         // Fetch and render rate history
         rateHistory = await financeService.getStudentHourlyRateHistory();
-        if (payrollData.length > 0) {
-           currentGlobalRate = payrollData[0].hourly_rate; // Or fetch separately if needed
-           container.querySelector('#current-rate-display').textContent = '₹' + currentGlobalRate;
-        }
         renderRateHistory();
 
       } catch (e) {
@@ -440,14 +401,12 @@ export async function StudentPayroll(route, router) {
       }
     };
 
-    const renderRateHistory = () => {
-      const tbody = container.querySelector('#rate-history-tbody');
-      if (!tbody) return;
-      if (rateHistory.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No history available.</td></tr>';
+    const renderRateHistory = (modalTbody) => {
+      if (!rateHistory.length) {
+        if(modalTbody) modalTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No history available</td></tr>';
         return;
       }
-      tbody.innerHTML = rateHistory.map(h => `
+      const html = rateHistory.map(h => `
         <tr>
           <td>${new Date(h.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td>
           <td>₹${h.old_rate}</td>
@@ -455,34 +414,85 @@ export async function StudentPayroll(route, router) {
           <td>${h.updated_by_name}</td>
         </tr>
       `).join('');
+      if(modalTbody) modalTbody.innerHTML = html;
     };
 
-    // Bind Edit Rate Button
-    container.querySelector('#edit-rate-btn')?.addEventListener('click', () => {
-      container.querySelector('#new-rate-input').disabled = false;
-      container.querySelector('#new-rate-input').focus();
-      container.querySelector('#edit-rate-btn').style.display = 'none';
-      container.querySelector('#update-rate-btn').style.display = 'block';
-    });
+    // Bind Manage Rate Button - opens a full modal
+    container.querySelector('#manage-rate-btn')?.addEventListener('click', () => {
+      const modal = document.createElement('div');
+      modal.className = 'fin-modal-overlay';
+      modal.innerHTML = `
+        <div class="fin-modal" style="max-width:600px; width:90%;">
+          <h3 style="margin:0 0 1rem">Manage Student Hourly Rate</h3>
+          
+          <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px;">
+              <div style="background:#f8fafb; border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem;">
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.25rem;">Current Rate</div>
+                <div style="font-size:1.5rem; font-weight:700; color:var(--primary);" id="modal-current-rate">₹${currentGlobalRate}/hour</div>
+              </div>
+              <div class="fin-form-group">
+                <label>New Rate (₹)</label>
+                <input type="number" class="fin-input" id="modal-new-rate" placeholder="Enter new rate" min="0" step="0.01" value="${currentGlobalRate}">
+              </div>
+              <button class="fin-btn primary w-full" id="modal-save-rate" style="margin-top:0.5rem">Save New Rate</button>
+            </div>
+            
+            <div style="flex:2; min-width:300px;">
+              <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.5rem">Rate Change History</div>
+              <div class="fin-table-wrap" style="max-height: 200px; overflow-y: auto;">
+                <table class="fin-table" style="font-size:0.8rem">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Old</th>
+                      <th>New</th>
+                      <th>By</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modal-rate-history-tbody">
+                    <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-top:1.5rem; text-align:right;">
+            <button class="fin-btn outline" id="modal-close-btn">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
 
-    // Bind Update Rate Button
-    container.querySelector('#update-rate-btn')?.addEventListener('click', async () => {
-      const newRateStr = container.querySelector('#new-rate-input').value;
-      const newRate = parseFloat(newRateStr);
-      if (isNaN(newRate) || newRate < 0) return alert('Enter a valid positive rate');
-      
-      const btn = container.querySelector('#update-rate-btn');
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
-      try {
-        await financeService.updateStudentHourlyRate({ new_rate: newRate });
-        alert('Global student hourly rate updated successfully!');
-        window.location.reload(); // Reload to refresh history and potentially payroll calculation
-      } catch (e) {
-        alert('Failed to update rate: ' + e.message);
-        btn.disabled = false;
-        btn.textContent = 'Update Rate';
-      }
+      const modalTbody = modal.querySelector('#modal-rate-history-tbody');
+      renderRateHistory(modalTbody);
+
+      modal.querySelector('#modal-close-btn').addEventListener('click', () => modal.remove());
+      modal.querySelector('#modal-save-rate').addEventListener('click', async () => {
+        const newRateStr = modal.querySelector('#modal-new-rate').value;
+        const newRate = parseFloat(newRateStr);
+        if (isNaN(newRate) || newRate < 0) { alert('Enter a valid positive rate'); return; }
+
+        const saveBtn = modal.querySelector('#modal-save-rate');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        try {
+          await financeService.updateStudentHourlyRate({ new_rate: newRate });
+          currentGlobalRate = newRate;
+          modal.querySelector('#modal-current-rate').textContent = '\u20b9' + newRate + '/hour';
+          
+          rateHistory = await financeService.getStudentHourlyRateHistory();
+          renderRateHistory(modalTbody);
+          
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save New Rate';
+        } catch (e) {
+          alert('Failed to update rate: ' + e.message);
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save New Rate';
+        }
+      });
     });
 
     const projectFilter = container.querySelector('#project-filter');

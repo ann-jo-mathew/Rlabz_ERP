@@ -3,6 +3,7 @@ class FinanceService {
     const token = localStorage.getItem('token');
     const headers = {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
     const response = await fetch(`http://127.0.0.1:8000/api${endpoint}`, { ...options, headers });
@@ -20,11 +21,12 @@ class FinanceService {
     return await this._fetch('/finance/dashboard') || { 
       totalBilling: 0, 
       totalCollected: 0, 
-      outstanding: 0, 
+      pendingFromClient: 0,
       totalPayroll: 0, 
       totalFaculty: 0, 
       totalOtherExpenses: 0, 
-      totalExpenses: 0 
+      totalExpenses: 0,
+      projectProfit: 0
     };
   }
 
@@ -36,8 +38,13 @@ class FinanceService {
     return this._fetch(`/finance/projects/${projectId}`);
   }
 
-  async getStudentPayroll() {
-    return await this._fetch('/finance/student-payments') || [];
+  async getStudentPayroll(projectId = null) {
+    const url = projectId ? `/finance/student-payments?project_id=${projectId}` : '/finance/student-payments';
+    return await this._fetch(url) || [];
+  }
+
+  async getStudentPayrollByProject(projectId) {
+    return this.getStudentPayroll(projectId);
   }
 
   async processPayroll(data) {
@@ -99,6 +106,11 @@ class FinanceService {
   async getProjectsList() {
     const res = await this._fetch('/finance/projects');
     return (res || []).map(p => ({id: p.id, name: p.title || p.name}));
+  }
+
+  async getStudentHourlyRate() {
+    const res = await this._fetch('/finance/student-hourly-rate');
+    return res ? (res.student_hourly_rate || 0) : 0;
   }
 
   async getStudentHourlyRateHistory() {

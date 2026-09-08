@@ -51,23 +51,23 @@ export async function FinancialReports(route, router) {
           <h3 style="margin:0 0 12px 0;font-size:15px;">Project Profitability Report</h3>
           <table class="fin-table">
             <thead><tr>
-              <th>Project</th><th>Billing</th><th>Collected</th><th>Outstanding</th><th>Expenses</th><th>Margin</th>
+              <th>Project</th><th>Billing</th><th>Collected</th><th>Pending from Client</th><th>Expenses</th><th>Project Profit</th>
             </tr></thead>
             <tbody>
               ${filtered.map(p => {
                 const pf = p.project_finance || {};
                 const billing = pf.total_invoiced || 0;
                 const collected = pf.total_collected || 0;
-                const outstanding = pf.pending_amount || 0;
+                const pending = pf.pending_amount || 0;
                 const expenses = pf.total_expenses || 0;
-                const margin = billing - expenses;
+                const profit = collected - expenses;
                 return `<tr>
                 <td><div style="font-weight:600">${p.title || p.name || 'Unknown'}</div><div style="font-size:0.75rem;color:var(--text-muted)">${p.client_name || '-'}</div></td>
                 <td style="font-weight:600">${fmt(billing)}</td>
                 <td style="color:var(--primary);font-weight:600">${fmt(collected)}</td>
-                <td style="color:#d97706;font-weight:600">${fmt(outstanding)}</td>
+                <td style="color:#d97706;font-weight:600">${fmt(pending)}</td>
                 <td style="color:#ef4444;font-weight:600">${fmt(expenses)}</td>
-                <td style="font-weight:700">${fmt(margin)}</td>
+                <td style="font-weight:700;color:${profit >= 0 ? 'var(--primary)' : '#ef4444'}">${fmt(profit)}</td>
               </tr>`;
               }).join('')}
             </tbody>
@@ -76,13 +76,26 @@ export async function FinancialReports(route, router) {
       }
     }
     else if (type === 'Payroll') {
-      const filtered = projectFilter === 'All' ? data.payroll : data.payroll.filter(p => p.projectId.toString() === projectFilter);
-      if (!filtered.length) { hasData = false; } else {
+      // Filter uses project_id (not projectId) - this is the correct field from backend
+      const filtered = projectFilter === 'All'
+        ? data.payroll
+        : data.payroll.filter(p => (p.project_id || '').toString() === projectFilter);
+
+      if (!filtered.length) {
+        hasData = false;
+        // Use project-specific empty state message
+        const noResults = container.querySelector('#no-report-results');
+        if (noResults) {
+          noResults.querySelector('p').textContent = projectFilter !== 'All'
+            ? 'No student payroll records found for this project.'
+            : 'No payroll records found.';
+        }
+      } else {
         html = `
           <h3 style="margin:0 0 12px 0;font-size:15px;">Student Payroll Report</h3>
           <table class="fin-table">
             <thead><tr>
-              <th>Student</th><th>Designation</th><th>Project</th><th>Logged Hrs</th><th>Approved Hrs</th><th>Rate</th><th>Amount</th><th>Status</th>
+              <th>Student</th><th>Designation</th><th>Project</th><th>Approved Hrs</th><th>Rate</th><th>Gross Amount</th><th>Amount Paid</th><th>Status</th>
             </tr></thead>
             <tbody>
               ${filtered.map(pr => {
@@ -91,10 +104,10 @@ export async function FinancialReports(route, router) {
                   <td><div style="font-weight:600">${pr.student_name || 'Student'}</div><div style="font-size:0.75rem;color:var(--text-muted)">ID:${pr.project_student_id || pr.id}</div></td>
                   <td><span class="fin-badge ${dc}">${pr.designation || 'None'}</span></td>
                   <td>${pr.project_name || '-'}</td>
-                  <td style="color:var(--text-muted)">${pr.approved_hours || 0}h</td>
                   <td style="font-weight:600">${pr.approved_hours || 0}h</td>
                   <td style="font-size:0.82rem">₹${pr.hourly_rate || 0}/hr</td>
                   <td style="font-weight:700">${fmt(pr.gross_amount || 0)}</td>
+                  <td style="color:var(--primary);font-weight:600">${fmt(pr.amount_paid || 0)}</td>
                   <td><span class="fin-badge ${pr.status === 'Paid' ? 'success' : 'warning'}">${pr.status || 'Pending'}</span></td>
                 </tr>`;
               }).join('')}

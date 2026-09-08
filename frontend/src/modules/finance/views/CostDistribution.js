@@ -21,6 +21,13 @@ export async function CostDistribution(route, router) {
         <div class="fin-panel-title">Project Allocations</div>
         <div id="results-count" style="font-size:0.8rem;color:var(--text-muted)"></div>
       </div>
+      <div class="fin-filters" style="padding:1.5rem; border-bottom:1px solid #e2e8f0; display:flex; gap:1rem;">
+        <input type="text" class="fin-input" id="search-filter" placeholder="Search project or client..." style="max-width:300px;">
+        <select class="fin-input" id="project-filter" style="max-width:250px;">
+          <option value="All">All Projects</option>
+        </select>
+        <button id="clear-filters-btn" class="fin-btn outline">Clear Filters</button>
+      </div>
       <div class="fin-table-wrap">
         <table class="fin-table">
           <thead>
@@ -42,23 +49,37 @@ export async function CostDistribution(route, router) {
     </div>
   `;
 
-  async function loadData() {
-    try {
-      const projects = await financeService.getProjectFinances();
+    let allProjectsData = [];
+
+    const renderTable = () => {
       const tbody = container.querySelector('#cost-tbody');
       const noResults = container.querySelector('#no-results');
       const countEl = container.querySelector('#results-count');
+      
+      const searchTxt = (container.querySelector('#search-filter').value || '').toLowerCase();
+      const projFilter = container.querySelector('#project-filter').value;
 
-      if (!projects || projects.length === 0) {
+      const filtered = allProjectsData.filter(p => {
+        if (projFilter !== 'All' && p.id.toString() !== projFilter) return false;
+        if (searchTxt) {
+          const matchTitle = (p.title || '').toLowerCase().includes(searchTxt);
+          const matchClient = (p.client_name || '').toLowerCase().includes(searchTxt);
+          if (!matchTitle && !matchClient) return false;
+        }
+        return true;
+      });
+
+      if (!filtered || filtered.length === 0) {
         noResults.style.display = 'block';
         countEl.textContent = '0 projects';
+        tbody.innerHTML = '';
         return;
       }
 
-      countEl.textContent = `${projects.length} projects`;
+      countEl.textContent = `${filtered.length} projects`;
       noResults.style.display = 'none';
 
-      tbody.innerHTML = projects.map(p => {
+      tbody.innerHTML = filtered.map(p => {
         const finance = p.project_finance || {};
         const allocations = finance.development_allocations || [];
 
@@ -200,7 +221,27 @@ export async function CostDistribution(route, router) {
           });
         });
       });
+    };
 
+    container.querySelector('#search-filter').addEventListener('input', renderTable);
+    container.querySelector('#project-filter').addEventListener('change', renderTable);
+    container.querySelector('#clear-filters-btn').addEventListener('click', () => {
+      container.querySelector('#search-filter').value = '';
+      container.querySelector('#project-filter').value = 'All';
+      renderTable();
+    });
+
+  async function loadData() {
+    try {
+      allProjectsData = await financeService.getProjectFinances();
+      
+      const pSelect = container.querySelector('#project-filter');
+      const currentSelection = pSelect.value;
+      pSelect.innerHTML = '<option value="All">All Projects</option>' + 
+        allProjectsData.map(p => `<option value="${p.id}">${p.title || p.name}</option>`).join('');
+      pSelect.value = currentSelection || 'All';
+      
+      renderTable();
     } catch (err) {
       console.error('Failed to load cost distribution:', err);
       container.querySelector('#cost-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1.5rem">Failed to load data</td></tr>';

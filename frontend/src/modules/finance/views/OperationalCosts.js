@@ -304,6 +304,11 @@ export async function OperationalCosts(route, router) {
         return;
       }
 
+      const confirmBtn = modal.querySelector('#confirm-rr');
+      const originalText = confirmBtn.textContent;
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Saving...';
+
       try {
         if (isRenewal && hcid) {
             await financeService.renewSsl(hcid, {
@@ -327,6 +332,8 @@ export async function OperationalCosts(route, router) {
         loadData();
       } catch (err) {
         alert('Failed to save resource record: ' + err.message);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = originalText;
       }
     });
   };

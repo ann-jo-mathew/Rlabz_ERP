@@ -2,7 +2,7 @@ import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
 import '../finance.css';
 
-// ── Chart.js loader (Local if possible, otherwise we fallback to CDN for charts only, not PDFs. Wait, I should assume Chart is available globally from main app, or load it.)
+// â”€â”€ Chart.js loader (Local if possible, otherwise we fallback to CDN for charts only, not PDFs. Wait, I should assume Chart is available globally from main app, or load it.)
 // For this rewrite, we will load Chart.js via CDN as it's already how it was done, the user only complained about CDN for PDF.
 // "The current implementation plan mentioned loading html2pdf.js through a CDN. Do NOT use a CDN for Finance PDF generation."
 function loadChartJs() {
@@ -40,10 +40,8 @@ export async function FinanceDashboard(route, router) {
   // Build project rows (Top 3 for dashboard)
   const projectRows = (projects || []).slice(0, 3).map(p => {
     const pf = p.project_finance || {};
-    // Calculate total invoiced and total collected manually here or use backend accessors
-    // We'll approximate based on what we have, or assume backend appends it.
-    // For now let's safely default to 0 if not provided.
-    const totalBilling = pf.total_development_amount || p.estimated_cost || p.budget || 0;
+    // Total Billing = SUM of invoice grand totals (the single source of truth)
+    const totalBilling = pf.total_invoiced || 0;
     const collected = pf.total_collected || 0;
     const pct = totalBilling > 0 ? Math.round((collected / totalBilling) * 100) : 0;
     
@@ -54,7 +52,7 @@ export async function FinanceDashboard(route, router) {
           <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">PROJ-${p.id}</div>
         </td>
         <td><span class="fin-badge ${p.status === 'completed' || p.status === 'closed' ? 'success' : 'info'}">${p.status || 'Active'}</span></td>
-        <td>${fmt(p.budget || p.estimated_cost || 0)}</td>
+        <td>${fmt(p.budget || 0)}</td>
         <td style="font-weight:700">${fmt(totalBilling)}</td>
         <td>
           <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:3px">${pct}% collected</div>
@@ -120,17 +118,17 @@ export async function FinanceDashboard(route, router) {
       <div class="fin-kpi-card teal">
         <div class="kpi-label">Collected</div>
         <div class="kpi-value">${fmt(summary.totalCollected)}</div>
-        <div class="kpi-sub">${recvPct}% collected | Pending: ${fmt(summary.pendingFromClient || 0)}</div>
+        <div class="kpi-sub">${recvPct}% collected</div>
+      </div>
+      <div class="fin-kpi-card warning">
+        <div class="kpi-label">Pending from Client</div>
+        <div class="kpi-value">${fmt(summary.pendingFromClient || 0)}</div>
+        <div class="kpi-sub">Total Billing - Collected</div>
       </div>
       <div class="fin-kpi-card danger">
         <div class="kpi-label">Total Expenses</div>
         <div class="kpi-value">${fmt(summary.totalExpenses)}</div>
         <div class="kpi-sub">Actual expenses recorded</div>
-      </div>
-      <div class="fin-kpi-card indigo">
-        <div class="kpi-label">Project Profit</div>
-        <div class="kpi-value">${fmt(summary.projectProfit || 0)}</div>
-        <div class="kpi-sub">Collected - Expenses</div>
       </div>
     </div>
 
@@ -163,6 +161,11 @@ export async function FinanceDashboard(route, router) {
             <span class="leg-label">Hosting & Other Costs</span>
             <span class="leg-pct">${fmt(summary.totalOtherExpenses)}</span>
           </div>
+          <div class="fin-legend-item">
+            <span class="fin-legend-dot" style="background:#f59e0b"></span>
+            <span class="leg-label">Maintenance &amp; Support</span>
+            <span class="leg-pct">${fmt(summary.totalMaintenance || 0)}</span>
+          </div>
         </div>
       </div>
 
@@ -174,8 +177,15 @@ export async function FinanceDashboard(route, router) {
             <div class="fin-panel-subtitle">Received vs Pending from Client</div>
           </div>
         </div>
-        <div class="fin-chart-wrap">
+        <div class="fin-chart-wrap" style="flex: 1;">
           <canvas id="bar-chart" height="220"></canvas>
+        </div>
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size:0.85rem; color:var(--text-muted); font-weight: 600;">Overall Project Profit</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Collected - Total Expenses</div>
+            </div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--indigo, #4f46e5);">${fmt(summary.projectProfit || 0)}</div>
         </div>
       </div>
     </div>
@@ -195,7 +205,7 @@ export async function FinanceDashboard(route, router) {
             <tr>
               <th>Project</th>
               <th>Status</th>
-              <th>Est. Cost</th>
+      <th>Est. Cost</th>
               <th>Total Billing</th>
               <th>Collection</th>
               <th>Action</th>
@@ -209,7 +219,7 @@ export async function FinanceDashboard(route, router) {
     </div>
   `;
 
-  // ── Event Listeners ─────────────────────────────────────────
+  // â”€â”€ Event Listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   container.querySelectorAll('a[data-link]').forEach(a => {
     a.addEventListener('click', e => { e.preventDefault(); router.push(a.getAttribute('href')); });
   });
@@ -218,7 +228,7 @@ export async function FinanceDashboard(route, router) {
     btn.addEventListener('click', () => router.push(`/finance/projects/${btn.dataset.id}`));
   });
 
-  // ── Charts ─────────────────────────────────────────────────
+  // â”€â”€ Charts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const Chart = await loadChartJs();
 
   const COLORS = {
@@ -244,10 +254,10 @@ export async function FinanceDashboard(route, router) {
   new Chart(container.querySelector('#donut-chart'), {
     type: 'doughnut',
     data: {
-      labels: ['Student Payroll', 'Faculty/Resource', 'Hosting & Other'],
+      labels: ['Student Payroll', 'Faculty/Resource', 'Hosting & Other', 'Maintenance & Support'],
       datasets: [{
-        data: [summary.totalPayroll, summary.totalFaculty, summary.totalOtherExpenses],
-        backgroundColor: [COLORS.primary, COLORS.teal, COLORS.indigo],
+        data: [summary.totalPayroll, summary.totalFaculty, summary.totalOtherExpenses, summary.totalMaintenance || 0],
+        backgroundColor: [COLORS.primary, COLORS.teal, COLORS.indigo, '#f59e0b'],
         borderWidth: 2,
         borderColor: '#ffffff',
         hoverOffset: 8,
@@ -264,7 +274,7 @@ export async function FinanceDashboard(route, router) {
               const v = ctx.raw;
               const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
               const pct = total > 0 ? ((v / total) * 100).toFixed(1) : 0;
-              return `  ${ctx.label}: ₹${v.toLocaleString('en-IN')} (${pct}%)`;
+              return `  ${ctx.label}: â‚¹${v.toLocaleString('en-IN')} (${pct}%)`;
             },
           },
         },
@@ -276,7 +286,7 @@ export async function FinanceDashboard(route, router) {
   // Bar chart (Collections)
   const projLabels   = (projects || []).map(p => {
       const name = p.title || p.name || 'Project';
-      return name.length > 18 ? name.slice(0, 18) + '…' : name;
+      return name.length > 18 ? name.slice(0, 18) + 'â€¦' : name;
   });
   const projReceived = (projects || []).map(p => (p.project_finance?.total_collected || 0));
   const projPending  = (projects || []).map(p => (p.project_finance?.pending_amount || p.budget || 0));
@@ -297,7 +307,7 @@ export async function FinanceDashboard(route, router) {
         legend: { position: 'top', labels: { color: COLORS.text, font: { family: 'Plus Jakarta Sans', size: 12 } } },
         tooltip: {
           ...tooltipDefaults,
-          callbacks: { label: ctx => `  ${ctx.dataset.label}: ₹${ctx.raw.toLocaleString('en-IN')}` },
+          callbacks: { label: ctx => `  ${ctx.dataset.label}: â‚¹${ctx.raw.toLocaleString('en-IN')}` },
         },
       },
       scales: {
@@ -305,7 +315,7 @@ export async function FinanceDashboard(route, router) {
         y: {
           stacked: true,
           grid: { color: COLORS.grid },
-          ticks: { color: COLORS.text, callback: v => '₹' + (v / 1000) + 'K' },
+          ticks: { color: COLORS.text, callback: v => 'â‚¹' + (v / 1000) + 'K' },
         },
       },
       animation: { duration: 900 },
