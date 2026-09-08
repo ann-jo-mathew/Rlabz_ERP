@@ -13,6 +13,12 @@ class ProjectController extends Controller
     private function checkPermission(Request $request, $permission)
     {
         $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
+
+        if (in_array($permission, ['project.create', 'project.close']) && in_array($role, ['director', 'coordinator'])) {
+            return;
+        }
+
         $permissions = $user['permissions'] ?? [];
         if (!in_array($permission, $permissions)) {
             abort(403, 'Forbidden: Missing permission ' . $permission);
@@ -59,7 +65,7 @@ class ProjectController extends Controller
         $user = $request->input('auth_user');
         $permissions = $user['permissions'] ?? [];
         
-        $project = Project::with(['faculty', 'students', 'modules.tasks'])->find($id);
+        $project = Project::with(['faculty', 'students.studentProfile', 'modules.tasks'])->find($id);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }

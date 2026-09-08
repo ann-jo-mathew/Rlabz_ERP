@@ -85,31 +85,62 @@ class FinanceController extends Controller
         return response()->json(['message' => 'Allocations updated successfully']);
     }
 
-    // Mock endpoints for recording payments (Frontend validation/testing only)
     public function recordClientPayment(Request $request)
     {
-        // For now, this is a mock endpoint that just returns success
+        $validated = $request->validate([
+            'invoice_id' => 'required|exists:invoices,id',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'payment_method' => 'nullable|string',
+            'payment_reference' => 'nullable|string',
+            'remarks' => 'nullable|string'
+        ]);
+        
+        $validated['recorded_by'] = auth()->id() ?? 1;
+
+        $payment = \Modules\Finance\Models\ClientPayment::create($validated);
+
         return response()->json([
-            'message' => 'Payment recorded successfully (Mock)',
-            'data' => $request->all()
+            'message' => 'Payment recorded successfully',
+            'data' => $payment
         ]);
     }
 
     public function recordStudentPayment(Request $request, $id)
     {
-        // For now, this is a mock endpoint that just returns success
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'designation' => 'nullable|string',
+            'approved_hours' => 'nullable|numeric',
+            'hourly_rate' => 'nullable|numeric'
+        ]);
+        
+        $validated['project_student_id'] = $id;
+
+        $payment = \Modules\Finance\Models\StudentPayment::create($validated);
+
         return response()->json([
-            'message' => 'Student payment processed successfully (Mock)',
-            'data' => $request->all(),
+            'message' => 'Student payment processed successfully',
+            'data' => $payment,
             'id' => $id
         ]);
     }
 
     public function recordFacultyPayment(Request $request)
     {
+        $validated = $request->validate([
+            'project_faculty_id' => 'required|exists:project_faculty,id',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'status' => 'nullable|string'
+        ]);
+
+        $payment = \Modules\Finance\Models\FacultyPayment::create($validated);
+
         return response()->json([
-            'message' => 'Faculty payment processed successfully (Mock)',
-            'data' => $request->all()
+            'message' => 'Faculty payment processed successfully',
+            'data' => $payment
         ]);
     }
 }

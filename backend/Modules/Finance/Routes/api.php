@@ -13,7 +13,10 @@ Route::group(['prefix' => 'finance', 'middleware' => ['auth.jwt']], function () 
     // Payments
     Route::post('/client-payments', [PaymentController::class, 'recordClientPayment']); 
     Route::post('/student-payments', [PaymentController::class, 'recordStudentPayment']); 
-    Route::post('/faculty-payments', [PaymentController::class, 'recordFacultyPayment']); 
+    Route::post('/faculty-payments', [PaymentController::class, 'recordFacultyPayment']);
+    Route::post('/hosting-charges', [PaymentController::class, 'recordHostingCharge']);
+    Route::post('/maintenance-charges', [PaymentController::class, 'recordMaintenanceCharge']);
+    Route::post('/invoices', [PaymentController::class, 'createInvoice']);
 
     Route::get('/student-payments', [FinanceController::class, 'getStudentPayments']);
     Route::get('/faculty-payments', [FinanceController::class, 'getFacultyPayments']);

@@ -56,4 +56,22 @@ class ProjectFinance extends Model
     {
         return max(0, $this->total_invoiced - $this->total_collected);
     }
+
+    public function getTotalExpensesAttribute()
+    {
+        $hosting = $this->hostingCharges->sum('amount');
+        $maintenance = $this->maintenanceSupportCharges->sum('amount');
+        
+        $student = \DB::table('student_payments')
+            ->join('project_student', 'student_payments.project_student_id', '=', 'project_student.id')
+            ->where('project_student.project_id', $this->project_id)
+            ->sum('student_payments.amount');
+
+        $faculty = \DB::table('faculty_payments')
+            ->join('project_faculty', 'faculty_payments.project_faculty_id', '=', 'project_faculty.id')
+            ->where('project_faculty.project_id', $this->project_id)
+            ->sum('faculty_payments.amount');
+
+        return $hosting + $maintenance + $student + $faculty;
+    }
 }

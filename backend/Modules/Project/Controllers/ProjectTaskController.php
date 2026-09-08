@@ -14,6 +14,16 @@ class ProjectTaskController extends Controller
     private function checkPermission(Request $request, $permission)
     {
         $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
+        
+        // Allow role-based bypass for specific permissions
+        if (in_array($permission, ['project.module.create', 'project.task.create']) && in_array($role, ['coordinator', 'faculty'])) {
+            return;
+        }
+        if ($permission === 'project.task.update' && in_array($role, ['coordinator', 'faculty', 'student'])) {
+            return;
+        }
+
         $permissions = $user['permissions'] ?? [];
         if (!in_array($permission, $permissions)) {
             abort(403, 'Forbidden: Missing permission ' . $permission);
@@ -46,6 +56,11 @@ class ProjectTaskController extends Controller
             }
         }
 
+        $project = DB::table('projects')->where('id', $projectId)->first();
+        if ($project && strtolower($project->status ?? '') === 'closed') {
+            return response()->json(['error' => 'Cannot create module. This project is closed.'], 422);
+        }
+
         $module = Module::create([
             'project_id' => $projectId,
             'module_name' => $request->name,
@@ -66,6 +81,16 @@ class ProjectTaskController extends Controller
             'description' => 'nullable|string',
             'priority' => 'string'
         ]);
+
+        $module = Module::find($moduleId);
+        if (!$module) {
+            return response()->json(['error' => 'Module not found'], 404);
+        }
+
+        $project = DB::table('projects')->where('id', $module->project_id)->first();
+        if ($project && strtolower($project->status ?? '') === 'closed') {
+            return response()->json(['error' => 'Cannot create task. This project is closed.'], 422);
+        }
 
         $userId = $this->getUserId($request);
 

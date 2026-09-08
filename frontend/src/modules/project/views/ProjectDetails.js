@@ -12,15 +12,21 @@ export async function ProjectDetails(route, router) {
   const canViewAssignments = role === 'director' || role === 'coordinator';
 
   container.innerHTML = `
-    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-      <div>
-        <h1 id="project-title" style="font-size: 2rem; margin-bottom: 0.5rem;">Loading Project...</h1>
-        <p style="color: var(--text-muted);">View detailed project information and manage assignments.</p>
-      </div>
-      <div>
-        ${permissions.includes('project.close') ? '<button class="btn btn-warning shadow-hover" id="btn-close-project" style="display:none; margin-right: 0.75rem;"><i class="fa fa-times-circle" style="margin-right: 0.5rem;"></i>Close Project</button>' : ''}
-        <button class="btn btn-outline" id="btn-back"><i class="fa fa-arrow-left" style="margin-right: 0.5rem;"></i>Back</button>
-      </div>
+    <!-- Top Navigation Bar -->
+    <div style="margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+      <button class="btn-back-nav" id="btn-back" title="Return to Projects">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Projects</span>
+      </button>
+      ${permissions.includes('project.close') ? '<button class="btn btn-warning shadow-hover btn-sm" id="btn-close-project" style="display:none;"><i class="fa fa-times-circle" style="margin-right: 0.5rem;"></i>Close Project</button>' : ''}
+    </div>
+
+    <div class="page-header" style="margin-bottom: 1.5rem;">
+      <h1 id="project-title" style="font-size: 1.85rem; font-weight: 700; margin-bottom: 0.35rem; color: var(--text-main);">Loading Project...</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">View detailed project information and manage assignments.</p>
     </div>
     
     <div class="project-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem; overflow-x: auto; padding-bottom: 0.5rem;">
@@ -52,7 +58,7 @@ export async function ProjectDetails(route, router) {
             </div>
             <div>
               <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Budget</span>
-              <strong style="font-size: 1.1rem; color: var(--text-main);">$<span id="val-budget"></span></strong>
+              <strong style="font-size: 1.1rem; color: var(--text-main);">₹<span id="val-budget"></span></strong>
             </div>
             <div>
               <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.25rem;">Start Date</span>
@@ -64,6 +70,11 @@ export async function ProjectDetails(route, router) {
             </div>
           </div>
           <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.75rem;">Assigned Students &amp; Designation</span>
+            <div id="project-info-students-list" style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+            </div>
+          </div>
+          <div style="margin-top: 1.75rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
             <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Description</span>
             <p id="val-desc" style="font-size: 1rem; color: var(--text-main); line-height: 1.6;"></p>
           </div>
@@ -102,7 +113,7 @@ export async function ProjectDetails(route, router) {
         <div class="card-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 0;">Modules & Tasks</h3>
-            ${permissions.includes('project.module.create') ? `
+            ${(permissions.includes('project.module.create') || role === 'faculty' || role === 'coordinator') ? `
               <button id="btn-add-module" class="btn btn-sm btn-primary shadow-hover" style="width: max-content; padding: 0.5rem 1.5rem;"><i class="fa fa-plus"></i> Add Module</button>
             ` : ''}
           </div>
@@ -259,7 +270,11 @@ export async function ProjectDetails(route, router) {
 
       if (data.status === 'success' && data.data) {
         const p = data.data;
-        container.querySelector('#project-title').textContent = p.title || 'Project Details';
+        const cleanedTitle = (p.title || 'Project Details')
+          .replace(/\s*[-–—]\s*Student Portal/gi, '')
+          .replace(/Student Portal/gi, '')
+          .trim();
+        container.querySelector('#project-title').textContent = cleanedTitle || 'Project Details';
         container.querySelector('#val-type').textContent = p.project_type || 'N/A';
         container.querySelector('#val-client').textContent = p.client_name || 'N/A';
         const statusSpan = container.querySelector('#val-status');
@@ -271,6 +286,37 @@ export async function ProjectDetails(route, router) {
         container.querySelector('#val-desc').textContent = p.description || 'No description provided.';
 
         container.querySelector('#project-info').style.display = 'block';
+
+        // Render Assigned Students in Overview Tab
+        const students = p.students || [];
+
+        const infoStudentsList = container.querySelector('#project-info-students-list');
+        if (infoStudentsList) {
+          if (students.length > 0) {
+            infoStudentsList.innerHTML = students.map(s => {
+              const rawDesig = (s.student_profile && s.student_profile.designation)
+                ? s.student_profile.designation
+                : ((s.studentProfile && s.studentProfile.designation)
+                  ? s.studentProfile.designation
+                  : ((s.pivot && s.pivot.role) ? s.pivot.role : (s.designation || 'Student')));
+              const designation = rawDesig.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+              const roleText = (s.pivot && s.pivot.role) ? s.pivot.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
+              return `
+                <div style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(5, 150, 105, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;">
+                    ${(s.name || 'S').charAt(0).toUpperCase()}
+                  </div>
+                  <strong style="font-size: 0.9rem; color: var(--text-main);">${s.name}</strong>
+                  <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">${designation}</span>
+                  ${roleText && roleText.toLowerCase() !== designation.toLowerCase() ? `<span style="font-size: 0.78rem; color: var(--text-muted);">(${roleText})</span>` : ''}
+                </div>
+              `;
+            }).join('');
+          } else {
+            infoStudentsList.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem; font-style: italic;">No students assigned yet.</span>';
+          }
+        }
+
 
         // Render current assignments
         if (canViewAssignments) {
@@ -302,15 +348,25 @@ export async function ProjectDetails(route, router) {
               tabAssignments.appendChild(studentList);
             }
             const sListContainer = studentList.querySelector('.list-container');
-            sListContainer.innerHTML = (p.students && p.students.length > 0) ? p.students.map(s => `
+            sListContainer.innerHTML = (students.length > 0) ? students.map(s => {
+              const rawDesig = (s.student_profile && s.student_profile.designation)
+                ? s.student_profile.designation
+                : ((s.studentProfile && s.studentProfile.designation)
+                  ? s.studentProfile.designation
+                  : ((s.pivot && s.pivot.role) ? s.pivot.role : (s.designation || 'Student')));
+              const designation = rawDesig.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+              const roleText = (s.pivot && s.pivot.role) ? s.pivot.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
+              return `
               <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px;">
-                <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
                   <strong>${s.name}</strong> 
-                  <span class="status-badge" style="margin-left: 0.5rem; font-size: 0.75rem;">${(s.pivot.role || 'Member').replace('_', ' ')}</span>
+                  <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">${designation}</span>
+                  ${roleText && roleText.toLowerCase() !== designation.toLowerCase() ? `<span style="font-size: 0.8rem; color: var(--text-muted);">(${roleText})</span>` : ''}
                 </div>
-                <span style="font-size: 0.85rem; color: var(--text-muted);">Assigned: ${s.pivot.assigned_date || 'N/A'}</span>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Assigned: ${s.pivot ? (s.pivot.assigned_date || 'N/A') : 'N/A'}</span>
               </div>
-            `).join('') : '<p style="color:var(--text-muted);">No students assigned yet.</p>';
+            `;
+            }).join('') : '<p style="color:var(--text-muted);">No students assigned yet.</p>';
           }
         }
 
@@ -325,7 +381,7 @@ export async function ProjectDetails(route, router) {
                     <h4 style="margin: 0; font-size: 1.15rem; font-weight: 700;">${m.module_name || m.name || 'Untitled Module'}</h4>
                     <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">${m.description || ''}</p>
                   </div>
-                  ${permissions.includes('project.task.create') ? `<button class="btn btn-sm btn-outline btn-add-task" data-module-id="${m.id}" style="padding: 0.4rem 1rem;"><i class="fa fa-plus"></i> Task</button>` : ''}
+                  ${(permissions.includes('project.task.create') || role === 'faculty' || role === 'coordinator') ? `<button class="btn btn-sm btn-outline btn-add-task" data-module-id="${m.id}" style="padding: 0.4rem 1rem;"><i class="fa fa-plus"></i> Task</button>` : ''}
                 </div>
                 
                 <div class="tasks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -337,7 +393,7 @@ export async function ProjectDetails(route, router) {
                       </div>
                       <div style="display: flex; align-items: center; gap: 1rem;">
                         <span class="status-badge ${t.status}">${t.status.replace('_', ' ').toUpperCase()}</span>
-                        ${permissions.includes('project.task.update') ? `
+                        ${(permissions.includes('project.task.update') || role === 'faculty' || role === 'coordinator' || role === 'student') ? `
                           <select class="premium-input task-status-select" data-task-id="${t.id}" style="padding: 0.3rem 0.6rem; width: auto; font-size: 0.85rem; background-color: #ffffff;">
                             <option value="todo" ${t.status === 'todo' ? 'selected' : ''}>To Do</option>
                             <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
@@ -492,22 +548,26 @@ export async function ProjectDetails(route, router) {
 
       if (data.status === 'success') {
         const reqs = data.data;
-        if (reqs.length === 0) {
+        if (!reqs || reqs.length === 0) {
           list.innerHTML = '<p style="color:var(--text-muted);">No requirements documented yet.</p>';
         } else {
-          list.innerHTML = reqs.map(r => `
-            <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-surface);">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                <h4 style="margin: 0;">${r.title}</h4>
-                <span class="status-badge ${r.status}">${r.status || 'new'}</span>
+          list.innerHTML = reqs.map((r, idx) => `
+            <div style="padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 1rem;">
+                <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-main); font-weight: 600;">${r.title || ('Requirement #' + (idx + 1))}</h4>
+                <span class="status-badge ${r.status || 'new'}">${(r.status || 'new').toUpperCase()}</span>
               </div>
-              <p style="margin: 0; color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">${r.description}</p>
-              <div style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);">
-                Added: ${new Date(r.created_at).toLocaleDateString()}
-              </div>
+              <div style="margin: 0; color: var(--text-main); font-size: 0.95rem; line-height: 1.6; white-space: pre-line;">${r.description || 'No description provided.'}</div>
+              ${r.created_at ? `
+                <div style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);">
+                  Added: ${new Date(r.created_at).toLocaleDateString()}
+                </div>
+              ` : ''}
             </div>
           `).join('');
         }
+      } else {
+        list.innerHTML = `<p style="color:red;">Error: ${data.message || data.error || 'Failed to load requirements'}</p>`;
       }
     } catch (err) {
       console.error(err);
@@ -618,9 +678,9 @@ export async function ProjectDetails(route, router) {
       const data = await response.json();
 
       if (response.ok && data && !data.error) {
-        totalEl.textContent = `$${data.total_amount || 0}`;
-        recEl.textContent = `$${data.payments_received || 0}`;
-        remEl.textContent = `$${data.amount_remaining || 0}`;
+        totalEl.textContent = `₹${data.total_amount || 0}`;
+        recEl.textContent = `₹${data.payments_received || 0}`;
+        remEl.textContent = `₹${data.amount_remaining || 0}`;
 
         if (data.payments && data.payments.length > 0) {
           list.innerHTML = data.payments.map(p => `
@@ -630,7 +690,7 @@ export async function ProjectDetails(route, router) {
                 <span style="display: block; font-size: 0.85rem; color: var(--text-muted);">${p.date || ''}</span>
               </div>
               <div style="text-align: right;">
-                <strong style="display: block; font-size: 1.1rem; color: ${p.status === 'Confirmed' ? '#10b981' : 'var(--text-main)'};">$${p.amount}</strong>
+                <strong style="display: block; font-size: 1.1rem; color: ${p.status === 'Confirmed' ? '#10b981' : 'var(--text-main)'};">₹${p.amount}</strong>
                 <span class="status-badge ${p.status ? p.status.toLowerCase() : 'pending'}" style="font-size: 0.75rem;">${p.status || 'Pending'}</span>
               </div>
             </div>

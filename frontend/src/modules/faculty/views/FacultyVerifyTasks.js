@@ -190,7 +190,8 @@ export function FacultyVerifyTasks() {
 
         const project = projectDetail.project || {};
         const workLogs = projectDetail.work_logs || [];
-        const projectTitle = project.title || 'Project Details';
+        const rawTitle = project.title || 'Project Details';
+        const projectTitle = rawTitle.replace(/\s*[-–—]\s*Student Portal/gi, '').replace(/Student Portal/gi, '').trim() || 'Project Details';
         const clientName = project.client_name || 'Rajagiri College';
         const projectType = project.project_type || 'Web App';
         const status = (project.status || 'in_progress').toLowerCase();
@@ -215,8 +216,12 @@ export function FacultyVerifyTasks() {
         container.innerHTML = `
             <!-- Top Back Button -->
             <div style="margin-bottom: 1.25rem;">
-                <button id="btn-back-to-projects" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                    ${iconArrowLeft} Back to Assigned Projects
+                <button id="btn-back-to-projects" class="btn-back-nav" title="Return to Projects">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Back to Assigned Projects</span>
                 </button>
             </div>
 
@@ -377,10 +382,13 @@ export function FacultyVerifyTasks() {
 
                                         <!-- Action Buttons -->
                                         <td style="padding: 1.1rem 1.25rem; vertical-align: top; text-align: right;">
-                                            <div style="display: flex; justify-content: flex-end; gap: 0.4rem; flex-wrap: wrap;">
+                                            <div style="display: flex; justify-content: flex-end; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
                                                 ${isApproved ? `
-                                                    <button class="btn btn-sm btn-outline btn-approve-log" data-id="${l.id}" data-status="rejected" title="Reject Log" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; color: #dc2626; border-color: #fca5a5;">
-                                                        Reject
+                                                    <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: #059669; font-weight: 600; padding: 0.25rem 0.5rem; background: #ecfdf5; border-radius: 6px; border: 1px solid #a7f3d0;">
+                                                        ${iconCheckCircle} Verified
+                                                    </span>
+                                                    <button class="btn btn-sm btn-outline btn-open-feedback-modal" data-task-id="${l.task_id || ''}" data-task-title="${(taskTitle || '').replace(/"/g, '&quot;')}" data-student-id="${l.student_id || ''}" data-student-name="${(studentName || '').replace(/"/g, '&quot;')}" title="Add Feedback for Student" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.7rem; font-size: 0.8rem; color: #2563eb; border-color: #93c5fd;">
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Feedback
                                                     </button>
                                                 ` : `
                                                     <button class="btn btn-sm btn-primary shadow-hover btn-approve-log" data-id="${l.id}" data-status="approved" title="Approve Work Log & Complete Task" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.8rem; font-size: 0.82rem;">
@@ -388,6 +396,9 @@ export function FacultyVerifyTasks() {
                                                     </button>
                                                     <button class="btn btn-sm btn-outline btn-approve-log" data-id="${l.id}" data-status="rejected" title="Reject Log" style="padding: 0.4rem 0.65rem; font-size: 0.8rem; color: #dc2626; border-color: #fca5a5;">
                                                         Reject
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline btn-open-feedback-modal" data-task-id="${l.task_id || ''}" data-task-title="${(taskTitle || '').replace(/"/g, '&quot;')}" data-student-id="${l.student_id || ''}" data-student-name="${(studentName || '').replace(/"/g, '&quot;')}" title="Add Feedback for Student" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.7rem; font-size: 0.8rem; color: #2563eb; border-color: #93c5fd;">
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Feedback
                                                     </button>
                                                 `}
                                             </div>
@@ -437,6 +448,113 @@ export function FacultyVerifyTasks() {
                 await handleApproveWorkLog(logId, targetStatus, btn);
             });
         });
+
+        // Feedback modal actions
+        container.querySelectorAll('.btn-open-feedback-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sId = parseInt(btn.getAttribute('data-student-id'));
+                const sName = btn.getAttribute('data-student-name') || 'Student';
+                const tId = btn.getAttribute('data-task-id') ? parseInt(btn.getAttribute('data-task-id')) : null;
+                const tTitle = btn.getAttribute('data-task-title') || 'Task';
+                openFeedbackModal(sId, sName, tId, tTitle);
+            });
+        });
+    }
+
+    function openFeedbackModal(studentId, studentName, taskId, taskTitle) {
+        const existing = document.getElementById('task-feedback-modal-overlay');
+        if (existing) existing.remove();
+
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'task-feedback-modal-overlay';
+        modalOverlay.style.position = 'fixed';
+        modalOverlay.style.top = '0';
+        modalOverlay.style.left = '0';
+        modalOverlay.style.width = '100vw';
+        modalOverlay.style.height = '100vh';
+        modalOverlay.style.background = 'rgba(15, 23, 42, 0.55)';
+        modalOverlay.style.backdropFilter = 'blur(2px)';
+        modalOverlay.style.display = 'flex';
+        modalOverlay.style.alignItems = 'center';
+        modalOverlay.style.justifyContent = 'center';
+        modalOverlay.style.zIndex = '10000';
+
+        modalOverlay.innerHTML = `
+            <div style="background: #ffffff; border-radius: 12px; width: 480px; max-width: 92%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0; overflow: hidden;">
+                <div style="padding: 1.15rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #2563eb;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Add Task Feedback
+                    </h3>
+                    <button id="btn-close-task-feedback-modal" style="background: none; border: none; font-size: 1.3rem; color: #64748b; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+                <form id="form-task-feedback" style="padding: 1.5rem;">
+                    <div style="margin-bottom: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 0.75rem 1rem;">
+                        <div style="font-size: 0.85rem; color: #1e40af;"><strong>Student:</strong> ${studentName}</div>
+                        <div style="font-size: 0.85rem; color: #1e40af; margin-top: 3px;"><strong>Task:</strong> ${taskTitle}</div>
+                    </div>
+                    <div style="margin-bottom: 1.25rem;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.4rem;">Feedback / Comments <span style="color: #ef4444;">*</span></label>
+                        <textarea id="feedback-comments-input" rows="4" class="premium-input" placeholder="Enter constructive feedback, corrections, or notes for this task..." style="width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit; font-size: 0.9rem;" required></textarea>
+                    </div>
+                    <div id="feedback-modal-msg" style="margin-bottom: 1rem;"></div>
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                        <button type="button" id="btn-cancel-task-feedback" class="btn btn-outline btn-sm" style="padding: 0.45rem 1rem;">Cancel</button>
+                        <button type="submit" id="btn-submit-task-feedback" class="btn btn-primary btn-sm" style="padding: 0.45rem 1.25rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                            Submit Feedback
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        modalOverlay.querySelector('#btn-close-task-feedback-modal').addEventListener('click', () => modalOverlay.remove());
+        modalOverlay.querySelector('#btn-cancel-task-feedback').addEventListener('click', () => modalOverlay.remove());
+
+        modalOverlay.querySelector('#form-task-feedback').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const comments = modalOverlay.querySelector('#feedback-comments-input').value.trim();
+            if (!comments) return;
+
+            const submitBtn = modalOverlay.querySelector('#btn-submit-task-feedback');
+            const msgEl = modalOverlay.querySelector('#feedback-modal-msg');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                };
+                const res = await fetch(`${apiBase}/faculty/feedback`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        project_id: selectedProjectId,
+                        student_id: studentId,
+                        task_id: taskId || null,
+                        comments: comments
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    modalOverlay.remove();
+                    actionMessage = `✓ Feedback submitted successfully for ${studentName}.`;
+                    render();
+                } else {
+                    msgEl.innerHTML = `<div style="color: #b91c1c; font-size: 0.85rem; font-weight: 600;">${data.error || 'Failed to submit feedback.'}</div>`;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Feedback';
+                }
+            } catch (err) {
+                console.error('Error submitting feedback:', err);
+                msgEl.innerHTML = `<div style="color: #b91c1c; font-size: 0.85rem; font-weight: 600;">Error submitting feedback. Please try again.</div>`;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Feedback';
+            }
+        });
+
+        document.body.appendChild(modalOverlay);
     }
 
     async function handleApproveWorkLog(logId, statusValue, buttonElement) {

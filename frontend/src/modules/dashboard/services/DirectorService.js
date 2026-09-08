@@ -235,6 +235,7 @@ export class DirectorService {
       // them concurrently lets whichever finishes last silently discard the other's write.
       await this.fetchProposalsRemote();
       await this.fetchProjectsRemote();
+      await this.fetchFacultiesRemote();
       return true;
     } catch (e) {
       console.error('Failed to update proposal status:', e);
