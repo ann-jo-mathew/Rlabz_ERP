@@ -88,6 +88,9 @@ if [ "$PWD" != "$PROJECT_DIR" ]; then
     sudo rsync -av --exclude 'node_modules' --exclude 'backend/vendor' "$PWD/" "$PROJECT_DIR/"
 fi
 
+# Ensure current user owns the project directory during setup
+sudo chown -R $USER:$USER "$PROJECT_DIR"
+
 cd "$PROJECT_DIR"
 
 # 5. CONFIGURE LARAVEL BACKEND
@@ -95,11 +98,7 @@ echo "--> Step 5/8: Building & Configuring Laravel Backend..."
 cd "$PROJECT_DIR/backend"
 
 # Configure .env
-if [ ! -f .env ]; then
-    cp .env.example .env 2>/dev/null || true
-fi
-
-cat <<EOF | sudo tee .env > /dev/null
+cat <<EOF > .env
 APP_NAME="Rlabz ERP"
 APP_ENV=production
 APP_KEY=base64:TqXxeC2varofVmnVfBJyvoGzsZ3lWJ5hK6CiTHyH8ug=
@@ -125,12 +124,13 @@ SESSION_DRIVER=file
 SESSION_LIFETIME=120
 EOF
 
+chmod 664 .env
+
 # Install backend dependencies
 echo "  Installing Composer packages..."
 COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 # Generate key if needed & create storage link
-php artisan key:generate --force
 php artisan storage:link || true
 
 # Run Migrations & Full Demo Seeder
