@@ -33,7 +33,7 @@ sudo apt-get install -y software-properties-common curl wget git unzip nginx mys
 sudo add-apt-repository -y ppa:ondrej/php
 sudo apt-get update -y
 
-PHP_VER="8.1"
+PHP_VER="8.2"
 sudo apt-get install -y \
     php${PHP_VER}-fpm \
     php${PHP_VER}-mysql \
@@ -45,6 +45,8 @@ sudo apt-get install -y \
     php${PHP_VER}-intl \
     php${PHP_VER}-gd \
     php${PHP_VER}-cli
+
+sudo update-alternatives --set php /usr/bin/php${PHP_VER} || true
 
 # Install Composer
 if ! command -v composer &> /dev/null; then
