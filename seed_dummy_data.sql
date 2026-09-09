@@ -107,18 +107,18 @@ INSERT INTO project_faculty (id,project_id,faculty_id,assigned_date,created_at,u
 (1,1,4,'2026-01-10',NOW(),NOW()),(2,2,5,'2026-02-01',NOW(),NOW()),
 (3,4,4,'2026-03-01',NOW(),NOW()),(4,5,4,'2025-09-01',NOW(),NOW());
 
--- 10. CLIENT_REQUIREMENTS (actual cols: id, title, description, status)
-INSERT INTO client_requirements (id,title,description,status,created_at,updated_at) VALUES
-(1,'Patient Aadhaar verification','System must verify patient identity using Aadhaar during registration','new',NOW(),NOW()),
-(2,'Multi-language support','Application should support English and Malayalam','in_progress',NOW(),NOW()),
-(3,'Mobile responsive design','All screens must be usable on mobile devices','new',NOW(),NOW()),
-(4,'Student bulk import via Excel','Admin can import student data from Excel file','new',NOW(),NOW()),
-(5,'Offline mode for inventory app','App should work without internet and sync when connected','in_progress',NOW(),NOW());
+-- 10. CLIENT_REQUIREMENTS
+INSERT INTO client_requirements (id,project_id,title,description,status,created_at,updated_at) VALUES
+(1,1,'Patient Aadhaar verification','System must verify patient identity using Aadhaar during registration','new',NOW(),NOW()),
+(2,1,'Multi-language support','Application should support English and Malayalam','in_progress',NOW(),NOW()),
+(3,2,'Mobile responsive design','All screens must be usable on mobile devices','new',NOW(),NOW()),
+(4,2,'Student bulk import via Excel','Admin can import student data from Excel file','new',NOW(),NOW()),
+(5,4,'Offline mode for inventory app','App should work without internet and sync when connected','in_progress',NOW(),NOW());
 
--- 11. REQUIREMENT_CHANGES (actual cols: id, client_requirement_id, previous_value, updated_value, changed_by)
-INSERT INTO requirement_changes (id,client_requirement_id,previous_value,updated_value,changed_by,created_at,updated_at) VALUES
-(1,2,'Support only English','Support English and Malayalam',2,NOW(),NOW()),
-(2,5,'Offline mode optional','Offline mode is mandatory - core feature',2,NOW(),NOW());
+-- 11. REQUIREMENT_CHANGES
+INSERT INTO requirement_changes (id,client_requirement_id,project_id,previous_value,updated_value,changed_by,created_at,updated_at) VALUES
+(1,2,1,'Support only English','Support English and Malayalam',2,NOW(),NOW()),
+(2,5,4,'Offline mode optional','Offline mode is mandatory - core feature',2,NOW(),NOW());
 
 -- 12. PROJECT_CLOSURES
 INSERT INTO project_closures (id,project_id,closed_by,closure_date,final_status,remarks) VALUES
@@ -152,40 +152,40 @@ INSERT INTO student_work_logs (id,project_student_id,task_id,work_date,hours_wor
 (5,3,6,'2026-09-02',3.00,'Built student registration API endpoints','pending',NULL,NULL,NOW(),NOW()),
 (6,5,8,'2026-09-03',5.50,'Developed product listing REST API with filters','pending',NULL,NULL,NOW(),NOW());
 
--- 17. PROJECT_FINANCES (actual cols: id,project_id,estimated_cost,subtotal,gst_amount,total_amount,created_by,approved_by,approved_at,status)
-INSERT INTO project_finances (id,project_id,estimated_cost,subtotal,gst_amount,total_amount,created_by,approved_by,approved_at,status,created_at,updated_at) VALUES
-(1,1,250000.00,212000.00,38160.00,250160.00,3,1,'2026-01-20 11:00:00','approved',NOW(),NOW()),
-(2,2,180000.00,152542.00,27457.00,179999.00,3,1,'2026-02-10 11:00:00','approved',NOW(),NOW()),
-(3,4,80000.00,67797.00,12203.00,80000.00,3,NULL,NULL,'draft',NOW(),NOW()),
-(4,5,95000.00,80508.00,14491.00,94999.00,3,1,'2025-10-01 11:00:00','approved',NOW(),NOW());
+-- 17. PROJECT_FINANCES
+INSERT INTO project_finances (id,project_id,total_development_amount,gst_percentage,created_by,approved_by,approved_at,status,created_at,updated_at) VALUES
+(1,1,212000.00,18.00,3,1,'2026-01-20 11:00:00','approved',NOW(),NOW()),
+(2,2,152542.00,18.00,3,1,'2026-02-10 11:00:00','approved',NOW(),NOW()),
+(3,4,67797.00,18.00,3,NULL,NULL,'draft',NOW(),NOW()),
+(4,5,80508.00,18.00,3,1,'2025-10-01 11:00:00','approved',NOW(),NOW());
 
 -- 18. DEVELOPMENT_ALLOCATIONS
-INSERT INTO development_allocations (id,project_finance_id,recipient_type,recipient_id,amount,remarks,created_by,created_at,updated_at) VALUES
-(1,1,'student',6,75000.00,'Allocation for student developers on HMS',3,NOW(),NOW()),
-(2,1,'faculty',4,50000.00,'Allocation for faculty mentor on HMS',3,NOW(),NOW()),
-(3,1,'rlabz',NULL,125000.00,'Institutional margin for Rlabz',3,NOW(),NOW()),
-(4,2,'student',7,54000.00,'Student allocation for College ERP',3,NOW(),NOW()),
-(5,2,'faculty',5,36000.00,'Faculty mentor allocation for College ERP',3,NOW(),NOW()),
-(6,2,'rlabz',NULL,90000.00,'Institutional margin for College ERP',3,NOW(),NOW()),
-(7,3,'student',8,24000.00,'Student allocation for Inventory app',3,NOW(),NOW()),
-(8,3,'rlabz',NULL,56000.00,'Institutional margin for Inventory app',3,NOW(),NOW()),
-(9,4,'student',6,28500.00,'Student allocation for Research portal',3,NOW(),NOW()),
-(10,4,'faculty',4,19000.00,'Faculty allocation for Research portal',3,NOW(),NOW()),
-(11,4,'rlabz',NULL,47500.00,'Institutional margin for Research portal',3,NOW(),NOW());
+INSERT INTO development_allocations (id,project_finance_id,category,amount,created_at,updated_at) VALUES
+(1,1,'student',75000.00,NOW(),NOW()),
+(2,1,'faculty',50000.00,NOW(),NOW()),
+(3,1,'rlabz',125000.00,NOW(),NOW()),
+(4,2,'student',54000.00,NOW(),NOW()),
+(5,2,'faculty',36000.00,NOW(),NOW()),
+(6,2,'rlabz',90000.00,NOW(),NOW()),
+(7,3,'student',24000.00,NOW(),NOW()),
+(8,3,'rlabz',56000.00,NOW(),NOW()),
+(9,4,'student',28500.00,NOW(),NOW()),
+(10,4,'faculty',19000.00,NOW(),NOW()),
+(11,4,'rlabz',47500.00,NOW(),NOW());
 
 -- 19. HOSTING_CHARGES
-INSERT INTO hosting_charges (id,project_finance_id,charge_type,amount,name_or_reference,description,created_at,updated_at) VALUES
-(1,1,'hosting',12000.00,'AWS EC2 t3.medium','medcare-hms production server hosting',NOW(),NOW()),
-(2,1,'ssl',3500.00,'Comodo SSL','SSL certificate for medcarehms.com',NOW(),NOW()),
-(3,1,'domain',1200.00,'medcarehms.com','Annual domain renewal via GoDaddy',NOW(),NOW()),
-(4,2,'hosting',8000.00,'DigitalOcean Droplet','mits-erp staging & production cloud droplet',NOW(),NOW()),
-(5,2,'ssl',2500.00,'Lets Encrypt Premium','Wildcard SSL cert for *.mits.edu.in',NOW(),NOW()),
-(6,3,'hosting',4000.00,'Linode VPS','VPS hosting for inventory app API backend',NOW(),NOW());
+INSERT INTO hosting_charges (id,project_finance_id,charge_type,amount,purchase_date,expiry_date,reference_details,created_at,updated_at) VALUES
+(1,1,'hosting',12000.00,'2026-01-10','2027-01-10','AWS EC2 t3.medium hosting for medcarehms.com',NOW(),NOW()),
+(2,1,'ssl',3500.00,'2026-01-10','2027-01-15','Comodo SSL certificate for medcarehms.com',NOW(),NOW()),
+(3,1,'domain',1200.00,'2026-01-10','2027-01-10','medcarehms.com domain renewal via GoDaddy',NOW(),NOW()),
+(4,2,'hosting',8000.00,'2026-02-01','2027-02-01','DigitalOcean Droplet staging and production',NOW(),NOW()),
+(5,2,'ssl',2500.00,'2026-01-28','2027-02-01','Wildcard SSL certificate for *.mits.edu.in',NOW(),NOW()),
+(6,3,'hosting',4000.00,'2026-03-01','2027-03-01','Linode VPS hosting for inventory app API backend',NOW(),NOW());
 
 -- 20. MAINTENANCE_SUPPORT_CHARGES
-INSERT INTO maintenance_support_charges (id,project_finance_id,amount,description,created_at,updated_at) VALUES
-(1,1,25000.00,'Annual maintenance: bug fixes minor enhancements and server monitoring',NOW(),NOW()),
-(2,4,10000.00,'Post-launch support: 3 months warranty plus 9 months AMC',NOW(),NOW());
+INSERT INTO maintenance_support_charges (id,project_finance_id,amount,start_date,end_date,description,created_at,updated_at) VALUES
+(1,1,25000.00,'2026-01-01','2026-12-31','Annual maintenance: bug fixes minor enhancements and server monitoring',NOW(),NOW()),
+(2,4,10000.00,'2026-08-01','2027-07-31','Post-launch support: 3 months warranty plus 9 months AMC',NOW(),NOW());
 
 -- 21. INVOICES
 INSERT INTO invoices (id,project_finance_id,invoice_number,invoice_date,due_date,amount_before_gst,gst_percentage,description,created_by,created_at,updated_at) VALUES
@@ -195,29 +195,29 @@ INSERT INTO invoices (id,project_finance_id,invoice_number,invoice_date,due_date
 (4,4,'INV-2025-010','2025-09-15','2025-10-15',47500.00,18.00,'Research portal project 50 percent advance',3,NOW(),NOW()),
 (5,4,'INV-2025-015','2026-07-01','2026-07-31',47500.00,18.00,'Research portal project 50 percent final payment on delivery',3,NOW(),NOW());
 
--- 22. STUDENT_PAYMENTS (actual cols: id,project_student_id,task_id,project_finance_id,designation,approved_hours,hourly_rate,amount,payment_period_start,payment_period_end,status,payment_date,payment_method,payment_reference,remarks,created_by)
-INSERT INTO student_payments (id,project_student_id,task_id,project_finance_id,designation,approved_hours,hourly_rate,amount,payment_period_start,payment_period_end,status,payment_date,payment_method,payment_reference,remarks,created_by,created_at,updated_at) VALUES
-(1,1,1,1,'orbit',40.00,150.00,6000.00,'2026-02-01','2026-02-28','paid','2026-03-05','NEFT','PAY2026030501','February payment for Arjun',3,NOW(),NOW()),
-(2,1,2,1,'orbit',35.00,150.00,5250.00,'2026-03-01','2026-03-31','paid','2026-04-05','NEFT','PAY2026040501','March payment for Arjun',3,NOW(),NOW()),
-(3,2,3,1,'nova',30.00,100.00,3000.00,'2026-02-01','2026-02-28','paid','2026-03-05','UPI','PAY2026030502','February payment for Divya',3,NOW(),NOW()),
-(4,3,6,2,'nova',25.00,100.00,2500.00,'2026-02-01','2026-02-28','paid','2026-03-05','NEFT','PAY2026030503','February payment for Divya ERP',3,NOW(),NOW()),
-(5,6,9,4,'orbit',80.00,150.00,12000.00,'2025-12-01','2025-12-31','paid','2026-01-05','RTGS','PAY2026010504','Research portal Dec payment Arjun',3,NOW(),NOW()),
-(6,6,10,4,'orbit',90.00,150.00,13500.00,'2026-01-01','2026-01-31','paid','2026-02-05','NEFT','PAY2026020501','Research portal Jan payment Arjun',3,NOW(),NOW());
+-- 22. STUDENT_PAYMENTS
+INSERT INTO student_payments (id,project_student_id,designation,approved_hours,hourly_rate,amount,payment_date,created_at,updated_at) VALUES
+(1,1,'orbit',40.00,150.00,6000.00,'2026-03-05',NOW(),NOW()),
+(2,1,'orbit',35.00,150.00,5250.00,'2026-04-05',NOW(),NOW()),
+(3,2,'nova',30.00,100.00,3000.00,'2026-03-05',NOW(),NOW()),
+(4,3,'nova',25.00,100.00,2500.00,'2026-03-05',NOW(),NOW()),
+(5,6,'orbit',80.00,150.00,12000.00,'2026-01-05',NOW(),NOW()),
+(6,6,'orbit',90.00,150.00,13500.00,'2026-02-05',NOW(),NOW());
 
 -- 23. CLIENT_PAYMENTS
-INSERT INTO client_payments (id,project_finance_id,amount,payment_date,payment_method,payment_type,payment_reference,status,remarks,recorded_by,created_at,updated_at) VALUES
-(1,1,118000.00,'2026-02-01','NEFT','advance','TXN20260201HMS001','received','Advance payment received. Amount includes 18 percent GST.',3,NOW(),NOW()),
-(2,2,106200.00,'2026-02-20','RTGS','advance','TXN20260220ERP001','received','Advance for ERP project. GST inclusive.',3,NOW(),NOW()),
-(3,4,56050.00,'2025-09-20','NEFT','advance','TXN20250920RES001','received','Advance payment for research portal.',3,NOW(),NOW()),
-(4,4,56050.00,'2026-07-10','UPI','full','TXN20260710RES002','received','Final payment received on completion.',3,NOW(),NOW());
+INSERT INTO client_payments (id,invoice_id,amount,payment_date,payment_method,payment_reference,remarks,recorded_by,created_at,updated_at) VALUES
+(1,1,118000.00,'2026-02-01','NEFT','TXN20260201HMS001','Advance payment received. Amount includes 18 percent GST.',3,NOW(),NOW()),
+(2,3,106200.00,'2026-02-20','RTGS','TXN20260220ERP001','Advance for ERP project. GST inclusive.',3,NOW(),NOW()),
+(3,4,56050.00,'2025-09-20','NEFT','TXN20250920RES001','Advance payment for research portal.',3,NOW(),NOW()),
+(4,5,56050.00,'2026-07-10','UPI','TXN20260710RES002','Final payment received on completion.',3,NOW(),NOW());
 
 -- 24. FACULTY_PAYMENTS
-INSERT INTO faculty_payments (id,project_faculty_id,project_finance_id,faculty_id,amount,status,payment_date,payment_method,payment_reference,remarks,created_at,updated_at) VALUES
-(1,1,1,4,15000.00,'paid','2026-03-31','NEFT','FAC-PAY-001','Q1 Faculty mentorship stipend for HMS',NOW(),NOW()),
-(2,1,1,4,15000.00,'paid','2026-06-30','NEFT','FAC-PAY-002','Q2 Faculty mentorship stipend for HMS',NOW(),NOW()),
-(3,2,2,5,12000.00,'paid','2026-04-30','NEFT','FAC-PAY-003','Milestone 1 mentorship payout for ERP',NOW(),NOW()),
-(4,4,4,4,19000.00,'paid','2026-08-05','RTGS','FAC-PAY-004','Final mentorship closure payment for Research Portal',NOW(),NOW()),
-(5,3,3,4,8000.00,'processing','2026-05-31','NEFT','FAC-PAY-005','Mid-term mentorship allocation for Inventory app',NOW(),NOW());
+INSERT INTO faculty_payments (id,project_faculty_id,amount,payment_date,status,created_at,updated_at) VALUES
+(1,1,15000.00,'2026-03-31','paid',NOW(),NOW()),
+(2,1,15000.00,'2026-06-30','paid',NOW(),NOW()),
+(3,2,12000.00,'2026-04-30','paid',NOW(),NOW()),
+(4,4,19000.00,'2026-08-05','paid',NOW(),NOW()),
+(5,3,8000.00,'2026-05-31','processing',NOW(),NOW());
 
 -- 25. FINANCE_SETTINGS
 INSERT INTO finance_settings (id,student_hourly_rate,created_at,updated_at) VALUES
@@ -234,10 +234,10 @@ INSERT INTO ssl_renewal_history (id,hosting_charge_id,renewal_date,previous_expi
 (2,5,'2026-01-28',NULL,'2027-02-01',2500.00,'SSL-PAY-2026-002','SSL for mits-erp project domain',3,NOW(),NOW());
 
 -- 28. CERTIFICATES
-INSERT INTO certificates (id,project_id,module_id,student_id,certificate_number,description,issue_date,certificate_file,issued_by) VALUES
-(1,5,9,6,'RLABZ-CERT-2026-001','Certificate of Completion for Research Paper Portal module development','2026-08-05','certificates/cert_arjun_research.pdf',1),
-(2,5,9,7,'RLABZ-CERT-2026-002','Certificate of Appreciation for Research Paper Portal review workflow','2026-08-05','certificates/cert_divya_research.pdf',1),
-(3,1,1,6,'RLABZ-CERT-2026-003','Module Completion Certificate for Authentication Module in HMS','2026-03-01','certificates/cert_arjun_hms_auth.pdf',2);
+INSERT INTO certificates (id,project_id,student_id,certificate_number,description,issue_date,certificate_file,issued_by) VALUES
+(1,5,6,'RLABZ-CERT-2026-001','Certificate of Completion for Research Paper Portal module development','2026-08-05','certificates/cert_arjun_research.pdf',1),
+(2,5,7,'RLABZ-CERT-2026-002','Certificate of Appreciation for Research Paper Portal review workflow','2026-08-05','certificates/cert_divya_research.pdf',1),
+(3,1,6,'RLABZ-CERT-2026-003','Module Completion Certificate for Authentication Module in HMS','2026-03-01','certificates/cert_arjun_hms_auth.pdf',2);
 
 -- 29. CHATS
 INSERT INTO chats (id,project_id,title,created_by,is_active,created_at,updated_at) VALUES
