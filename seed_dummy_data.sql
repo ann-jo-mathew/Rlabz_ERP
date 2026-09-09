@@ -135,13 +135,13 @@ INSERT INTO student_profiles (id,student_id,course,batch,semester,designation,cr
 (2,7,'B.Tech Information Technology','2023-27',6,'nova',NOW(),NOW()),
 (3,8,'B.Tech Computer Science','2024-28',4,'spark',NOW(),NOW());
 
--- 15. STUDENT_REPORTS (actual cols: id,project_id,student_id,task_id,report_type,report_date,work_done,report_file,challenges,next_plan,submitted_at)
-INSERT INTO student_reports (id,student_id,project_id,task_id,report_type,report_date,work_done,report_file,challenges,next_plan,submitted_at,created_at,updated_at) VALUES
-(1,6,1,1,'daily','2026-09-01','Completed login page UI design. All input validations added. Pushed to GitHub.',NULL,'Figma export to CSS had spacing issues','Implement JWT backend endpoints','2026-09-01 18:00:00',NOW(),NOW()),
-(2,6,1,2,'weekly','2026-09-07','This week: Implemented JWT auth, tested all endpoints, fixed 3 bugs.',NULL,'Token refresh edge case took extra time','Start patient registration module','2026-09-07 18:00:00',NOW(),NOW()),
-(3,7,1,3,'daily','2026-09-02','Started medical history module. Created DB schema and basic CRUD APIs.',NULL,'None so far','Continue with medical records API','2026-09-02 18:30:00',NOW(),NOW()),
-(4,8,2,7,'daily','2026-09-03','Worked on faculty schedule page layout. Completed responsive grid component.',NULL,'Timezone bug in schedule display','Fix timezone and add weekly view','2026-09-03 19:00:00',NOW(),NOW()),
-(5,8,4,8,'weekly','2026-09-07','Built product listing API with pagination and filters. Unit tests written.',NULL,'Pagination with filters needed extra query optimization','Add stock management endpoints','2026-09-07 17:00:00',NOW(),NOW());
+-- 15. STUDENT_REPORTS
+INSERT INTO student_reports (id,student_id,project_id,report_type,report_date,work_done,report_file,approval_status,feedback,submitted_at,created_at,updated_at) VALUES
+(1,6,1,'daily','2026-09-01','Completed login page UI design. All input validations added. Pushed to GitHub.',NULL,'approved','Good progress','2026-09-01 18:00:00',NOW(),NOW()),
+(2,6,1,'weekly','2026-09-07','This week: Implemented JWT auth, tested all endpoints, fixed 3 bugs.',NULL,'approved','Well done','2026-09-07 18:00:00',NOW(),NOW()),
+(3,7,1,'daily','2026-09-02','Started medical history module. Created DB schema and basic CRUD APIs.',NULL,'pending',NULL,'2026-09-02 18:30:00',NOW(),NOW()),
+(4,8,2,'daily','2026-09-03','Worked on faculty schedule page layout. Completed responsive grid component.',NULL,'approved','Nicely formatted','2026-09-03 19:00:00',NOW(),NOW()),
+(5,8,4,'weekly','2026-09-07','Built product listing API with pagination and filters. Unit tests written.',NULL,'pending',NULL,'2026-09-07 17:00:00',NOW(),NOW());
 
 -- 16. STUDENT_WORK_LOGS
 INSERT INTO student_work_logs (id,project_student_id,task_id,work_date,hours_worked,description,approval_status,approved_by,approved_at,created_at,updated_at) VALUES
