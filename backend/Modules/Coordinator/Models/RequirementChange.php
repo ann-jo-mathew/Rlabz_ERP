@@ -13,7 +13,9 @@ class RequirementChange extends Model
 
     protected $fillable = [
         'client_requirement_id',
-        'project_id',
+        'previous_value',
+        'updated_value',
+        'changed_by',
         'previous_description',
         'new_description',
         'change_description',
@@ -27,6 +29,12 @@ class RequirementChange extends Model
         'changed_on',
     ];
 
+    protected $appends = [
+        'change_description',
+        'status',
+        'changed_on',
+    ];
+
     protected $casts = [
         'approved_at' => 'datetime',
         'changed_on' => 'datetime',
@@ -34,21 +42,50 @@ class RequirementChange extends Model
 
     public function clientRequirement()
     {
-        return $this->belongsTo(ClientRequirement::class);
+        return $this->belongsTo(ClientRequirement::class, 'client_requirement_id');
     }
 
     public function project()
     {
-        return $this->belongsTo(Project::class);
+        return $this->hasOneThrough(
+            Project::class,
+            ClientRequirement::class,
+            'id',
+            'id',
+            'client_requirement_id',
+            'project_id'
+        );
     }
 
     public function requester()
     {
-        return $this->belongsTo(User::class, 'requested_by');
+        return $this->belongsTo(User::class, 'changed_by');
     }
 
     public function approver()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'changed_by');
+    }
+
+    public function getChangeDescriptionAttribute()
+    {
+        if (!empty($this->attributes['change_description'])) {
+            return $this->attributes['change_description'];
+        }
+        if (!empty($this->attributes['updated_value'])) {
+            $val = json_decode($this->attributes['updated_value'], true);
+            return $val['change_description'] ?? $val['description'] ?? 'Requirement updated';
+        }
+        return 'Requirement updated';
+    }
+
+    public function getStatusAttribute()
+    {
+        return $this->attributes['status'] ?? 'approved';
+    }
+
+    public function getChangedOnAttribute()
+    {
+        return $this->attributes['changed_on'] ?? $this->created_at;
     }
 }

@@ -20,10 +20,14 @@ let lastToken = null;
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
   const headers = {
-    'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...(options.headers || {})
   };
+
+  // Only set Content-Type to application/json when not using FormData
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
   
   const response = await fetch(`http://127.0.0.1:8000/api${path}`, {
     ...options,
@@ -163,9 +167,10 @@ export async function fetchLiveStudentProfile() {
 }
 
 export async function saveReport(report) {
+  const isFormData = report instanceof FormData;
   await apiFetch('/student/reports', {
     method: 'POST',
-    body: JSON.stringify(report)
+    body: isFormData ? report : JSON.stringify(report)
   });
   await ensureDataLoaded(true); // refresh cache
 }

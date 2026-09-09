@@ -1,5 +1,6 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
 import { getProjects, getChatMessages, saveChatMessage, ensureDataLoaded } from './studentStore.js';
+import { StudentSwal, showStudentWarning, showStudentError } from '../studentAlerts.js';
 import '../student.css';
 
 export async function StudentChat(route, router) {
@@ -117,13 +118,25 @@ export async function StudentChat(route, router) {
     chatForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = container.querySelector('#chat-input');
-      const text = input.value.trim();
+      const text = input ? input.value.trim() : '';
 
-      if (!text || !selectedProjectTitle) return;
+      if (!selectedProjectTitle) {
+        showStudentWarning('No Project Selected', 'Please select a project chat from the left panel before sending a message.');
+        return;
+      }
 
-      await saveChatMessage(selectedProjectTitle, text);
-      input.value = '';
-      render();
+      if (!text) {
+        showStudentWarning('Empty Message', 'Please type a message before sending.');
+        return;
+      }
+
+      try {
+        await saveChatMessage(selectedProjectTitle, text);
+        input.value = '';
+        render();
+      } catch (err) {
+        showStudentError('Message Failed', 'Could not send message. Please try again.');
+      }
     });
   }
 

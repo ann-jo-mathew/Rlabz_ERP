@@ -1,5 +1,5 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
-import { getProjects, getSprints, getGithub, saveSprint, ensureDataLoaded } from './studentStore.js';
+import { getProjects, getSprints, getGithub, ensureDataLoaded } from './studentStore.js';
 import { useAuthStore } from '@/core/stores/auth.js';
 import '../student.css';
 
@@ -13,7 +13,7 @@ export async function StudentProjects(route, router) {
   const authStore = useAuthStore();
   const currentUser = authStore.user;
 
-  // 1. Fetch mock projects assigned to the mock student
+  // 1. Fetch mock projects assigned to the student
   const projects = getProjects() || [];
   let assignedProjects = projects.filter(p => 
     p.members && p.members.toLowerCase().includes(currentUser?.name?.toLowerCase() || 'student nova')
@@ -29,180 +29,42 @@ export async function StudentProjects(route, router) {
   // State
   let selectedProjectId = route?.params?.id ? parseInt(route.params.id, 10) : null;
   let isDetailView = Boolean(selectedProjectId);
-  let activeTab = 'overview'; // 'overview', 'team', 'sprints', 'tasks', 'modules', 'github'
+  let activeTab = 'overview'; // 'overview', 'team', 'modules', 'tasks', 'github'
   let selectedModuleName = null;
-
-  function openSprintModal(selectedProject, sprintToEdit = null) {
-    const modal = document.createElement('div');
-    modal.className = 'cert-modal';
-    modal.id = 'sprint-modal';
-    
-    modal.innerHTML = `
-      <div class="cert-modal-overlay"></div>
-      <div class="cert-modal-content" style="max-width: 600px; width: 90%; background: #ffffff; padding: 24px; border-radius: var(--radius-lg); max-height: 90vh; display: flex; flex-direction: column;">
-        <button class="cert-modal-close" id="close-sprint-modal" style="position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;">
-          ${sprintToEdit ? 'Edit Sprint' : 'Create New Sprint'}
-        </h3>
-        <form id="sprint-form" class="student-form" style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; padding-right: 4px;">
-          <div class="student-form-group">
-            <label for="sprint-name" style="font-weight: 600; font-size: 0.85rem;">Sprint Name</label>
-            <input type="text" id="sprint-name" class="student-input" placeholder="e.g. Sprint 3: Core Integration" required value="${sprintToEdit ? sprintToEdit.name : ''}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
-          </div>
-          <div class="student-form-group">
-            <label for="sprint-objective" style="font-weight: 600; font-size: 0.85rem;">Objective / Goal</label>
-            <textarea id="sprint-objective" class="student-textarea" placeholder="Describe the objectives of this sprint..." required style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; min-height: 80px;">${sprintToEdit ? sprintToEdit.objective : ''}</textarea>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <div class="student-form-group">
-              <label for="sprint-start" style="font-weight: 600; font-size: 0.85rem;">Start Date</label>
-              <input type="date" id="sprint-start" class="student-input" value="${sprintToEdit && sprintToEdit.startDate ? sprintToEdit.startDate : ''}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
-            </div>
-            <div class="student-form-group">
-              <label for="sprint-end" style="font-weight: 600; font-size: 0.85rem;">End Date</label>
-              <input type="date" id="sprint-end" class="student-input" value="${sprintToEdit && sprintToEdit.endDate ? sprintToEdit.endDate : ''}" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
-            </div>
-          </div>
-
-          <div class="student-form-group">
-            <label style="font-weight: 600; font-size: 0.85rem;">Selected Modules</label>
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 120px; overflow-y: auto; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
-              ${(selectedProject.assignedModules || []).map(m => {
-                const isChecked = sprintToEdit && sprintToEdit.modules && sprintToEdit.modules.includes(m);
-                return `
-                  <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: normal; cursor: pointer; color: var(--text-main);">
-                    <input type="checkbox" name="sprint-modules" value="${m}" ${isChecked ? 'checked' : ''}>
-                    <span>${m}</span>
-                  </label>
-                `;
-              }).join('')}
-            </div>
-          </div>
-
-          <div class="student-form-group">
-            <label style="display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.85rem;">
-              <span>Sprint Tasks</span>
-              <button type="button" class="student-btn student-btn-outline student-btn-sm" id="btn-add-task-row" style="padding: 4px 8px; font-size: 0.75rem;">
-                + Add Task
-              </button>
-            </label>
-            <div id="sprint-tasks-container" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
-              <!-- Dynamic task rows go here -->
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-            <button type="button" class="student-btn student-btn-outline" id="btn-cancel-sprint" style="padding: 8px 16px;">Cancel</button>
-            <button type="submit" class="student-btn student-btn-primary" style="padding: 8px 16px;">Save Sprint</button>
-          </div>
-        </form>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const tasksContainer = modal.querySelector('#sprint-tasks-container');
-
-    function createTaskRow(task = null) {
-      const row = document.createElement('div');
-      row.className = 'sprint-task-form-row';
-      row.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr 1.2fr auto; gap: 8px; align-items: center; background: #f8fafc; padding: 8px; border: 1px dashed var(--border-color); border-radius: 4px;';
-      row.innerHTML = `
-        <input type="text" class="student-input task-name-input" placeholder="Task description" required value="${task ? task.name : ''}" style="padding: 6px; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px;">
-        <select class="student-select task-assignee-select" required style="padding: 6px; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
-          <option value="" disabled ${!task ? 'selected' : ''}>Assignee</option>
-          ${selectedProject.membersList.map(m => `
-            <option value="${m.name}" ${task && task.assignee === m.name ? 'selected' : ''}>${m.name}</option>
-          `).join('')}
-        </select>
-        <select class="student-select task-status-select" required style="padding: 6px; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: white;">
-          <option value="Todo" ${task && task.status === 'Todo' ? 'selected' : ''}>Todo</option>
-          <option value="In Progress" ${task && task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-          <option value="Completed" ${task && task.status === 'Completed' ? 'selected' : ''}>Completed</option>
-          <option value="Blocked" ${task && task.status === 'Blocked' ? 'selected' : ''}>Blocked</option>
-        </select>
-        <button type="button" class="student-btn student-btn-outline btn-remove-task-row" style="padding: 6px; line-height: 1; color: var(--danger); border-color: #fca5a5; font-size: 1.1rem; justify-content: center; height: 32px; width: 32px;">
-          &times;
-        </button>
-      `;
-
-      row.querySelector('.btn-remove-task-row').addEventListener('click', () => {
-        row.remove();
-      });
-
-      return row;
-    }
-
-    // Prefill existing tasks if editing
-    if (sprintToEdit && sprintToEdit.tasks) {
-      sprintToEdit.tasks.forEach(t => {
-        tasksContainer.appendChild(createTaskRow(t));
-      });
-    } else {
-      // Add one empty task row by default
-      tasksContainer.appendChild(createTaskRow());
-    }
-
-    // Add Task Row handler
-    modal.querySelector('#btn-add-task-row').addEventListener('click', () => {
-      tasksContainer.appendChild(createTaskRow());
-    });
-
-    // Close Modal handler
-    function closeModal() {
-      modal.remove();
-    }
-
-    modal.querySelector('#close-sprint-modal').addEventListener('click', closeModal);
-    modal.querySelector('#btn-cancel-sprint').addEventListener('click', closeModal);
-    modal.querySelector('.cert-modal-overlay').addEventListener('click', closeModal);
-
-    // Form Submit handler
-    modal.querySelector('#sprint-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const taskRows = modal.querySelectorAll('.sprint-task-form-row');
-      const tasks = Array.from(taskRows).map(row => ({
-        name: row.querySelector('.task-name-input').value.trim(),
-        assignee: row.querySelector('.task-assignee-select').value,
-        status: row.querySelector('.task-status-select').value
-      }));
-
-      const completedTasks = tasks.filter(t => t.status === 'Completed').length;
-      const progress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
-      
-      const savedSprintObj = {
-        id: sprintToEdit ? sprintToEdit.id : Date.now(),
-        projectId: selectedProject.id,
-        name: modal.querySelector('#sprint-name').value.trim(),
-        objective: modal.querySelector('#sprint-objective').value.trim(),
-        startDate: modal.querySelector('#sprint-start').value,
-        endDate: modal.querySelector('#sprint-end').value,
-        status: sprintToEdit ? sprintToEdit.status : 'DRAFT',
-        approvalStatus: sprintToEdit ? sprintToEdit.approvalStatus : 'Pending',
-        progress: progress,
-        tasks: tasks,
-        modules: Array.from(modal.querySelectorAll('input[name="sprint-modules"]:checked')).map(el => el.value)
-      };
-
-      await saveSprint(savedSprintObj);
-      closeModal();
-      render();
-    });
-  }
+  let projectSearch = '';
+  let projectStatusFilter = 'all'; // 'all' | 'In Progress' | 'Completed'
 
   function render() {
     const selectedProject = assignedProjects.find(p => p.id === selectedProjectId);
-    const sprints = getSprints() || [];
+    const modulesData = getSprints() || [];
     const githubData = getGithub() || [];
 
-    // Filter sprints and github for selected project
-    const projectSprints = selectedProject ? sprints.filter(s => s.projectId === selectedProject.id) : [];
+    // KPI counts
+    const totalProjectsCount = assignedProjects.length;
+    const inProgressCount = assignedProjects.filter(p => p.status === 'In Progress').length;
+    const completedCount = assignedProjects.filter(p => p.status === 'Completed').length;
+
+    // Filter projects for overview list
+    const filteredProjects = assignedProjects.filter(p => {
+      if (projectStatusFilter !== 'all' && p.status !== projectStatusFilter) return false;
+      if (projectSearch.trim()) {
+        const q = projectSearch.toLowerCase().trim();
+        const mTitle = (p.title || '').toLowerCase().includes(q);
+        const mFaculty = (p.faculty || '').toLowerCase().includes(q);
+        const mDesig = (p.designation || '').toLowerCase().includes(q);
+        if (!mTitle && !mFaculty && !mDesig) return false;
+      }
+      return true;
+    });
+    const isProjectFilterActive = projectSearch.trim() !== '' || projectStatusFilter !== 'all';
+
+    // Filter module data and github for selected project
+    const projectModules = selectedProject ? modulesData.filter(s => s.projectId === selectedProject.id) : [];
     const projectGithub = selectedProject ? githubData.find(g => g.project === selectedProject.title) : null;
 
     if (!isDetailView) {
       // Build project cards HTML (Initial View)
-      const projectCardsHtml = assignedProjects.map(p => `
+      const projectCardsHtml = filteredProjects.map(p => `
         <div class="student-card project-summary-card" 
              style="margin-bottom: 16px; cursor: pointer; transition: all 0.2s;" 
              data-id="${p.id}">
@@ -226,7 +88,7 @@ export async function StudentProjects(route, router) {
             </div>
           </div>
 
-          <button class="student-btn student-btn-primary btn-view-details" data-id="${p.id}" style="width: 100%; justify-content: center; margin-top: 8px;">
+          <button class="student-btn student-btn-primary btn-view-details" data-id="${p.id}" style="width: auto; padding: 0.4rem 1.25rem; align-self: flex-start; margin-top: 8px;">
             View Details
           </button>
         </div>
@@ -235,12 +97,65 @@ export async function StudentProjects(route, router) {
       container.innerHTML = `
         <div class="student-header">
           <h1>My Projects</h1>
-          <p>Inspect development modules, milestones, sprints, and task assignments in your team.</p>
+          <p>Inspect development modules, milestones, and task assignments in your team.</p>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
-          ${projectCardsHtml || '<div class="student-card" style="text-align:center;color:var(--text-muted);">No assigned projects.</div>'}
+        <!-- KPI Strip -->
+        <div class="student-stats-strip">
+          <div class="student-stat-chip">
+            <span class="student-stat-chip-count">${totalProjectsCount}</span>
+            <span class="student-stat-chip-label">Total Assigned</span>
+          </div>
+          <div class="student-stat-chip amber">
+            <span class="student-stat-chip-count">${inProgressCount}</span>
+            <span class="student-stat-chip-label">In Progress</span>
+          </div>
+          <div class="student-stat-chip emerald">
+            <span class="student-stat-chip-count">${completedCount}</span>
+            <span class="student-stat-chip-label">Completed</span>
+          </div>
         </div>
+
+        <!-- Filter Bar -->
+        <div class="student-filter-bar">
+          <div class="student-search-wrapper">
+            <svg class="student-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="project-search-input" class="student-search-input" placeholder="Search projects by title, supervisor, or track..." value="${projectSearch}">
+          </div>
+
+          <div class="student-filter-pills">
+            <button type="button" class="student-filter-pill ${projectStatusFilter === 'all' ? 'active' : ''}" data-status="all">All</button>
+            <button type="button" class="student-filter-pill ${projectStatusFilter === 'In Progress' ? 'active' : ''}" data-status="In Progress">In Progress</button>
+            <button type="button" class="student-filter-pill ${projectStatusFilter === 'Completed' ? 'active' : ''}" data-status="Completed">Completed</button>
+          </div>
+
+          ${isProjectFilterActive ? `
+            <button type="button" id="btn-clear-proj-filters" class="student-filter-btn-clear" title="Reset filters">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              Reset
+            </button>
+          ` : ''}
+        </div>
+
+        ${filteredProjects.length === 0 ? `
+          <div class="student-card">
+            <div class="student-empty-filter">
+              <div class="student-empty-filter-icon">🔍</div>
+              <div class="student-empty-filter-text">No projects match your filter criteria</div>
+              <div class="student-empty-filter-sub">Try adjusting your search query or status filter.</div>
+              <button type="button" id="btn-empty-clear-proj" class="student-btn student-btn-outline student-btn-sm" style="margin: 0 auto;">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        ` : `
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+            ${projectCardsHtml}
+          </div>
+        `}
       `;
     } else {
       // Dynamic Team members list for Project Team tab
@@ -249,107 +164,77 @@ export async function StudentProjects(route, router) {
         teamMembers = selectedProject.membersList || [];
       }
 
-      // Helper to generate visual workflow SVG or HTML nodes
-      function renderWorkflow(sprint) {
-        const states = ["DRAFT", "SUBMITTED", "FACULTY REVIEW", "APPROVED", "IN PROGRESS", "COMPLETED"];
-        
-        // Determine active index
-        let activeIndex = 0;
-        if (sprint.status === "COMPLETED") activeIndex = 5;
-        else if (sprint.status === "IN PROGRESS") activeIndex = 4;
-        else if (sprint.approvalStatus === "Approved") activeIndex = 3;
-        else if (sprint.approvalStatus === "Faculty Review") activeIndex = 2;
-        else if (sprint.status === "SUBMITTED") activeIndex = 1;
-        else if (sprint.status === "DRAFT") activeIndex = 0;
-
-        const stepsHtml = states.map((state, idx) => {
-          let nodeClass = "";
-          if (idx < activeIndex) nodeClass = "completed";
-          else if (idx === activeIndex) {
-            nodeClass = sprint.approvalStatus === "Changes Requested" ? "requested" : "active";
-          }
-
-          const circleContent = idx < activeIndex ? "✓" : (idx + 1);
-
-          const connector = idx < states.length - 1 
-            ? `<div class="workflow-connector-line ${idx < activeIndex ? 'passed' : ''}"></div>` 
-            : "";
-
-          return `
-            <div class="workflow-step-node ${nodeClass}">
-              <div class="workflow-node-circle">${circleContent}</div>
-              <span class="workflow-node-lbl">${state}</span>
-            </div>
-            ${connector}
-          `;
-        }).join('');
-
-        // If changes requested, show the alternate workflow visual callout too
-        const changesRequestedCallout = sprint.approvalStatus === "Changes Requested" ? `
-          <div class="student-alert-danger" style="margin-top: 12px; display: flex; flex-direction: column; gap: 4px;">
-            <div style="font-weight: 700; color: #b91c1c;">⚠️ CHANGES REQUESTED BY SUPERVISOR</div>
-            <div style="color: #7f1d1d;">${sprint.feedback || 'Please review sprint objectives and submit updates.'}</div>
-            <div style="margin-top: 8px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-              <span style="text-decoration: line-through; opacity: 0.6;">SUBMITTED</span>
-              <span>➔</span>
-              <span style="color: #b91c1c; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px; border: 1px solid #fca5a5;">CHANGES REQUESTED</span>
-              <span>➔</span>
-              <span style="opacity: 0.6;">RESUBMITTED</span>
-            </div>
-          </div>
-        ` : '';
-
-        return `
-          <div class="workflow-strip-outer">
-            <div class="workflow-title-lbl">Sprint Lifecycle Workflow</div>
-            <div class="workflow-steps-flex">
-              ${stepsHtml}
-            </div>
-            ${changesRequestedCallout}
-          </div>
-        `;
-      }
-
       // Build Tab Content HTML
       let tabContentHtml = "";
       if (selectedProject) {
         if (activeTab === 'overview') {
           tabContentHtml = `
             <div class="project-tab-content">
-              <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">Project Overview</h3>
-              <div class="student-grid-2">
-                <div class="student-detail-field">
-                  <div class="student-detail-label">Client / Sponsor Agency</div>
-                  <div class="student-detail-value">${selectedProject.clientInfo || 'RLabZ Academy'}</div>
+              <h3 class="project-section-title">Project Overview</h3>
+              <div class="project-info-grid">
+                <div class="project-info-tile">
+                  <div class="project-info-icon-box emerald">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                  </div>
+                  <div class="project-info-text">
+                    <span class="project-info-label">Client / Sponsor Agency</span>
+                    <span class="project-info-val">${selectedProject.clientInfo || 'RLabZ Academy'}</span>
+                  </div>
                 </div>
-                <div class="student-detail-field">
-                  <div class="student-detail-label">Project Timeline</div>
-                  <div class="student-detail-value">${selectedProject.timeline}</div>
+
+                <div class="project-info-tile">
+                  <div class="project-info-icon-box blue">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  </div>
+                  <div class="project-info-text">
+                    <span class="project-info-label">Project Timeline</span>
+                    <span class="project-info-val">${selectedProject.timeline}</span>
+                  </div>
                 </div>
-                <div class="student-detail-field">
-                  <div class="student-detail-label font-bold">Faculty Supervisor</div>
-                  <div class="student-detail-value" style="font-weight: 600; color: var(--primary);">${selectedProject.faculty}</div>
+
+                <div class="project-info-tile">
+                  <div class="project-info-icon-box amber">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  </div>
+                  <div class="project-info-text">
+                    <span class="project-info-label">Faculty Supervisor</span>
+                    <span class="project-info-val" style="color: #059669;">${selectedProject.faculty}</span>
+                  </div>
                 </div>
-                <div class="student-detail-field">
-                  <div class="student-detail-label">Current Sprint</div>
-                  <div class="student-detail-value">
-                    <span class="student-badge student-badge-info" style="font-weight: 600;">${selectedProject.currentSprint}</span>
+
+                <div class="project-info-tile">
+                  <div class="project-info-icon-box purple">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                  </div>
+                  <div class="project-info-text">
+                    <span class="project-info-label">Overall Status</span>
+                    <span class="project-info-val">
+                      <span class="student-badge ${selectedProject.status === 'Completed' ? 'student-badge-success' : 'student-badge-warning'}">${selectedProject.status}</span>
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div class="student-detail-field" style="margin-top: 16px;">
-                <div class="student-detail-label">Description</div>
-                <div class="student-detail-value" style="line-height: 1.6; margin-top: 6px;">${selectedProject.description}</div>
+              <!-- Description Tile -->
+              <div class="project-description-card">
+                <div class="project-description-header">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  <span>Project Scope & Objectives</span>
+                </div>
+                <p class="project-description-text">${selectedProject.description}</p>
               </div>
 
-              <div class="student-detail-field" style="margin-top: 20px;">
-                <div class="student-detail-label">Overall Completion Progress</div>
-                <div style="display: flex; align-items: center; gap: 16px; margin-top: 8px;">
-                  <div class="student-progress-bar-bg" style="flex: 1; height: 12px;">
-                    <div class="student-progress-bar-fill" style="width: ${selectedProject.progress}%; height: 12px;"></div>
+              <!-- Completion Progress Card -->
+              <div class="project-progress-card">
+                <div class="project-progress-header">
+                  <div>
+                    <span class="project-progress-label">Overall Completion Progress</span>
+                    <span class="project-progress-sub">Calculated based on verified module deliverables</span>
                   </div>
-                  <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary); min-width: 48px; text-align: right;">${selectedProject.progress}%</span>
+                  <span class="project-progress-percentage">${selectedProject.progress}%</span>
+                </div>
+                <div class="student-progress-bar-bg" style="height: 12px;">
+                  <div class="student-progress-bar-fill" style="width: ${selectedProject.progress}%; height: 12px;"></div>
                 </div>
               </div>
             </div>
@@ -359,132 +244,119 @@ export async function StudentProjects(route, router) {
             const isMe = m.name.toLowerCase() === (currentUser?.name?.toLowerCase() || 'student nova');
             let badgesHtml = '';
             if (m.isTeamLead) {
-              badgesHtml += `<span class="team-lead-badge">Team Lead</span>`;
+              badgesHtml += `<span class="team-lead-badge">★ Team Lead</span>`;
             }
             if (isMe) {
-              const rightOffset = m.isTeamLead ? '105px' : '12px';
-              badgesHtml += `<span class="team-lead-badge" style="background: var(--success); right: ${rightOffset};">You</span>`;
+              const rightOffset = m.isTeamLead ? '112px' : '14px';
+              badgesHtml += `<span class="team-me-badge" style="right: ${rightOffset};">You</span>`;
             }
             return `
-              <div class="team-member-card" style="${isMe ? 'border: 2px solid var(--primary); background: var(--primary-light);' : ''}">
+              <div class="team-member-card ${isMe ? 'is-current-user' : ''}">
                 ${badgesHtml}
-                <div class="member-name" style="${isMe ? 'font-weight: 700; color: var(--primary);' : ''}">${m.name}</div>
+                <div class="member-avatar">
+                  ${m.name.charAt(0).toUpperCase()}
+                </div>
+                <div class="member-name">${m.name}</div>
                 <div class="member-designation">${m.designation} Track</div>
-                <div class="member-role">${m.isTeamLead ? 'Team Lead' : 'Member'}</div>
-              </div>
-            `;
-          }).join('');
-
-        tabContentHtml = `
-          <div class="project-tab-content">
-            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 6px;">Development Team</h3>
-            <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 16px;">Assigned team members and designations.</p>
-            <div class="project-members-grid">
-              ${teamCards}
-            </div>
-          </div>
-        `;
-        } else if (activeTab === 'sprints') {
-          const userInProject = selectedProject?.membersList?.find(m => m.name.toLowerCase() === (currentUser?.name?.toLowerCase() || 'student nova'));
-          const isTeamLead = currentUser?.designation === 'Nova' && userInProject?.isTeamLead === true;
-
-          const sprintsHtml = projectSprints.map(s => {
-            const tasksListHtml = s.tasks.map(t => `
-              <div class="sprint-task-item">
-                <div class="sprint-task-details">
-                  <span class="sprint-task-title">${t.name}</span>
-                  <span class="sprint-task-assignee">Assignee: ${t.assignee}</span>
+                <div class="member-role">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <span>${m.isTeamLead ? 'Lead Developer' : 'Team Member'}</span>
                 </div>
-                <span class="student-badge ${t.status === 'Completed' ? 'student-badge-success' : t.status === 'In Progress' ? 'student-badge-warning' : 'student-badge-info'}">${t.status}</span>
-              </div>
-            `).join('');
-
-            let actionButtons = '';
-            if (isTeamLead) {
-              const showSubmit = s.status === 'DRAFT' || s.approvalStatus === 'Changes Requested';
-              actionButtons = `
-                <div style="display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-                  <button class="student-btn student-btn-outline student-btn-sm btn-edit-sprint" data-sprint-id="${s.id}">
-                    Edit Sprint
-                  </button>
-                  ${showSubmit ? `
-                    <button class="student-btn student-btn-primary student-btn-sm btn-submit-sprint" data-sprint-id="${s.id}">
-                      Submit Sprint
-                    </button>
-                  ` : ''}
-                </div>
-              `;
-            }
-
-            return `
-              <div class="sprint-block-card">
-                <div class="sprint-block-card-header">
-                  <div>
-                    <h4 class="sprint-block-title">${s.name}</h4>
-                    <span class="sprint-date-span">${s.startDate && s.endDate ? `Duration: ${s.startDate} to ${s.endDate}` : (s.startDate ? `Started: ${s.startDate}` : (s.endDate ? `Due: ${s.endDate}` : 'Dates: Not scheduled'))}</span>
-                  </div>
-                  <div style="display: flex; gap: 8px;">
-                    <span class="student-badge ${s.status === 'COMPLETED' ? 'student-badge-success' : s.status === 'IN PROGRESS' ? 'student-badge-warning' : 'student-badge-info'}">${s.status}</span>
-                    <span class="student-badge student-badge-info">Approval: ${s.approvalStatus}</span>
-                  </div>
-                </div>
-
-                <div class="student-detail-field">
-                  <div class="student-detail-label">Objective</div>
-                  <div class="student-detail-value" style="font-size: 0.9rem; line-height: 1.5; margin-top: 4px;">${s.objective}</div>
-                </div>
-
-                <!-- Visual Workflow Node rendering -->
-                ${renderWorkflow(s)}
-
-                <div style="margin-top: 8px;">
-                  <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
-                    <span>Sprint Progress</span>
-                    <span>${s.progress}%</span>
-                  </div>
-                  <div class="student-progress-bar-bg" style="height: 6px;">
-                    <div class="student-progress-bar-fill" style="width: ${s.progress}%; height: 6px;"></div>
-                  </div>
-                </div>
-
-                <div style="margin-top: 12px;">
-                  <div class="student-detail-label" style="margin-bottom: 8px;">Sprint Tasks</div>
-                  <div class="sprint-tasks-list">
-                    ${tasksListHtml || '<div style="font-size:0.85rem;color:var(--text-muted);text-align:center;">No tasks registered in this sprint.</div>'}
-                  </div>
-                </div>
-
-                ${actionButtons}
               </div>
             `;
           }).join('');
 
           tabContentHtml = `
             <div class="project-tab-content">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <div class="project-section-header">
                 <div>
-                  <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 4px;">Project Sprints</h3>
-                  <p style="font-size: 0.825rem; color: var(--text-muted); margin: 0;">Sprints planning workflow.</p>
+                  <h3 class="project-section-title">Development Team</h3>
+                  <p class="project-section-sub">Assigned peer developers, track roles, and leadership.</p>
                 </div>
-                ${isTeamLead ? `
-                  <button class="student-btn student-btn-primary btn-add-sprint" style="padding: 8px 14px; font-size: 0.85rem;">
-                    + Add Sprint
-                  </button>
-                ` : ''}
+                <span class="student-badge student-badge-info" style="font-size: 0.75rem;">${teamMembers.length} Members</span>
               </div>
-              <div class="sprint-list-container">
-                ${sprintsHtml || '<div class="student-card" style="text-align:center;color:var(--text-muted);">No sprints configured for this project.</div>'}
+              <div class="project-members-grid">
+                ${teamCards}
+              </div>
+            </div>
+          `;
+        } else if (activeTab === 'modules') {
+          if (!selectedModuleName && selectedProject.assignedModules && selectedProject.assignedModules.length > 0) {
+            selectedModuleName = selectedProject.assignedModules[0];
+          }
+
+          const foundModule = projectModules.find(s => s.name === selectedModuleName);
+          const moduleTasks = foundModule ? foundModule.tasks : [];
+
+          const modulesLeftHtml = selectedProject.assignedModules && selectedProject.assignedModules.length > 0
+            ? selectedProject.assignedModules.map(m => {
+                const isActive = m === selectedModuleName;
+                return `
+                  <div class="module-item-card ${isActive ? 'active' : ''}" data-module-name="${m}">
+                    <div class="module-icon-box">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    </div>
+                    <span class="module-item-name">${m}</span>
+                    <svg class="module-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </div>
+                `;
+              }).join('')
+            : '<div style="color:var(--text-muted); padding: 16px;">No modules assigned to this project.</div>';
+
+          const tasksRowsHtml = moduleTasks.length > 0 
+            ? moduleTasks.map(t => `
+                <div class="student-task-item">
+                  <div class="student-task-main">
+                    <span class="student-task-title">${t.name}</span>
+                    <span class="student-task-assignee">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      Assignee: <strong>${t.assignee}</strong>
+                    </span>
+                  </div>
+                  <span class="student-badge ${t.status === 'Completed' ? 'student-badge-success' : t.status === 'In Progress' ? 'student-badge-warning' : 'student-badge-info'}">${t.status}</span>
+                </div>
+              `).join('')
+            : '<div style="padding: 36px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">No tasks found under this module.</div>';
+
+          tabContentHtml = `
+            <div class="project-tab-content">
+              <div class="project-section-header">
+                <div>
+                  <h3 class="project-section-title">Assigned Modules</h3>
+                  <p class="project-section-sub">Functionalities and components allocated to your development scope. Select a module to inspect its tasks.</p>
+                </div>
+              </div>
+              
+              <div class="project-modules-pane">
+                <!-- Left Panel: Modules list -->
+                <div class="modules-sidebar-list">
+                  ${modulesLeftHtml}
+                </div>
+                
+                <!-- Right Panel: Tasks under selected module -->
+                <div class="module-tasks-card">
+                  <div class="module-tasks-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                      <span>Tasks for: <strong style="color: #059669;">${selectedModuleName || 'None'}</strong></span>
+                    </div>
+                    <span class="student-badge student-badge-info" style="font-size: 0.72rem;">${moduleTasks.length} Tasks</span>
+                  </div>
+                  <div class="module-tasks-scroll">
+                    ${tasksRowsHtml}
+                  </div>
+                </div>
               </div>
             </div>
           `;
         } else if (activeTab === 'tasks') {
-          // Collect all tasks across sprints
+          // Collect all tasks across modules
           const allTasks = [];
-          projectSprints.forEach(s => {
+          projectModules.forEach(s => {
             s.tasks.forEach(t => {
               allTasks.push({
                 ...t,
-                sprintName: s.name
+                moduleName: s.name
               });
             });
           });
@@ -492,128 +364,88 @@ export async function StudentProjects(route, router) {
           const taskRowsHtml = allTasks.map(t => `
             <tr>
               <td>
-                <div style="font-weight: 600; font-size: 0.9rem;">${t.name}</div>
-                <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 2px;">${t.sprintName}</div>
+                <div style="font-weight: 600; font-size: 0.9rem; color: #0f172a;">${t.name}</div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                  ${t.moduleName}
+                </div>
               </td>
-              <td><span class="student-badge student-badge-info" style="font-size: 0.8rem;">${t.assignee}</span></td>
+              <td><span class="student-badge student-badge-info" style="font-size: 0.78rem;">${t.assignee}</span></td>
               <td><span class="student-badge ${t.status === 'Completed' ? 'student-badge-success' : t.status === 'In Progress' ? 'student-badge-warning' : 'student-badge-danger'}">${t.status}</span></td>
             </tr>
           `).join('');
 
           tabContentHtml = `
             <div class="project-tab-content">
-              <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">Assigned Project Tasks</h3>
+              <div class="project-section-header">
+                <div>
+                  <h3 class="project-section-title">Assigned Project Tasks</h3>
+                  <p class="project-section-sub">Comprehensive list of sprint components and responsibilities.</p>
+                </div>
+                <span class="student-badge student-badge-info" style="font-size: 0.75rem;">${allTasks.length} Total Tasks</span>
+              </div>
               <div class="student-table-container">
                 <table class="student-table">
                   <thead>
                     <tr>
-                      <th>Task & Sprint</th>
+                      <th>Task & Module</th>
                       <th>Assignee</th>
                       <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    ${taskRowsHtml || '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">No tasks found.</td></tr>'}
+                    ${taskRowsHtml || '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:32px;">No tasks found.</td></tr>'}
                   </tbody>
                 </table>
               </div>
             </div>
           `;
-      } else if (activeTab === 'modules') {
-        if (!selectedModuleName && selectedProject.assignedModules && selectedProject.assignedModules.length > 0) {
-          selectedModuleName = selectedProject.assignedModules[0];
-        }
-
-        const foundSprint = projectSprints.find(s => s.name === selectedModuleName);
-        const sprintTasks = foundSprint ? foundSprint.tasks : [];
-
-        const modulesLeftHtml = selectedProject.assignedModules && selectedProject.assignedModules.length > 0
-          ? selectedProject.assignedModules.map(m => {
-              const isActive = m === selectedModuleName;
-              return `
-                <div class="module-item-card ${isActive ? 'active' : ''}" data-module-name="${m}" style="background: ${isActive ? 'var(--primary-light)' : '#f8fafc'}; border: 1px solid ${isActive ? 'var(--primary)' : 'var(--border-color)'}; padding: 14px; border-radius: var(--radius-sm); font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s;">
-                  <span style="color: var(--primary); font-size: 1.2rem;">📁</span>
-                  <span style="flex:1; font-size: 0.9rem;">${m}</span>
-                </div>
-              `;
-            }).join('')
-          : '<div style="color:var(--text-muted);">No modules assigned to this project.</div>';
-
-        const tasksRowsHtml = sprintTasks.length > 0 
-          ? sprintTasks.map(t => `
-              <div class="sprint-task-item" style="border: 1px solid var(--border-color); padding: 10px 14px; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; background: white; margin-bottom: 8px;">
-                <div style="display:flex; flex-direction:column; gap:2px;">
-                  <span style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${t.name}</span>
-                  <span style="font-size:0.75rem; color:var(--text-muted);">Assignee: ${t.assignee}</span>
-                </div>
-                <span class="student-badge ${t.status === 'Completed' ? 'student-badge-success' : t.status === 'In Progress' ? 'student-badge-warning' : 'student-badge-info'}">${t.status}</span>
-              </div>
-            `).join('')
-          : '<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">No tasks found under this module.</div>';
-
-        tabContentHtml = `
-          <div class="project-tab-content">
-            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 6px;">Assigned Modules</h3>
-            <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 16px;">Functionalities and components allocated to your development scope. Select a module to inspect its tasks.</p>
-            
-            <div class="student-split-pane" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px;">
-              <!-- Left Panel: Modules list -->
-              <div style="display: flex; flex-direction: column; gap: 10px;">
-                ${modulesLeftHtml}
-              </div>
-              
-              <!-- Right Panel: Tasks under selected module -->
-               <div class="student-card" style="margin: 0; background: #fafafb; border: 1px solid var(--border-color); padding: 16px;">
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                  <span>📋</span> Tasks for: <span style="color: var(--primary); font-weight: 800;">${selectedModuleName || 'None'}</span>
-                </div>
-                <div style="max-height: 350px; overflow-y: auto; padding-right: 4px;">
-                  ${tasksRowsHtml}
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
         } else if (activeTab === 'github') {
           tabContentHtml = `
             <div class="project-tab-content">
-              <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">GitHub Integration</h3>
+              <h3 class="project-section-title">GitHub Integration</h3>
               
-              <div class="student-card" style="background:#f8fafc; border-color:var(--border-color); display:flex; flex-direction:column; gap:16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-weight:700; font-size:0.95rem; color:var(--text-main);">Repository Status</span>
+              <div class="github-integration-card">
+                <div class="github-card-header">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #0f172a;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                    <span style="font-weight: 700; font-size: 1rem; color: #0f172a;">Repository Status</span>
+                  </div>
                   ${projectGithub ? `
-                    <span class="student-badge student-badge-success" style="padding: 6px 12px; font-weight:700;">
+                    <span class="student-badge student-badge-success" style="padding: 6px 14px; font-weight: 700; font-size: 0.8rem;">
                       ✓ Verified by Faculty
                     </span>
                   ` : `
-                    <span class="student-badge student-badge-warning" style="padding: 6px 12px; font-weight:700;">
+                    <span class="student-badge student-badge-warning" style="padding: 6px 14px; font-weight: 700; font-size: 0.8rem;">
                       No Repository Linked
                     </span>
                   `}
                 </div>
 
                 ${projectGithub ? `
-                  <div class="student-detail-field" style="margin: 0;">
-                    <div class="student-detail-label">Connected Repository URL</div>
-                    <div class="student-detail-value" style="font-family: monospace; font-size: 0.9rem; background: white; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; margin-top: 6px;">
-                      <a href="${projectGithub.url}" target="_blank" style="color: var(--primary); text-decoration: none; word-break: break-all;">
+                  <div class="github-url-box">
+                    <div class="github-url-label">Connected Repository URL</div>
+                    <div class="github-url-row">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #38bdf8; flex-shrink: 0;"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+                      <a href="${projectGithub.url}" target="_blank" rel="noopener noreferrer" class="github-url-link">
                         ${projectGithub.url}
                       </a>
                     </div>
                   </div>
-                  <div class="student-detail-field" style="margin: 0;">
-                    <div class="student-detail-label">Verifying Supervisor</div>
-                    <div class="student-detail-value" style="font-weight:600; margin-top:4px;">${projectGithub.faculty || selectedProject.faculty}</div>
+                  <div class="github-meta-row">
+                    <span class="github-meta-label">Verifying Supervisor:</span>
+                    <span class="github-meta-val">${projectGithub.faculty || selectedProject.faculty}</span>
                   </div>
                 ` : `
-                  <p style="color:var(--text-muted); font-size:0.875rem; margin:0;">
-                    No Github repository link has been set for this project yet. Please coordinate with your faculty supervisor to bind the repository.
-                  </p>
+                  <div class="github-empty-state">
+                    <p style="color: #64748b; font-size: 0.9rem; margin: 0;">
+                      No GitHub repository link has been set for this project yet. Please coordinate with your faculty supervisor to bind the repository.
+                    </p>
+                  </div>
                 `}
 
-                <button class="student-btn student-btn-outline student-btn-sm btn-manage-git" style="width:fit-content;">
-                  Go to GitHub Manager
+                <button class="student-btn student-btn-outline student-btn-sm btn-manage-git" style="width: fit-content; border-radius: 20px; padding: 7px 18px; font-weight: 600;">
+                  Go to GitHub Manager &rarr;
                 </button>
               </div>
             </div>
@@ -623,22 +455,51 @@ export async function StudentProjects(route, router) {
 
       // Main detail container HTML
       const detailsHtml = selectedProject ? `
-        <div class="student-card">
-          <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
-            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">${selectedProject.title}</h2>
-            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-              Assigned Track: <strong style="color: var(--primary);">${selectedProject.designation}</strong>
-            </span>
+        <div class="project-detail-card">
+          <!-- Project Detail Header -->
+          <div class="project-detail-header">
+            <div class="project-detail-title-col">
+              <div class="project-detail-meta-row">
+                <span class="project-detail-track-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                  ${selectedProject.designation} Track
+                </span>
+                <span class="project-detail-supervisor-pill">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  Supervisor: <strong>${selectedProject.faculty}</strong>
+                </span>
+              </div>
+              <h2 class="project-detail-title">${selectedProject.title}</h2>
+            </div>
+            <div class="project-detail-status-col">
+              <span class="student-badge ${selectedProject.status === 'Completed' ? 'student-badge-success' : 'student-badge-warning'} project-detail-status-badge">
+                ${selectedProject.status}
+              </span>
+            </div>
           </div>
 
           <!-- Project Tab Navigation -->
           <div class="project-tabs-nav">
-            <button class="project-tab-btn ${activeTab === 'overview' ? 'active' : ''}" data-tab="overview">Overview</button>
-            <button class="project-tab-btn ${activeTab === 'team' ? 'active' : ''}" data-tab="team">Team</button>
-            <button class="project-tab-btn ${activeTab === 'modules' ? 'active' : ''}" data-tab="modules">Modules</button>
-            <button class="project-tab-btn ${activeTab === 'tasks' ? 'active' : ''}" data-tab="tasks">Tasks</button>
-            <button class="project-tab-btn ${activeTab === 'sprints' ? 'active' : ''}" data-tab="sprints">Sprint</button>
-            <button class="project-tab-btn ${activeTab === 'github' ? 'active' : ''}" data-tab="github">GitHub</button>
+            <button class="project-tab-btn ${activeTab === 'overview' ? 'active' : ''}" data-tab="overview">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <span>Overview</span>
+            </button>
+            <button class="project-tab-btn ${activeTab === 'team' ? 'active' : ''}" data-tab="team">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span>Team</span>
+            </button>
+            <button class="project-tab-btn ${activeTab === 'modules' ? 'active' : ''}" data-tab="modules">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <span>Modules</span>
+            </button>
+            <button class="project-tab-btn ${activeTab === 'tasks' ? 'active' : ''}" data-tab="tasks">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+              <span>Tasks</span>
+            </button>
+            <button class="project-tab-btn ${activeTab === 'github' ? 'active' : ''}" data-tab="github">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+              <span>GitHub</span>
+            </button>
           </div>
 
           <!-- Dynamic Content Outlet -->
@@ -648,14 +509,14 @@ export async function StudentProjects(route, router) {
         </div>
       ` : `
         <div class="student-card" style="display: flex; align-items: center; justify-content: center; min-height: 400px; color: var(--text-muted);">
-          Select a project from the cards to inspect development details.
+          Select a project from the left panel to inspect details.
         </div>
       `;
 
       container.innerHTML = `
-        <div style="margin-bottom: 20px; display: flex; justify-content: flex-start;">
-          <button class="student-btn student-btn-outline btn-back-to-cards" style="display: inline-flex; align-items: center; gap: 8px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="student-header">
+          <button class="btn-back-to-cards">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
@@ -671,6 +532,35 @@ export async function StudentProjects(route, router) {
 
     // Attach Event Listeners
     if (!isDetailView) {
+      // Search input handler
+      const projSearchInput = container.querySelector('#project-search-input');
+      projSearchInput?.addEventListener('input', (e) => {
+        projectSearch = e.target.value;
+        render();
+        const newInput = container.querySelector('#project-search-input');
+        if (newInput) {
+          newInput.focus();
+          newInput.setSelectionRange(newInput.value.length, newInput.value.length);
+        }
+      });
+
+      // Status filter pills
+      container.querySelectorAll('.student-filter-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          projectStatusFilter = pill.getAttribute('data-status');
+          render();
+        });
+      });
+
+      // Clear filters
+      const clearProjFilters = () => {
+        projectSearch = '';
+        projectStatusFilter = 'all';
+        render();
+      };
+      container.querySelector('#btn-clear-proj-filters')?.addEventListener('click', clearProjFilters);
+      container.querySelector('#btn-empty-clear-proj')?.addEventListener('click', clearProjFilters);
+
       container.querySelectorAll('.btn-view-details').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -717,38 +607,6 @@ export async function StudentProjects(route, router) {
           el.addEventListener('click', () => {
             selectedModuleName = el.getAttribute('data-module-name');
             render();
-          });
-        });
-      }
-
-      // Bind Team Lead Sprint Management triggers
-      if (activeTab === 'sprints') {
-        container.querySelector('.btn-add-sprint')?.addEventListener('click', () => {
-          openSprintModal(selectedProject);
-        });
-
-        container.querySelectorAll('.btn-edit-sprint').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const sprintId = parseInt(btn.dataset.sprintId, 10);
-            const sprintsList = getSprints() || [];
-            const sprintToEdit = sprintsList.find(s => s.id === sprintId);
-            if (sprintToEdit) {
-              openSprintModal(selectedProject, sprintToEdit);
-            }
-          });
-        });
-
-        container.querySelectorAll('.btn-submit-sprint').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const sprintId = parseInt(btn.dataset.sprintId, 10);
-            const sprintsList = getSprints() || [];
-            const sprint = sprintsList.find(s => s.id === sprintId);
-            if (sprint) {
-              sprint.status = 'SUBMITTED';
-              sprint.approvalStatus = 'Faculty Review';
-              await saveSprint(sprint);
-              render();
-            }
           });
         });
       }

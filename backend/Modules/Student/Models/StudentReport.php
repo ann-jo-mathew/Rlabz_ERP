@@ -12,9 +12,13 @@ class StudentReport extends Model
 
     protected $fillable = [
         'student_id',
+        'project_id',
         'report_type',
         'report_date',
         'work_done',
+        'report_file',
+        'approval_status',
+        'feedback',
         'submitted_at',
     ];
 
@@ -26,5 +30,10 @@ class StudentReport extends Model
     public function student()
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(\Modules\Project\Models\Project::class, 'project_id');
     }
 }

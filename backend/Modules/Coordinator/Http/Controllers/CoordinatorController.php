@@ -441,10 +441,11 @@ class CoordinatorController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $changes = RequirementChange::with(['clientRequirement', 'requester', 'approver'])
-            ->where('project_id', $project->id)
-            ->latest('changed_on')
-            ->get();
+        $changes = RequirementChange::whereHas('clientRequirement', function ($query) use ($project) {
+            $query->where('project_id', $project->id);
+        })->with(['clientRequirement', 'requester', 'approver'])
+          ->latest('created_at')
+          ->get();
 
         return response()->json(['data' => $changes]);
     }
@@ -472,22 +473,13 @@ class CoordinatorController extends Controller
             return response()->json(['error' => 'Selected requirement does not belong to this project'], 422);
         }
 
-        // Approval fields are never trusted from the client — this endpoint only records
-        // a pending change request; approval is a separate workflow.
+        $userId = $this->currentUserId($request) ?? $request->user()?->id ?? 1;
+
         $change = RequirementChange::create([
             'client_requirement_id' => $requirement->id,
-            'project_id' => $project->id,
-            'previous_description' => $requirement->description,
-            'new_description' => $validated['new_description'] ?? null,
-            'change_description' => $validated['change_description'],
-            'reason' => $validated['reason'] ?? null,
-            'previous_document_path' => $requirement->document_path,
-            'new_document_path' => $validated['new_document_path'] ?? null,
-            'requested_by' => $this->currentUserId($request) ?? $request->user()?->id,
-            'status' => 'pending',
-            'approved_by' => null,
-            'approved_at' => null,
-            'changed_on' => $validated['changed_on'] ?? now(),
+            'previous_value' => json_encode($requirement),
+            'updated_value' => json_encode($validated),
+            'changed_by' => $userId,
         ]);
 
         return response()->json([

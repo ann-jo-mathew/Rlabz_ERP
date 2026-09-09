@@ -51,43 +51,64 @@ export async function FinancialReports(route, router) {
           <h3 style="margin:0 0 12px 0;font-size:15px;">Project Profitability Report</h3>
           <table class="fin-table">
             <thead><tr>
-              <th>Project</th><th>Billing</th><th>Collected</th><th>Outstanding</th><th>Expenses</th><th>Margin</th>
+              <th>Project</th><th>Billing</th><th>Collected</th><th>Pending from Client</th><th>Expenses</th><th>Project Profit</th>
             </tr></thead>
             <tbody>
-              ${filtered.map(p => `<tr>
-                <td><div style="font-weight:600">${p.name}</div><div style="font-size:0.75rem;color:var(--text-muted)">${p.client}</div></td>
-                <td style="font-weight:600">${fmt(p.totalBilling)}</td>
-                <td style="color:var(--primary);font-weight:600">${fmt(p.collected)}</td>
-                <td style="color:#d97706;font-weight:600">${fmt(p.outstanding)}</td>
-                <td style="color:#ef4444;font-weight:600">${fmt(p.totalExpenses)}</td>
-                <td style="font-weight:700">${fmt(p.margin)}</td>
-              </tr>`).join('')}
+              ${filtered.map(p => {
+                const pf = p.project_finance || {};
+                const billing = pf.total_invoiced || 0;
+                const collected = pf.total_collected || 0;
+                const pending = pf.pending_amount || 0;
+                const expenses = pf.total_expenses || 0;
+                const profit = collected - expenses;
+                return `<tr>
+                <td><div style="font-weight:600">${p.title || p.name || 'Unknown'}</div><div style="font-size:0.75rem;color:var(--text-muted)">${p.client_name || '-'}</div></td>
+                <td style="font-weight:600">${fmt(billing)}</td>
+                <td style="color:var(--primary);font-weight:600">${fmt(collected)}</td>
+                <td style="color:#d97706;font-weight:600">${fmt(pending)}</td>
+                <td style="color:#ef4444;font-weight:600">${fmt(expenses)}</td>
+                <td style="font-weight:700;color:${profit >= 0 ? 'var(--primary)' : '#ef4444'}">${fmt(profit)}</td>
+              </tr>`;
+              }).join('')}
             </tbody>
           </table>
         `;
       }
     }
     else if (type === 'Payroll') {
-      const filtered = projectFilter === 'All' ? data.payroll : data.payroll.filter(p => p.projectId.toString() === projectFilter);
-      if (!filtered.length) { hasData = false; } else {
+      // Filter uses project_id (not projectId) - this is the correct field from backend
+      const filtered = projectFilter === 'All'
+        ? data.payroll
+        : data.payroll.filter(p => (p.project_id || '').toString() === projectFilter);
+
+      if (!filtered.length) {
+        hasData = false;
+        // Use project-specific empty state message
+        const noResults = container.querySelector('#no-report-results');
+        if (noResults) {
+          noResults.querySelector('p').textContent = projectFilter !== 'All'
+            ? 'No student payroll records found for this project.'
+            : 'No payroll records found.';
+        }
+      } else {
         html = `
           <h3 style="margin:0 0 12px 0;font-size:15px;">Student Payroll Report</h3>
           <table class="fin-table">
             <thead><tr>
-              <th>Student</th><th>Designation</th><th>Project</th><th>Logged Hrs</th><th>Approved Hrs</th><th>Rate</th><th>Amount</th><th>Status</th>
+              <th>Student</th><th>Designation</th><th>Project</th><th>Approved Hrs</th><th>Rate</th><th>Gross Amount</th><th>Amount Paid</th><th>Status</th>
             </tr></thead>
             <tbody>
               ${filtered.map(pr => {
-                const dc = 'nova';
+                const dc = (pr.designation === 'Nova') ? 'nova' : (pr.designation === 'Orbit' ? 'orbit' : 'spark');
                 return `<tr>
-                  <td><div style="font-weight:600">${pr.student_name || 'Student'}</div><div style="font-size:0.75rem;color:var(--text-muted)">ID:${pr.id}</div></td>
-                  <td><span class="fin-badge ${dc}">Nova</span></td>
+                  <td><div style="font-weight:600">${pr.student_name || 'Student'}</div><div style="font-size:0.75rem;color:var(--text-muted)">ID:${pr.project_student_id || pr.id}</div></td>
+                  <td><span class="fin-badge ${dc}">${pr.designation || 'None'}</span></td>
                   <td>${pr.project_name || '-'}</td>
-                  <td style="color:var(--text-muted)">20.00h</td>
-                  <td style="font-weight:600">20.00h</td>
-                  <td style="font-size:0.82rem">₹${pr.hourly_rate || 250}/hr</td>
-                  <td style="font-weight:700">${fmt(pr.amount || 0)}</td>
-                  <td><span class="fin-badge ${pr.status === 'paid' ? 'success' : 'warning'}">${pr.status || 'Paid'}</span></td>
+                  <td style="font-weight:600">${pr.approved_hours || 0}h</td>
+                  <td style="font-size:0.82rem">₹${pr.hourly_rate || 0}/hr</td>
+                  <td style="font-weight:700">${fmt(pr.gross_amount || 0)}</td>
+                  <td style="color:var(--primary);font-weight:600">${fmt(pr.amount_paid || 0)}</td>
+                  <td><span class="fin-badge ${pr.status === 'Paid' ? 'success' : 'warning'}">${pr.status || 'Pending'}</span></td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -196,27 +217,51 @@ export async function FinancialReports(route, router) {
     }
   };
 
-  try {
-    data.summary = await financeService.getDashboardSummary();
-    data.projects = await financeService.getProjectFinances();
-    data.invoices = await financeService.getInvoices();
-    data.payroll = await financeService.getStudentPayroll();
-    data.transactions = await financeService.getTransactions();
-
-    container.innerHTML = `
-      <div class="fin-page-header">
-        <div>
-          <h1>Financial Reports</h1>
-          <p>Generate and export project, payroll, and transaction reports</p>
-        </div>
+  container.innerHTML = `
+    <div class="fin-page-header">
+      <div>
+        <h1>Financial Reports</h1>
+        <p>Generate and export project, payroll, and transaction reports</p>
       </div>
+    </div>
 
-      <!-- Report Configurator -->
-      <div class="fin-panel">
-        <div class="fin-panel-header">
-          <div class="fin-panel-title">Report Configuration</div>
-        </div>
-        <div class="fin-filter-bar" style="margin-bottom:0; box-shadow:none; border:none; padding:0; background:transparent;">
+    <!-- Report Configurator -->
+    <div class="fin-panel">
+      <div class="fin-panel-header">
+        <div class="fin-panel-title">Report Configuration</div>
+      </div>
+      <div class="fin-filter-bar" id="report-config-bar" style="margin-bottom:0; box-shadow:none; border:none; padding:1.5rem; background:transparent; display:flex; justify-content:center; align-items:center;">
+        <div style="color:var(--text-muted);"><span class="fin-spinner" style="margin-right:10px"></span> Loading report data...</div>
+      </div>
+    </div>
+
+    <!-- Report Preview -->
+    <div id="report-preview-panel" class="fin-panel" style="display:none;">
+      <div class="fin-panel-header">
+        <div class="fin-panel-title">Report Preview</div>
+        <button class="fin-btn outline sm" id="download-pdf-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download PDF
+        </button>
+      </div>
+      <div id="report-content" class="fin-table-wrap"></div>
+      <div id="no-report-results" style="display:none;text-align:center;padding:2.5rem;color:var(--text-muted)">
+        <p style="margin:0;font-size:0.9rem">No data available for the selected filters.</p>
+      </div>
+    </div>
+  `;
+
+  const loadData = async () => {
+    try {
+      data.summary = await financeService.getDashboardSummary();
+      data.projects = await financeService.getProjectFinances();
+      data.invoices = await financeService.getInvoices();
+      data.payroll = await financeService.getStudentPayroll();
+      data.transactions = await financeService.getTransactions();
+
+      const configBar = container.querySelector('#report-config-bar');
+      configBar.style = "margin-bottom:0; box-shadow:none; border:none; padding:0; background:transparent;";
+      configBar.innerHTML = `
           <div class="fin-filter-group" style="min-width:220px; max-width:340px;">
             <label>Report Type</label>
             <div class="fin-select-wrap">
@@ -224,8 +269,6 @@ export async function FinancialReports(route, router) {
                 <option value="ProjectProfitability">Project Profitability</option>
                 <option value="Payroll">Student Payroll</option>
                 <option value="Transactions">All Transactions</option>
-                <option value="Weekly">Weekly Summary</option>
-                <option value="Monthly">Monthly Summary</option>
               </select>
             </div>
           </div>
@@ -245,30 +288,17 @@ export async function FinancialReports(route, router) {
             </button>
           </div>
         </div>
-      </div>
+      `;
 
-      <!-- Report Preview -->
-      <div id="report-preview-panel" class="fin-panel" style="display:none;">
-        <div class="fin-panel-header">
-          <div class="fin-panel-title">Report Preview</div>
-          <button class="fin-btn outline sm" id="download-pdf-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Download PDF
-          </button>
-        </div>
-        <div id="report-content" class="fin-table-wrap"></div>
-        <div id="no-report-results" style="display:none;text-align:center;padding:2.5rem;color:var(--text-muted)">
-          <p style="margin:0;font-size:0.9rem">No data available for the selected filters.</p>
-        </div>
-      </div>
-    `;
+      container.querySelector('#generate-btn').addEventListener('click', renderReport);
+      container.querySelector('#download-pdf-btn').addEventListener('click', generatePDF);
 
-    container.querySelector('#generate-btn').addEventListener('click', renderReport);
-    container.querySelector('#download-pdf-btn').addEventListener('click', generatePDF);
+    } catch (e) {
+      container.querySelector('#report-config-bar').innerHTML = `<div class="alert-error" style="width:100%">Failed to load reports module: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:10px">Retry</button></div>`;
+    }
+  };
 
-  } catch (e) {
-    container.innerHTML = `<div class="alert-error">Failed to load reports module: ${e.message}</div>`;
-  }
+  loadData();
 
   return container;
 }

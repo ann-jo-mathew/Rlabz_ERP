@@ -37,7 +37,7 @@ export async function ProjectCreate(route, router) {
             </div>
 
             <div class="form-group">
-              <label>Budget ($)</label>
+              <label>Budget (₹)</label>
               <input type="number" name="budget" step="0.01" class="premium-input" placeholder="0.00" />
             </div>
 

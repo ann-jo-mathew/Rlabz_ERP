@@ -164,69 +164,225 @@ export async function InvoicesBills(route, router) {
   };
 
   try {
-    const invoices = await financeService.getInvoices();
+    let invoices = [];
+    let projects = [];
 
-    container.innerHTML = `
-      <div class="fin-page-header">
-        <div>
-          <h1>Client Invoices & Bills</h1>
-          <p>Manage project billing and generate professional PDFs</p>
+    const renderTable = () => {
+      container.innerHTML = `
+        <div class="fin-page-header">
+          <div style="display:flex; justify-content:space-between; align-items:center; width: 100%;">
+            <div>
+              <h1>Client Invoices & Bills</h1>
+              <p>Manage project billing and generate professional PDFs</p>
+            </div>
+            <button class="fin-btn primary" id="create-invoice-btn" style="height: fit-content;">+ Create Invoice</button>
+          </div>
         </div>
-      </div>
 
-      <div class="fin-panel">
-        <div class="fin-panel-header">
-          <div class="fin-panel-title">Invoices Ledger</div>
-        </div>
-        <div class="fin-table-wrap">
-          <table class="fin-table">
-            <thead>
-              <tr>
-                <th>Invoice No.</th>
-                <th>Date</th>
-                <th>Project</th>
-                <th>Client</th>
-                <th>Amount (Ex. GST)</th>
-                <th>GST</th>
-                <th>Grand Total</th>
-                <th style="color:var(--primary)">Total Paid</th>
-                <th style="color:var(--warning-text)">Remaining Amount</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${invoices.map(inv => {
-                const proj = inv.project_finance?.project || {};
-                return `
+        <div class="fin-panel">
+          <div class="fin-panel-header">
+            <div class="fin-panel-title">Invoices Ledger</div>
+          </div>
+          <div class="fin-table-wrap">
+            <table class="fin-table">
+              <thead>
                 <tr>
-                  <td style="font-family:monospace;font-size:0.8rem;font-weight:700;">${inv.invoice_number || 'INV-NA'}</td>
-                  <td style="white-space:nowrap;">${fmtDate(inv.invoice_date)}</td>
-                  <td><div style="font-weight:600">${proj.title || 'Unknown'}</div></td>
-                  <td style="color:var(--text-muted)">${proj.client_name || '-'}</td>
-                  <td>${fmt(inv.amount_before_gst || 0)}</td>
-                  <td>${fmt(inv.gst_amount || 0)}</td>
-                  <td style="font-weight:700">${fmt(inv.grand_total || 0)}</td>
-                  <td style="color:var(--primary);font-weight:700">${fmt(inv.total_paid || 0)}</td>
-                  <td style="color:var(--warning-text);font-weight:700">${fmt(inv.pending_amount || 0)}</td>
-                  <td><span class="fin-badge ${inv.status === 'Paid' ? 'success' : 'warning'}">${inv.status}</span></td>
-                  <td>
-                    <div style="display:flex; gap:0.5rem">
-                      <button class="fin-btn outline sm download-btn" data-id="${inv.id}">PDF</button>
-                      ${(inv.client_payments || []).length > 0 ? `<button class="fin-btn outline sm history-btn" data-id="${inv.id}">History</button>` : ''}
-                      ${inv.status !== 'Paid' ? `<button class="fin-btn primary sm pay-btn" data-id="${inv.id}" data-pending="${inv.pending_amount}">Record Pay</button>` : ''}
-                    </div>
-                  </td>
+                  <th>Invoice No.</th>
+                  <th>Date</th>
+                  <th>Project</th>
+                  <th>Client</th>
+                  <th>Amount (Ex. GST)</th>
+                  <th>GST</th>
+                  <th>Grand Total</th>
+                  <th style="color:var(--primary)">Total Paid</th>
+                  <th style="color:var(--warning-text)">Remaining Amount</th>
+                  <th>Status</th>
+                  <th>Action</th>
                 </tr>
-              `}).join('')}
-              ${invoices.length === 0 ? '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:2rem">No invoices found</td></tr>' : ''}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                ${invoices.map(inv => {
+                  const proj = inv.project_finance?.project || {};
+                  return `
+                  <tr>
+                    <td style="font-family:monospace;font-size:0.8rem;font-weight:700;">${inv.invoice_number || 'INV-NA'}</td>
+                    <td style="white-space:nowrap;">${fmtDate(inv.invoice_date)}</td>
+                    <td><div style="font-weight:600">${proj.title || 'Unknown'}</div></td>
+                    <td style="color:var(--text-muted)">${proj.client_name || '-'}</td>
+                    <td>${fmt(inv.amount_before_gst || 0)}</td>
+                    <td>${fmt(inv.gst_amount || 0)}</td>
+                    <td style="font-weight:700">${fmt(inv.grand_total || 0)}</td>
+                    <td style="color:var(--primary);font-weight:700">${fmt(inv.total_paid || 0)}</td>
+                    <td style="color:var(--warning-text);font-weight:700">${fmt(inv.pending_amount || 0)}</td>
+                    <td><span class="fin-badge ${inv.status === 'Paid' ? 'success' : 'warning'}">${inv.status}</span></td>
+                    <td>
+                      <div style="display:flex; gap:0.5rem">
+                        <button class="fin-btn outline sm download-btn" data-id="${inv.id}">PDF</button>
+                        ${(inv.client_payments || []).length > 0 ? `<button class="fin-btn outline sm history-btn" data-id="${inv.id}">History</button>` : ''}
+                        ${inv.status !== 'Paid' ? `<button class="fin-btn primary sm pay-btn" data-id="${inv.id}" data-pending="${inv.pending_amount}">Record Pay</button>` : ''}
+                      </div>
+                    </td>
+                  </tr>
+                `}).join('')}
+                ${invoices.length === 0 ? '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:2rem">No invoices found</td></tr>' : ''}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+      bindEvents();
+    };
+
+    const loadInvoices = async () => {
+      const tbody = container.querySelector('tbody');
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:3rem;color:var(--text-muted)"><span class="fin-spinner" style="margin-right:10px"></span> Loading invoices...</td></tr>`;
+      } else {
+        container.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:300px; color:var(--text-muted)"><span class="fin-spinner" style="margin-right:10px"></span> Loading invoices...</div>`;
+      }
+      
+      try {
+        invoices = await financeService.getInvoices();
+        renderTable();
+      } catch (e) {
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:2rem;color:#ef4444">Failed to load invoices: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:10px">Retry</button></td></tr>`;
+        } else {
+          container.innerHTML = `<div class="alert-error">Failed to load invoices: ${e.message}</div>`;
+        }
+      }
+    };
 
     const bindEvents = () => {
+      // Create Invoice Modal
+      const createBtn = container.querySelector('#create-invoice-btn');
+      if (createBtn) {
+        createBtn.addEventListener('click', async () => {
+          if (projects.length === 0) {
+            projects = await financeService.getProjectFinances();
+          }
+          
+          const validProjects = projects.filter(p => p.project_finance && p.project_finance.id);
+
+          const modal = document.createElement('div');
+          modal.className = 'fin-modal-overlay';
+          modal.innerHTML = `
+            <div class="fin-modal" style="max-width: 500px;">
+              <h3 style="margin:0 0 1rem">Create Invoice</h3>
+              <div class="fin-form-group">
+                <label>Project</label>
+                <select class="fin-input" id="ci-project">
+                  <option value="">Select Project</option>
+                  ${validProjects.map(p => `<option value="${p.project_finance.id}" data-budget="${p.budget || 0}">${p.title} (Budget: ${fmt(p.budget || 0)})</option>`).join('')}
+                </select>
+              </div>
+              <div style="display:flex; gap:1rem;">
+                <div class="fin-form-group" style="flex:1">
+                  <label>Invoice Number</label>
+                  <input type="text" class="fin-input" id="ci-number" value="INV-${Date.now().toString().slice(-6)}" required>
+                </div>
+                <div class="fin-form-group" style="flex:1">
+                  <label>GST %</label>
+                  <input type="number" class="fin-input" id="ci-gst" value="18" step="0.01" required>
+                </div>
+              </div>
+              <div style="display:flex; gap:1rem;">
+                <div class="fin-form-group" style="flex:1">
+                  <label>Invoice Date</label>
+                  <input type="date" class="fin-input" id="ci-date" value="${new Date().toISOString().split('T')[0]}" required>
+                </div>
+                <div class="fin-form-group" style="flex:1">
+                  <label>Due Date</label>
+                  <input type="date" class="fin-input" id="ci-due-date">
+                </div>
+              </div>
+              <div class="fin-form-group">
+                <label>Amount Before GST</label>
+                <input type="number" class="fin-input" id="ci-amount" step="0.01" required>
+                <small style="color:var(--text-muted); font-size:0.8rem;">Enter the actual billable amount (excluding GST).</small>
+              </div>
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.9rem">
+                  <span style="color:var(--text-muted)">GST Amount</span>
+                  <span id="ci-calc-gst" style="font-weight:600">₹0</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:1.1rem; border-top:1px solid #e2e8f0; padding-top:0.5rem">
+                  <span style="font-weight:700">Grand Total</span>
+                  <span id="ci-calc-total" style="font-weight:700; color:var(--primary)">₹0</span>
+                </div>
+              </div>
+              <div class="fin-form-group">
+                <label>Description</label>
+                <textarea class="fin-input" id="ci-desc" rows="2" placeholder="Optional description"></textarea>
+              </div>
+              <div class="fin-form-actions" style="margin-top:1rem">
+                <button class="fin-btn primary" id="confirm-ci">Create Invoice</button>
+                <button class="fin-btn outline" id="cancel-ci">Cancel</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+
+          // Auto-fill amount when project is selected (just as a reference)
+          modal.querySelector('#ci-project').addEventListener('change', (e) => {
+            const selected = e.target.options[e.target.selectedIndex];
+            if (selected && selected.dataset.budget) {
+              modal.querySelector('#ci-amount').value = selected.dataset.budget;
+              updateCalculation();
+            }
+          });
+
+          const updateCalculation = () => {
+            const amtStr = modal.querySelector('#ci-amount').value;
+            const gstStr = modal.querySelector('#ci-gst').value;
+            const amt = parseFloat(amtStr) || 0;
+            const gst = parseFloat(gstStr) || 0;
+            const gstAmount = amt * (gst / 100);
+            const total = amt + gstAmount;
+            modal.querySelector('#ci-calc-gst').textContent = fmt(gstAmount);
+            modal.querySelector('#ci-calc-total').textContent = fmt(total);
+          };
+
+          modal.querySelector('#ci-amount').addEventListener('input', updateCalculation);
+          modal.querySelector('#ci-gst').addEventListener('input', updateCalculation);
+
+          modal.querySelector('#cancel-ci').addEventListener('click', () => modal.remove());
+          modal.querySelector('#confirm-ci').addEventListener('click', async () => {
+            const pfId = modal.querySelector('#ci-project').value;
+            const amount = parseFloat(modal.querySelector('#ci-amount').value);
+            const num = modal.querySelector('#ci-number').value;
+            const date = modal.querySelector('#ci-date').value;
+            const gst = parseFloat(modal.querySelector('#ci-gst').value);
+
+            if (!pfId || !amount || amount <= 0 || !num || !date || isNaN(gst)) {
+              alert('Please fill all required fields correctly.');
+              return;
+            }
+
+            try {
+              const res = await financeService.createInvoice({
+                project_finance_id: pfId,
+                invoice_number: num,
+                invoice_date: date,
+                due_date: modal.querySelector('#ci-due-date').value || null,
+                amount_before_gst: amount,
+                gst_percentage: gst,
+                description: modal.querySelector('#ci-desc').value || null
+              });
+
+              if (res && res.message && !res.invoice) {
+                alert('Error: ' + res.message);
+                return;
+              }
+              modal.remove();
+              await loadInvoices();
+            } catch (err) {
+              alert('Creation failed: ' + err.message);
+            }
+          });
+        });
+      }
+
       // PDF generation
       container.querySelectorAll('.download-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -354,8 +510,8 @@ export async function InvoicesBills(route, router) {
                  return;
               }
               modal.remove();
-              // Reload page or re-render
-              window.location.reload();
+              // Re-fetch and re-render
+              await loadInvoices();
             } catch(e) {
               alert('Payment failed: ' + e.message);
             }
@@ -364,7 +520,8 @@ export async function InvoicesBills(route, router) {
       });
     };
     
-    bindEvents();
+    
+    loadInvoices();
 
   } catch (e) {
     container.innerHTML = `<div class="alert-error">Failed to load invoices: ${e.message}</div>`;

@@ -25,13 +25,41 @@ export async function Transactions(route, router) {
     const typeFilter = container.querySelector('#filter-type').value;
     const projectFilter = container.querySelector('#filter-project').value;
     const ieFilter = container.querySelector('#filter-ie').value;
+    const dateFrom = container.querySelector('#filter-date-from').value;
+    const dateTo = container.querySelector('#filter-date-to').value;
+    const sortVal = container.querySelector('#filter-sort').value;
 
-    const filtered = transactions.filter(t => {
+    let filtered = transactions.filter(t => {
       const matchSearch = (t.projectName || '').toLowerCase().includes(searchTerm) || (t.id || '').toLowerCase().includes(searchTerm) || (t.desc || '').toLowerCase().includes(searchTerm);
       const matchType = typeFilter === 'All' || t.type === typeFilter;
       const matchProject = projectFilter === 'All' || (t.projectId || '').toString() === projectFilter;
       const matchIE = ieFilter === 'All' || t.incomeExpense === ieFilter;
-      return matchSearch && matchType && matchProject && matchIE;
+      
+      let matchDate = true;
+      if (dateFrom || dateTo) {
+         const tDate = new Date(t.date);
+         tDate.setHours(0,0,0,0); // normalize for comparison
+         if (dateFrom) {
+            const dFrom = new Date(dateFrom);
+            dFrom.setHours(0,0,0,0);
+            if (tDate < dFrom) matchDate = false;
+         }
+         if (dateTo) {
+            const dTo = new Date(dateTo);
+            dTo.setHours(0,0,0,0);
+            if (tDate > dTo) matchDate = false;
+         }
+      }
+      
+      return matchSearch && matchType && matchProject && matchIE && matchDate;
+    });
+
+    filtered.sort((a, b) => {
+      if (sortVal === 'date-desc') return new Date(b.date) - new Date(a.date);
+      if (sortVal === 'date-asc') return new Date(a.date) - new Date(b.date);
+      if (sortVal === 'amt-desc') return b.amount - a.amount;
+      if (sortVal === 'amt-asc') return a.amount - b.amount;
+      return 0;
     });
 
     const countEl = container.querySelector('#results-count');
@@ -116,6 +144,25 @@ export async function Transactions(route, router) {
             </select>
           </div>
         </div>
+        <div class="fin-filter-group" style="min-width:130px;">
+          <label>Date From</label>
+          <input type="date" id="filter-date-from" class="fin-input">
+        </div>
+        <div class="fin-filter-group" style="min-width:130px;">
+          <label>Date To</label>
+          <input type="date" id="filter-date-to" class="fin-input">
+        </div>
+        <div class="fin-filter-group" style="min-width:160px;">
+          <label>Sort</label>
+          <div class="fin-select-wrap">
+            <select id="filter-sort" class="fin-input">
+              <option value="date-desc">Newest &rarr; Oldest</option>
+              <option value="date-asc">Oldest &rarr; Newest</option>
+              <option value="amt-desc">Amount: High &rarr; Low</option>
+              <option value="amt-asc">Amount: Low &rarr; High</option>
+            </select>
+          </div>
+        </div>
         <div style="align-self:flex-end;">
           <button id="clear-filters-btn" class="fin-btn outline">Clear</button>
         </div>
@@ -153,12 +200,18 @@ export async function Transactions(route, router) {
     container.querySelector('#filter-type').addEventListener('change', renderTable);
     container.querySelector('#filter-project').addEventListener('change', renderTable);
     container.querySelector('#filter-ie').addEventListener('change', renderTable);
+    container.querySelector('#filter-date-from').addEventListener('change', renderTable);
+    container.querySelector('#filter-date-to').addEventListener('change', renderTable);
+    container.querySelector('#filter-sort').addEventListener('change', renderTable);
 
     container.querySelector('#clear-filters-btn').addEventListener('click', () => {
       container.querySelector('#search-input').value = '';
       container.querySelector('#filter-type').value = 'All';
       container.querySelector('#filter-project').value = 'All';
       container.querySelector('#filter-ie').value = 'All';
+      container.querySelector('#filter-date-from').value = '';
+      container.querySelector('#filter-date-to').value = '';
+      container.querySelector('#filter-sort').value = 'date-desc';
       renderTable();
     });
 

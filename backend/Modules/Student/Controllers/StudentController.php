@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
 class StudentController extends Controller
@@ -295,17 +297,31 @@ class StudentController extends Controller
         }
 
         $reports = DB::table('student_reports')
-            ->where('student_id', $studentId)
-            ->orderBy('report_date', 'desc')
+            ->leftJoin('projects', 'projects.id', '=', 'student_reports.project_id')
+            ->where('student_reports.student_id', $studentId)
+            ->select(
+                'student_reports.*',
+                'projects.title as project_title'
+            )
+            ->orderBy('student_reports.report_date', 'desc')
+            ->orderBy('student_reports.id', 'desc')
             ->get()
             ->map(function ($r) {
+                $fileName = $r->report_file ? basename($r->report_file) : null;
                 return [
                     'id' => $r->id,
+                    'projectId' => $r->project_id,
+                    'projectTitle' => $r->project_title ?: 'General',
                     'type' => ucfirst($r->report_type),
                     'date' => $r->report_date,
                     'workDone' => $r->work_done,
-                    'status' => ucfirst($r->approval_status),
-                    'feedback' => $r->feedback
+                    'status' => ucfirst($r->approval_status ?: 'pending'),
+                    'feedback' => $r->feedback,
+                    'reportFile' => $r->report_file,
+                    'fileName' => $fileName,
+                    'fileUrl' => $r->report_file ? asset('storage/' . $r->report_file) : null,
+                    'downloadUrl' => $r->report_file ? url('api/student/reports/' . $r->id . '/download') : null,
+                    'submittedAt' => $r->submitted_at,
                 ];
             });
 
@@ -319,14 +335,56 @@ class StudentController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $reportType = ucfirst(strtolower($request->input('type', 'weekly')));
-        $reportDate = $request->input('date', now()->toDateString());
+        $rawType = strtolower($request->input('type', 'weekly'));
+        if (!in_array($rawType, ['daily', 'weekly'])) {
+            return response()->json(['error' => 'Invalid report type. Allowed types are Daily and Weekly.'], 422);
+        }
 
-        DB::table('student_reports')->insert([
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|string',
+            'date' => 'required|date',
+            'projectId' => 'nullable|integer',
+            'workDone' => 'required|string',
+            'report_file' => 'nullable|file|mimes:pdf,docx|max:10240',
+        ], [
+            'report_file.mimes' => 'Only PDF (.pdf) and Word (.docx) files are allowed for Weekly Reports.',
+            'report_file.max' => 'The attached file size must not exceed 10MB.',
+            'workDone.required' => 'Work done description is required.',
+            'date.required' => 'Report date is required.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()->first()], 422);
+        }
+
+        $reportFilePath = null;
+        if ($rawType === 'weekly') {
+            if ($request->hasFile('report_file')) {
+                $file = $request->file('report_file');
+                $reportFilePath = $file->store("reports/weekly/{$studentId}", 'public');
+            }
+        } else {
+            // For Daily report: enforce file attachment is NULL even if sent
+            $reportFilePath = null;
+        }
+
+        $projectId = $request->input('projectId') ? intval($request->input('projectId')) : null;
+        if ($projectId && !DB::table('projects')->where('id', $projectId)->exists()) {
+            $projectId = null;
+        }
+
+        $reportDate = $request->input('date', now()->toDateString());
+        $reportType = ucfirst($rawType);
+
+        $reportId = DB::table('student_reports')->insertGetId([
             'student_id' => $studentId,
-            'report_type' => strtolower($reportType),
+            'project_id' => $projectId,
+            'report_type' => $rawType,
             'report_date' => $reportDate,
             'work_done' => $request->input('workDone'),
+            'report_file' => $reportFilePath,
+            'approval_status' => 'pending',
+            'feedback' => null,
             'submitted_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
@@ -343,7 +401,39 @@ class StudentController extends Controller
             ]);
         }
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'report_id' => $reportId,
+            'report_file' => $reportFilePath,
+            'message' => "{$reportType} report submitted successfully.",
+        ]);
+    }
+
+    public function downloadReportFile(Request $request, $id)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $report = DB::table('student_reports')
+            ->where('id', $id)
+            ->where('student_id', $studentId)
+            ->first();
+
+        if (!$report || !$report->report_file) {
+            return response()->json(['error' => 'Report file not found'], 404);
+        }
+
+        if (!Storage::disk('public')->exists($report->report_file)) {
+            return response()->json(['error' => 'File not found on storage'], 404);
+        }
+
+        $filePath = Storage::disk('public')->path($report->report_file);
+        $ext = pathinfo($report->report_file, PATHINFO_EXTENSION);
+        $downloadName = "Weekly_Report_{$report->report_date}_{$report->id}.{$ext}";
+
+        return response()->download($filePath, $downloadName);
     }
 
     public function getWorkLogs(Request $request)

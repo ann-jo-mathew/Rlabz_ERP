@@ -13,6 +13,12 @@ class ProjectController extends Controller
     private function checkPermission(Request $request, $permission)
     {
         $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
+
+        if (in_array($permission, ['project.create', 'project.close']) && in_array($role, ['director', 'coordinator'])) {
+            return;
+        }
+
         $permissions = $user['permissions'] ?? [];
         if (!in_array($permission, $permissions)) {
             abort(403, 'Forbidden: Missing permission ' . $permission);
@@ -59,7 +65,7 @@ class ProjectController extends Controller
         $user = $request->input('auth_user');
         $permissions = $user['permissions'] ?? [];
         
-        $project = Project::with(['faculty', 'students', 'modules.tasks'])->find($id);
+        $project = Project::with(['faculty', 'students.studentProfile', 'modules.tasks', 'modules.students.studentProfile'])->find($id);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }
@@ -83,6 +89,9 @@ class ProjectController extends Controller
                 return response()->json(['error' => 'Forbidden: Not assigned to this project'], 403);
             }
         }
+
+        $githubRepo = DB::table('github_repositories')->where('project_id', $id)->first();
+        $project->github_repository = $githubRepo;
 
         return response()->json(['status' => 'success', 'data' => $project]);
     }
@@ -140,5 +149,57 @@ class ProjectController extends Controller
         }
 
         return response()->json(['status' => 'success', 'data' => $project]);
+    }
+
+    public function getGithubRepo(Request $request, $id)
+    {
+        $repo = DB::table('github_repositories')->where('project_id', $id)->first();
+        return response()->json([
+            'status' => 'success',
+            'data' => $repo
+        ]);
+    }
+
+    public function verifyGithubRepo(Request $request, $id)
+    {
+        $user = $request->input('auth_user');
+        $role = $user['role'] ?? '';
+        $permissions = $user['permissions'] ?? [];
+
+        // Allow faculty, coordinator, and director
+        if (!in_array($role, ['faculty', 'coordinator', 'director']) && !in_array('view-github', $permissions)) {
+            return response()->json(['error' => 'Forbidden: Only faculty or coordinators can verify repository.'], 403);
+        }
+
+        $userId = $this->getUserId($request);
+
+        $repo = DB::table('github_repositories')->where('project_id', $id)->first();
+        if (!$repo) {
+            return response()->json(['error' => 'GitHub repository not found for this project.'], 404);
+        }
+
+        DB::table('github_repositories')->where('project_id', $id)->update([
+            'is_verified' => 1,
+            'verified_by' => $userId,
+            'verified_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        $updatedRepo = DB::table('github_repositories')->where('project_id', $id)->first();
+
+        if (Schema::hasTable('audit_logs')) {
+            DB::table('audit_logs')->insert([
+                'action' => 'GitHub Repository Verified',
+                'description' => "GitHub repository for project {$id} was verified.",
+                'user_id' => $userId ?? 1,
+                'created_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'GitHub repository verified successfully.',
+            'data' => $updatedRepo
+        ]);
     }
 }

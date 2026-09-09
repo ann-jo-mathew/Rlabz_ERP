@@ -18,6 +18,18 @@ export async function ProjectDashboard(route, router) {
     <div class="dashboard-content" id="project-list-container">
       <div class="spinner" style="border-top-color: var(--primary); margin: 40px auto; display: block; width: 32px; height: 32px;"></div>
     </div>
+    <style>
+      .project-row-clickable {
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .project-row-clickable:hover {
+        background: var(--bg-surface, #f8fafc);
+      }
+      .project-row-clickable td:first-child {
+        color: var(--primary);
+      }
+    </style>
   `;
 
   async function render() {
@@ -27,7 +39,7 @@ export async function ProjectDashboard(route, router) {
         headers: { 'Authorization': 'Bearer ' + token }
       });
       const data = await response.json();
-      
+
       const listContainer = container.querySelector('#project-list-container');
       if (data.status === 'success') {
         const projects = data.data;
@@ -50,9 +62,10 @@ export async function ProjectDashboard(route, router) {
               </thead>
               <tbody>
         `;
+
         projects.forEach(p => {
           html += `
-            <tr>
+            <tr class="project-row-clickable" data-project-id="${p.id}">
               <td style="font-weight: 600;">${p.title}</td>
               <td><span style="color: var(--text-muted);">${p.project_type || 'N/A'}</span></td>
               <td>${p.client_name || 'N/A'}</td>
@@ -63,16 +76,20 @@ export async function ProjectDashboard(route, router) {
             </tr>
           `;
         });
+
         html += '</tbody></table></div>';
         listContainer.innerHTML = html;
 
-        listContainer.querySelectorAll('.btn-view-project').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const id = e.target.getAttribute('data-id');
+        // Clicking anywhere on the row (including View Details button) navigates to project details
+        listContainer.querySelectorAll('.project-row-clickable').forEach(row => {
+          row.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view-project');
+            const id = btn ? btn.getAttribute('data-id') : row.getAttribute('data-project-id');
             const basePath = route.path.replace(/\/$/, '');
             router.push(basePath + '/' + id);
           });
         });
+
       } else {
         listContainer.innerHTML = '<p>Error loading projects: ' + (data.error || JSON.stringify(data)) + '</p>';
       }

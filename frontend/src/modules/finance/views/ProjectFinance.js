@@ -10,9 +10,16 @@ export async function ProjectFinance(route, router) {
 
   if (route.params && route.params.id) {
     // ── PROJECT DETAIL VIEW ───────────────────────────────────────
-    try {
-      const projectData = await financeService.getProjectDetails(route.params.id);
-      if (!projectData) throw new Error('Project finance details not found');
+    container.innerHTML = `
+      <div style="display:flex; justify-content:center; align-items:center; height:300px; color:var(--text-muted)">
+        <span class="fin-spinner" style="margin-right:10px"></span> Loading project details...
+      </div>
+    `;
+
+    const loadProjectDetails = async () => {
+      try {
+        const projectData = await financeService.getProjectDetails(route.params.id);
+        if (!projectData) throw new Error('Project finance details not found');
       
       const project = projectData.project || {};
       const payments = (projectData.invoices || []).flatMap(inv => (inv.client_payments || []).map(cp => ({
@@ -42,24 +49,24 @@ export async function ProjectFinance(route, router) {
 
         <div class="fin-kpi-strip">
           <div class="fin-kpi-card teal">
-            <div class="kpi-label">Amount Collected</div>
+            <div class="kpi-label">Collected</div>
             <div class="kpi-value">${fmt(projectData.total_collected || 0)}</div>
             <div class="kpi-sub">${recvPct}% of billed revenue</div>
           </div>
           <div class="fin-kpi-card ${projectData.pending_amount > 0 ? 'warning' : 'primary'}">
-            <div class="kpi-label">Amount Outstanding</div>
+            <div class="kpi-label">Pending from Client</div>
             <div class="kpi-value">${fmt(projectData.pending_amount || 0)}</div>
-            <div class="kpi-sub">${projectData.pending_amount > 0 ? 'Pending from client' : 'Fully collected ✓'}</div>
+            <div class="kpi-sub">${projectData.pending_amount > 0 ? 'Outstanding balance' : 'Fully collected ✓'}</div>
           </div>
           <div class="fin-kpi-card indigo">
             <div class="kpi-label">Total Expenses</div>
-            <div class="kpi-value">${fmt(0)}</div>
-            <div class="kpi-sub">Across all resource types</div>
+            <div class="kpi-value">${fmt(projectData.total_expenses || 0)}</div>
+            <div class="kpi-sub">Actual project expenditure</div>
           </div>
           <div class="fin-kpi-card primary">
-            <div class="kpi-label">Project Margin</div>
-            <div class="kpi-value">${fmt(projectData.total_development_amount - 0)}</div>
-            <div class="kpi-sub">Pre-tax margin</div>
+            <div class="kpi-label">Project Profit</div>
+            <div class="kpi-value">${fmt((projectData.total_collected || 0) - (projectData.total_expenses || 0))}</div>
+            <div class="kpi-sub">Collected - Expenses</div>
           </div>
         </div>
 
@@ -172,9 +179,11 @@ export async function ProjectFinance(route, router) {
         router.push('/finance/invoices');
       });
 
-    } catch (e) {
-      container.innerHTML = `<div class="alert-error">Failed to load project details: ${e.message}</div>`;
-    }
+      } catch (e) {
+        container.innerHTML = `<div class="alert-error" style="margin:2rem">Failed to load project details: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:1rem">Retry</button></div>`;
+      }
+    };
+    loadProjectDetails();
 
   } else {
     // ── ALL PROJECTS LIST VIEW ────────────────────────────────────
@@ -204,10 +213,11 @@ export async function ProjectFinance(route, router) {
           <div class="fin-select-wrap">
             <select id="status-filter" class="fin-input">
               <option value="All">All Statuses</option>
-              <option value="Draft">Draft</option>
-              <option value="Approved">Approved</option>
-              <option value="Active">Active</option>
-              <option value="Closed">Closed</option>
+              <option value="proposed">Proposed</option>
+              <option value="accepted">Accepted</option>
+              <option value="rejected">Rejected</option>
+              <option value="in_progress">In Progress</option>
+              <option value="closed">Closed</option>
             </select>
           </div>
         </div>
@@ -290,9 +300,9 @@ export async function ProjectFinance(route, router) {
                 <th>Est. Cost</th>
                 <th>Total Billing</th>
                 <th style="color:var(--primary)">Collected</th>
-                <th style="color:var(--warning-text,#92400e)">Outstanding</th>
+                <th style="color:var(--warning-text,#92400e)">Pending from Client</th>
                 <th>Expenses</th>
-                <th>Margin</th>
+                <th>Project Profit</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -318,7 +328,7 @@ export async function ProjectFinance(route, router) {
       const filtered = allProjects.filter(p => {
         const pName = p.title || 'Unknown Project';
         const client = p.client_name || 'Unknown Client';
-        const status = p.status || 'Active';
+        const status = p.status || 'proposed';
 
         const matchName = pName.toLowerCase().includes(searchTerm) || client.toLowerCase().includes(searchTerm);
         const matchStatus = statusFilter === 'All' || status === statusFilter;
@@ -336,8 +346,11 @@ export async function ProjectFinance(route, router) {
           const pf = p.project_finance || {};
           const pName = p.title || 'Unknown Project';
           const client = p.client_name || 'Unknown Client';
-          const status = p.status || 'Active';
-          const billing = pf.total_development_amount || p.budget || p.estimated_cost || 0;
+          const status = p.status || 'proposed';
+          const billing = pf.total_invoiced || 0;
+          const collected = pf.total_collected || 0;
+          const expenses = pf.total_expenses || 0;
+          const profit = collected - expenses;
           
           return `
           <tr>
@@ -345,13 +358,13 @@ export async function ProjectFinance(route, router) {
               <div style="font-weight:600">${pName}</div>
               <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${client}</div>
             </td>
-            <td><span class="fin-badge ${status === 'closed' || status === 'completed' ? 'success' : 'info'}">${status}</span></td>
-            <td>${fmt(p.estimated_cost || p.budget || 0)}</td>
+            <td><span class="fin-badge ${status === 'closed' ? 'success' : 'info'}">${status.replace('_', ' ')}</span></td>
+            <td>${fmt(p.budget || 0)}</td>
             <td style="font-weight:600">${fmt(billing)}</td>
             <td style="color:var(--primary);font-weight:700">${fmt(pf.total_collected || 0)}</td>
             <td style="color:#d97706;font-weight:700">${fmt(pf.pending_amount || 0)}</td>
-            <td>${fmt(pf.total_expenses || 0)}</td>
-            <td style="font-weight:700;color:${(billing - (pf.total_expenses || 0)) > 0 ? 'var(--primary)' : '#ef4444'}">${fmt(billing - (pf.total_expenses || 0))}</td>
+            <td>${fmt(expenses)}</td>
+            <td style="font-weight:700;color:${profit >= 0 ? 'var(--primary)' : '#ef4444'}">${fmt(profit)}</td>
             <td>
               <button class="fin-btn outline sm view-details-btn" data-id="${p.id}">View Details</button>
             </td>
@@ -365,23 +378,36 @@ export async function ProjectFinance(route, router) {
     };
 
     const loadProjects = async () => {
-      allProjects = await financeService.getProjectFinances();
-      renderProjects();
+      const tbody = container.querySelector('#projects-tbody');
+      const noResults = container.querySelector('#no-results');
       
-      const availableProjects = allProjects.filter(p => !p.project_finance);
-      const select = container.querySelector('#new-p-name');
-      select.innerHTML = '<option value="">Select Project</option>' + availableProjects.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+      if (tbody) {
+        noResults.style.display = 'none';
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:3rem;color:var(--text-muted)"><span class="fin-spinner" style="margin-right:10px"></span> Loading projects...</td></tr>`;
+      }
       
-      select.addEventListener('change', (e) => {
-        const p = availableProjects.find(proj => proj.id == e.target.value);
-        if (p) {
-          container.querySelector('#new-p-client').value = p.client_name || '';
-          container.querySelector('#new-p-est').value = p.budget || p.estimated_cost || 0;
-        } else {
-          container.querySelector('#new-p-client').value = '';
-          container.querySelector('#new-p-est').value = 0;
-        }
-      });
+      try {
+        allProjects = await financeService.getProjectFinances();
+        renderProjects();
+        
+        const availableProjects = allProjects.filter(p => !p.project_finance);
+        const select = container.querySelector('#new-p-name');
+        select.innerHTML = '<option value="">Select Project</option>' + availableProjects.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+
+        select.addEventListener('change', (e) => {
+          const p = availableProjects.find(proj => proj.id == e.target.value);
+          if (p) {
+            container.querySelector('#new-p-client').value = p.client_name || '';
+            container.querySelector('#new-p-est').value = p.budget || p.estimated_cost || 0;
+          } else {
+            container.querySelector('#new-p-client').value = '';
+            container.querySelector('#new-p-est').value = 0;
+          }
+        });
+
+      } catch (e) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:#ef4444">Failed to load projects: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:10px">Retry</button></td></tr>`;
+      }
     };
 
     container.querySelector('#search-input').addEventListener('input', renderProjects);

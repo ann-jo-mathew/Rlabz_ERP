@@ -16,6 +16,8 @@ export async function StudentPayroll(route, router) {
 
   let payrollData = [];
   let allProjects = [];
+  let rateHistory = [];
+  let currentGlobalRate = 0;
 
   // ─── Receipt PDF Generation ───────────────────────────────────
   const generateReceipt = (pr) => {
@@ -180,7 +182,8 @@ export async function StudentPayroll(route, router) {
           <td><div style="font-weight:500">${projName}</div></td>
           <td>
             <div class="fin-hours-cell">
-              <span class="fin-hours-approved">Approved: ${pr.approved_hours || 0}h</span>
+              <span class="fin-hours-approved" style="display:block;margin-bottom:2px">Tasks: ${pr.completed_tasks || 0}</span>
+              <span class="fin-hours-approved">Hours: ${pr.approved_hours || 0}</span>
             </div>
           </td>
           <td style="font-family:var(--font-mono,monospace);font-size:0.875rem;">₹${pr.hourly_rate || 0}/hr</td>
@@ -238,6 +241,11 @@ export async function StudentPayroll(route, router) {
               designation: desg
             });
             modal.remove();
+            
+            // set loading state before re-fetching
+            const tbody = container.querySelector('#payroll-tbody');
+            if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:3rem;color:var(--text-muted)"><span class="fin-spinner" style="margin-right:10px"></span> Updating payroll...</td></tr>`;
+            
             payrollData = await financeService.getStudentPayroll();
             renderTable();
           } catch (e) {
@@ -278,9 +286,6 @@ export async function StudentPayroll(route, router) {
   };
 
   try {
-    payrollData = await financeService.getStudentPayroll();
-    allProjects = await financeService.getProjectsList();
-
     container.innerHTML = `
       <div class="fin-page-header">
         <div>
@@ -289,13 +294,13 @@ export async function StudentPayroll(route, router) {
         </div>
       </div>
 
+
       <!-- Project-first picker -->
       <div class="fin-project-picker">
         <div class="fin-project-picker-title">Project Context</div>
         <div class="fin-select-wrap" style="max-width:400px;">
           <select id="project-filter" class="fin-input">
             <option value="All">All Projects</option>
-            ${allProjects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -349,7 +354,7 @@ export async function StudentPayroll(route, router) {
                 <th>Student</th>
                 <th>Designation</th>
                 <th>Project</th>
-                <th>Approved Hours</th>
+                <th>Completed Tasks / Hours</th>
                 <th>Rate</th>
                 <th>Gross Amount</th>
                 <th>Paid</th>
@@ -358,14 +363,137 @@ export async function StudentPayroll(route, router) {
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="payroll-tbody"></tbody>
+            <tbody id="payroll-tbody">
+              <tr><td colspan="10" style="text-align:center;padding:3rem;color:var(--text-muted)"><span class="fin-spinner" style="margin-right:10px"></span> Loading payroll data...</td></tr>
+            </tbody>
           </table>
           <div id="no-results" style="display:none;text-align:center;padding:2.5rem;color:var(--text-muted)">
             <p style="margin:0;font-size:0.9rem">No payroll records found for the selected filters.</p>
           </div>
         </div>
       </div>
+      
+      <!-- Manage Hourly Rate Button at bottom (secondary priority) -->
+      <div style="margin-top: 1.5rem; text-align: center;">
+        <button id="manage-rate-btn" class="fin-btn outline">Manage Hourly Rate</button>
+      </div>
     `;
+
+    const loadData = async () => {
+      try {
+        // Fetch current rate from dedicated endpoint (not inferred from payroll data)
+        currentGlobalRate = await financeService.getStudentHourlyRate();
+
+        payrollData = await financeService.getStudentPayroll();
+        allProjects = await financeService.getProjectsList();
+        
+        const projectFilter = container.querySelector('#project-filter');
+        projectFilter.innerHTML = '<option value="All">All Projects</option>' + allProjects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        
+        renderTable();
+        
+        // Fetch and render rate history
+        rateHistory = await financeService.getStudentHourlyRateHistory();
+        renderRateHistory();
+
+      } catch (e) {
+        container.querySelector('#payroll-tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#ef4444">Failed to load payroll data: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:10px">Retry</button></td></tr>`;
+      }
+    };
+
+    const renderRateHistory = (modalTbody) => {
+      if (!rateHistory.length) {
+        if(modalTbody) modalTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No history available</td></tr>';
+        return;
+      }
+      const html = rateHistory.map(h => `
+        <tr>
+          <td>${new Date(h.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+          <td>₹${h.old_rate}</td>
+          <td style="font-weight:600; color:var(--primary)">₹${h.new_rate}</td>
+          <td>${h.updated_by_name}</td>
+        </tr>
+      `).join('');
+      if(modalTbody) modalTbody.innerHTML = html;
+    };
+
+    // Bind Manage Rate Button - opens a full modal
+    container.querySelector('#manage-rate-btn')?.addEventListener('click', () => {
+      const modal = document.createElement('div');
+      modal.className = 'fin-modal-overlay';
+      modal.innerHTML = `
+        <div class="fin-modal" style="max-width:600px; width:90%;">
+          <h3 style="margin:0 0 1rem">Manage Student Hourly Rate</h3>
+          
+          <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px;">
+              <div style="background:#f8fafb; border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem;">
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.25rem;">Current Rate</div>
+                <div style="font-size:1.5rem; font-weight:700; color:var(--primary);" id="modal-current-rate">₹${currentGlobalRate}/hour</div>
+              </div>
+              <div class="fin-form-group">
+                <label>New Rate (₹)</label>
+                <input type="number" class="fin-input" id="modal-new-rate" placeholder="Enter new rate" min="0" step="0.01" value="${currentGlobalRate}">
+              </div>
+              <button class="fin-btn primary w-full" id="modal-save-rate" style="margin-top:0.5rem">Save New Rate</button>
+            </div>
+            
+            <div style="flex:2; min-width:300px;">
+              <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.5rem">Rate Change History</div>
+              <div class="fin-table-wrap" style="max-height: 200px; overflow-y: auto;">
+                <table class="fin-table" style="font-size:0.8rem">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Old</th>
+                      <th>New</th>
+                      <th>By</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modal-rate-history-tbody">
+                    <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-top:1.5rem; text-align:right;">
+            <button class="fin-btn outline" id="modal-close-btn">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const modalTbody = modal.querySelector('#modal-rate-history-tbody');
+      renderRateHistory(modalTbody);
+
+      modal.querySelector('#modal-close-btn').addEventListener('click', () => modal.remove());
+      modal.querySelector('#modal-save-rate').addEventListener('click', async () => {
+        const newRateStr = modal.querySelector('#modal-new-rate').value;
+        const newRate = parseFloat(newRateStr);
+        if (isNaN(newRate) || newRate < 0) { alert('Enter a valid positive rate'); return; }
+
+        const saveBtn = modal.querySelector('#modal-save-rate');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        try {
+          await financeService.updateStudentHourlyRate({ new_rate: newRate });
+          currentGlobalRate = newRate;
+          modal.querySelector('#modal-current-rate').textContent = '\u20b9' + newRate + '/hour';
+          
+          rateHistory = await financeService.getStudentHourlyRateHistory();
+          renderRateHistory(modalTbody);
+          
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save New Rate';
+        } catch (e) {
+          alert('Failed to update rate: ' + e.message);
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save New Rate';
+        }
+      });
+    });
 
     const projectFilter = container.querySelector('#project-filter');
     const searchInput = container.querySelector('#search-input');
@@ -385,7 +513,7 @@ export async function StudentPayroll(route, router) {
       renderTable();
     });
 
-    renderTable();
+    loadData();
 
   } catch (e) {
     container.innerHTML = `<div class="alert-error">Failed to load payroll data: ${e.message}</div>`;

@@ -46,6 +46,11 @@ const routes = [
         component: () => import('./views/InvoicesBills.js')
       },
       {
+        path: 'operational-costs',
+        name: 'finance-operational-costs',
+        component: () => import('./views/OperationalCosts.js')
+      },
+      {
         path: 'reports',
         name: 'finance-reports',
         component: () => import('./views/FinancialReports.js')
