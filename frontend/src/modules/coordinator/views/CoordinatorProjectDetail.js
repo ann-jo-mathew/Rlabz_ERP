@@ -1,4 +1,5 @@
 import { authStore } from '@/core/stores/auth.js';
+import { API_BASE } from '@/core/config/api.js';
 
 function getAuthToken() {
   return authStore?.token || localStorage.getItem('token') || localStorage.getItem('access_token') || null;
@@ -34,7 +35,7 @@ async function fetchProjectDetail(projectId) {
     throw new Error('Authentication required. Please log in again.');
   }
 
-  const response = await fetch(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}`, {
+  const response = await fetch(`${API_BASE}/coordinator/projects/${projectId}`, {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -308,7 +309,7 @@ export async function CoordinatorProjectDetail(route, router) {
 
     async function fetchEligibleStudents() {
       const token = getAuthToken();
-      const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/students/eligible?project_id=${projectId}`, {
+      const resp = await fetch(`${API_BASE}/coordinator/students/eligible?project_id=${projectId}`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -370,7 +371,7 @@ export async function CoordinatorProjectDetail(route, router) {
         const assigned_date = overlay.querySelector('#assign-student-date').value || undefined;
         if (!studentId) return alert('Please select or enter a valid student id');
         try {
-          await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/students`, { student_id: studentId, role, assigned_date });
+          await postJson(`${API_BASE}/coordinator/projects/${projectId}/students`, { student_id: studentId, role, assigned_date });
           alert('Student assigned');
           overlay.remove();
           window.location.reload();
@@ -394,7 +395,7 @@ export async function CoordinatorProjectDetail(route, router) {
         if (!studentId) return alert('Student id not available for removal.');
         try {
           const token = getAuthToken();
-          const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/students/${studentId}`, {
+          const resp = await fetch(`${API_BASE}/coordinator/projects/${projectId}/students/${studentId}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -450,7 +451,7 @@ export async function CoordinatorProjectDetail(route, router) {
         if (!module_name) { errorEl.textContent = 'Module name is required.'; return; }
 
         try {
-          await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/modules`, { module_name, description, weight_percentage, status });
+          await postJson(`${API_BASE}/coordinator/projects/${projectId}/modules`, { module_name, description, weight_percentage, status });
           alert('Module created successfully');
           overlay.remove();
           window.location.reload();
@@ -506,7 +507,7 @@ export async function CoordinatorProjectDetail(route, router) {
 
           try {
             const token = getAuthToken();
-            const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/modules/${moduleId}`, {
+            const resp = await fetch(`${API_BASE}/coordinator/projects/${projectId}/modules/${moduleId}`, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
@@ -580,7 +581,7 @@ export async function CoordinatorProjectDetail(route, router) {
           if (!assigned_to) { errorEl.textContent = 'Please select a student to assign this task to.'; return; }
 
           try {
-            await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/modules/${moduleId}/tasks`, { title, description, assigned_to, due_date, status });
+            await postJson(`${API_BASE}/coordinator/projects/${projectId}/modules/${moduleId}/tasks`, { title, description, assigned_to, due_date, status });
             alert('Task created successfully');
             overlay.remove();
             window.location.reload();
@@ -636,7 +637,7 @@ export async function CoordinatorProjectDetail(route, router) {
         if (!description) return alert('Please provide a description');
         if (!task_id) return alert('Please select the task this requirement relates to');
         try {
-          await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/requirements`, { description, task_id });
+          await postJson(`${API_BASE}/coordinator/projects/${projectId}/requirements`, { description, task_id });
           alert('Requirement saved');
           overlay.remove();
           window.location.reload();
@@ -682,7 +683,7 @@ export async function CoordinatorProjectDetail(route, router) {
           const assigned_date = overlay.querySelector('#module-assigned-date').value || undefined;
           if (!student_id) return alert('Please select a student');
           try {
-            await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/modules/${moduleId}/students`, { student_id, assigned_date });
+            await postJson(`${API_BASE}/coordinator/projects/${projectId}/modules/${moduleId}/students`, { student_id, assigned_date });
             alert('Student assigned to module');
             overlay.remove();
             window.location.reload();
@@ -722,7 +723,7 @@ export async function CoordinatorProjectDetail(route, router) {
           const reason = overlay.querySelector('#change-reason').value || undefined;
           if (!change_description) return alert('Please describe the change');
           try {
-            await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/requirement-changes`, {
+            await postJson(`${API_BASE}/coordinator/projects/${projectId}/requirement-changes`, {
               client_requirement_id: Number(requirementId),
               change_description,
               new_description,
@@ -762,7 +763,7 @@ export async function CoordinatorProjectDetail(route, router) {
         const remarks = overlay.querySelector('#close-remarks').value || undefined;
         if (!final_status) return alert('Please provide final status');
         try {
-          await postJson(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}/close`, { final_status, remarks });
+          await postJson(`${API_BASE}/coordinator/projects/${projectId}/close`, { final_status, remarks });
           alert('Project closed');
           overlay.remove();
           window.location.reload();

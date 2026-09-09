@@ -1,4 +1,5 @@
 import { authStore } from '@/core/stores/auth.js';
+import { API_BASE } from '@/core/config/api.js';
 import '../certificates.css';
 
 export function CertificatesHome(route, router) {
@@ -14,7 +15,7 @@ export function CertificatesHome(route, router) {
     const token = getAuthToken();
     if (!token) throw new Error('Authentication required');
 
-    const resp = await fetch('http://127.0.0.1:8000/api/certificates', {
+    const resp = await fetch(`${API_BASE}/certificates`, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -289,7 +290,7 @@ export function CertificatesHome(route, router) {
         try {
           const token = getAuthToken();
           if (!token) throw new Error('Authentication required');
-          const resp = await fetch(`http://127.0.0.1:8000/api/certificates/${id}`, {
+          const resp = await fetch(`${API_BASE}/certificates/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (!resp.ok) {
@@ -635,7 +636,7 @@ export function CertificatesHome(route, router) {
     // Helpers
     async function fetchProjects() {
       const token = getAuthToken();
-      const resp = await fetch('http://127.0.0.1:8000/api/coordinator/projects', {
+      const resp = await fetch(`${API_BASE}/coordinator/projects`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -649,7 +650,7 @@ export function CertificatesHome(route, router) {
 
     async function fetchProjectDetail(projectId) {
       const token = getAuthToken();
-      const resp = await fetch(`http://127.0.0.1:8000/api/coordinator/projects/${projectId}`, {
+      const resp = await fetch(`${API_BASE}/coordinator/projects/${projectId}`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -663,7 +664,7 @@ export function CertificatesHome(route, router) {
 
     async function fetchModuleEligibleStudents(moduleId) {
       const token = getAuthToken();
-      const resp = await fetch(`http://127.0.0.1:8000/api/certificates/modules/${moduleId}/eligible-students`, {
+      const resp = await fetch(`${API_BASE}/certificates/modules/${moduleId}/eligible-students`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -681,7 +682,7 @@ export function CertificatesHome(route, router) {
 
     async function postCertificate(payload) {
       const token = getAuthToken();
-      const resp = await fetch('http://127.0.0.1:8000/api/certificates', {
+      const resp = await fetch(`${API_BASE}/certificates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

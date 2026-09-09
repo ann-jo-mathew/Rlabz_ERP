@@ -1,5 +1,6 @@
 import '../faculty.css';
 import { showFacultySuccessPopup } from '../facultyPopup.js';
+import { API_BASE } from '@/core/config/api.js';
 
 export function FacultyMeetings() {
     const container = document.createElement('div');
@@ -13,7 +14,7 @@ export function FacultyMeetings() {
     }
 
     const token = localStorage.getItem('token');
-    const apiBase = window.location.port === '8000' ? '/api' : 'http://127.0.0.1:8000/api';
+    const apiBase = API_BASE;
 
     // State
     let activeTab = 'schedule'; // 'schedule' | 'past'

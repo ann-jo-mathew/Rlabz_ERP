@@ -1,4 +1,5 @@
 import { authStore } from '@/core/stores/auth.js';
+import { API_BASE } from '@/core/config/api.js';
 
 function getAuthToken() {
   return authStore?.token || localStorage.getItem('token') || localStorage.getItem('access_token') || null;
@@ -8,7 +9,7 @@ async function fetchMeetings() {
   const token = getAuthToken();
   if (!token) return [];
 
-  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/meetings', {
+  const resp = await fetch(`${API_BASE}/coordinator/meetings`, {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -25,7 +26,7 @@ async function fetchProjects() {
   const token = getAuthToken();
   if (!token) return [];
 
-  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/projects', {
+  const resp = await fetch(`${API_BASE}/coordinator/projects`, {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -206,7 +207,7 @@ export async function CoordinatorMeetings(route, router) {
       if (!token) return alert('Authentication required');
 
       try {
-        const resp = await fetch('http://127.0.0.1:8000/api/coordinator/meetings', {
+        const resp = await fetch(`${API_BASE}/coordinator/meetings`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

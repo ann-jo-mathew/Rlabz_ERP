@@ -3,6 +3,8 @@
  * State management for user authentication, JWT tokens, and permissions.
  */
 
+import { API_BASE } from '../config/api.js';
+
 class AuthStore {
   constructor() {
     this.token = localStorage.getItem('token') || null;
@@ -66,7 +68,7 @@ class AuthStore {
 
   async login(email, password) {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

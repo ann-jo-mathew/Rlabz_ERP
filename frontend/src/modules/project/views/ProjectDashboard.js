@@ -1,4 +1,5 @@
 import { authStore } from '@/core/stores/auth.js';
+import { API_BASE } from '@/core/config/api.js';
 
 export async function ProjectDashboard(route, router) {
   const container = document.createElement('div');
@@ -35,7 +36,7 @@ export async function ProjectDashboard(route, router) {
   async function render() {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/projects', {
+      const response = await fetch(`${API_BASE}/projects`, {
         headers: { 'Authorization': 'Bearer ' + token }
       });
       const data = await response.json();

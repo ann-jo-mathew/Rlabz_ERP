@@ -1,4 +1,5 @@
 import '../faculty.css';
+import { API_BASE } from '@/core/config/api.js';
 
 export function FacultyHome(route, router) {
     const container = document.createElement('div');
@@ -12,7 +13,7 @@ export function FacultyHome(route, router) {
     }
 
     const token = localStorage.getItem('token');
-    const apiBase = window.location.port === '8000' ? '/api' : 'http://127.0.0.1:8000/api';
+    const apiBase = API_BASE;
 
     // Dashboard State
     let dashboardData = null;
