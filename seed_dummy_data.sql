@@ -108,17 +108,17 @@ INSERT INTO project_faculty (id,project_id,faculty_id,assigned_date,created_at,u
 (3,4,4,'2026-03-01',NOW(),NOW()),(4,5,4,'2025-09-01',NOW(),NOW());
 
 -- 10. CLIENT_REQUIREMENTS
-INSERT INTO client_requirements (id,project_id,title,description,status,created_at,updated_at) VALUES
-(1,1,'Patient Aadhaar verification','System must verify patient identity using Aadhaar during registration','new',NOW(),NOW()),
-(2,1,'Multi-language support','Application should support English and Malayalam','in_progress',NOW(),NOW()),
-(3,2,'Mobile responsive design','All screens must be usable on mobile devices','new',NOW(),NOW()),
-(4,2,'Student bulk import via Excel','Admin can import student data from Excel file','new',NOW(),NOW()),
-(5,4,'Offline mode for inventory app','App should work without internet and sync when connected','in_progress',NOW(),NOW());
+INSERT INTO client_requirements (id,title,description,status,created_at,updated_at) VALUES
+(1,'Patient Aadhaar verification','System must verify patient identity using Aadhaar during registration','new',NOW(),NOW()),
+(2,'Multi-language support','Application should support English and Malayalam','in_progress',NOW(),NOW()),
+(3,'Mobile responsive design','All screens must be usable on mobile devices','new',NOW(),NOW()),
+(4,'Student bulk import via Excel','Admin can import student data from Excel file','new',NOW(),NOW()),
+(5,'Offline mode for inventory app','App should work without internet and sync when connected','in_progress',NOW(),NOW());
 
 -- 11. REQUIREMENT_CHANGES
-INSERT INTO requirement_changes (id,client_requirement_id,project_id,previous_value,updated_value,changed_by,created_at,updated_at) VALUES
-(1,2,1,'Support only English','Support English and Malayalam',2,NOW(),NOW()),
-(2,5,4,'Offline mode optional','Offline mode is mandatory - core feature',2,NOW(),NOW());
+INSERT INTO requirement_changes (id,client_requirement_id,previous_value,updated_value,changed_by,created_at,updated_at) VALUES
+(1,2,'Support only English','Support English and Malayalam',2,NOW(),NOW()),
+(2,5,'Offline mode optional','Offline mode is mandatory - core feature',2,NOW(),NOW());
 
 -- 12. PROJECT_CLOSURES
 INSERT INTO project_closures (id,project_id,closed_by,closure_date,final_status,remarks) VALUES
