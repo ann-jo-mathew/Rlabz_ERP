@@ -25,15 +25,23 @@ class StudentController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Fetch project IDs student is assigned to
+        // Fetch project IDs student is assigned to (from project_student & module_student)
         $projectStudentData = DB::table('project_student')
             ->where('student_id', $studentId)
             ->get();
 
-        $projectIds = $projectStudentData->pluck('project_id');
+        $projectIds = $projectStudentData->pluck('project_id')->toArray();
+
+        $moduleProjectIds = DB::table('module_student')
+            ->join('modules', 'modules.id', '=', 'module_student.module_id')
+            ->where('module_student.student_id', $studentId)
+            ->pluck('modules.project_id')
+            ->toArray();
+
+        $allProjectIds = array_values(array_unique(array_merge($projectIds, $moduleProjectIds)));
 
         $projects = DB::table('projects')
-            ->whereIn('id', $projectIds)
+            ->whereIn('id', $allProjectIds)
             ->get();
 
         $formattedProjects = [];
@@ -62,37 +70,113 @@ class StudentController extends Controller
                 ->where('project_faculty.project_id', $project->id)
                 ->value('users.name') ?: 'Faculty Member';
 
-            // Find team members
-            $students = DB::table('project_student')
+            // Find team members (both from project_student and module_student)
+            $directStudents = DB::table('project_student')
                 ->join('users', 'users.id', '=', 'project_student.student_id')
                 ->leftJoin('student_profiles', 'student_profiles.student_id', '=', 'users.id')
                 ->where('project_student.project_id', $project->id)
-                ->select('users.name', 'student_profiles.designation', 'project_student.role')
+                ->select('users.id as user_id', 'users.name', 'users.email', 'student_profiles.designation', 'project_student.role')
                 ->get();
 
-            $membersList = $students->map(function ($s) {
-                return [
-                    'name' => $s->name,
-                    'designation' => $s->designation,
-                    'isTeamLead' => $s->role === 'project_lead',
-                ];
-            })->toArray();
+            $moduleStudents = DB::table('module_student')
+                ->join('modules', 'modules.id', '=', 'module_student.module_id')
+                ->join('users', 'users.id', '=', 'module_student.student_id')
+                ->leftJoin('student_profiles', 'student_profiles.student_id', '=', 'users.id')
+                ->where('modules.project_id', $project->id)
+                ->select('users.id as user_id', 'users.name', 'users.email', 'student_profiles.designation', DB::raw("'developer' as role"))
+                ->get();
 
-            $members = implode(', ', $students->pluck('name')->toArray());
+            $allStudentsCollection = $directStudents->concat($moduleStudents)->unique('user_id');
+
+            $membersList = $allStudentsCollection->map(function ($s) use ($studentId) {
+                $rawRole = strtolower($s->role ?: 'developer');
+                if ($rawRole === 'project_lead' || $rawRole === 'team_lead' || $rawRole === 'lead') {
+                    $roleDisplay = 'Project Lead';
+                    $isLead = true;
+                } elseif ($rawRole === 'developer' || $rawRole === 'dev') {
+                    $roleDisplay = 'Developer';
+                    $isLead = false;
+                } elseif ($rawRole === 'designer' || $rawRole === 'ui/ux') {
+                    $roleDisplay = 'UI/UX Designer';
+                    $isLead = false;
+                } elseif ($rawRole === 'qa' || $rawRole === 'tester') {
+                    $roleDisplay = 'QA / Tester';
+                    $isLead = false;
+                } else {
+                    $roleDisplay = ucwords(str_replace('_', ' ', $rawRole));
+                    $isLead = false;
+                }
+
+                return [
+                    'id' => $s->user_id,
+                    'name' => $s->name,
+                    'email' => $s->email ?? '',
+                    'designation' => $s->designation ?: 'Student',
+                    'role' => $s->role ?: 'developer',
+                    'roleDisplay' => $roleDisplay,
+                    'isTeamLead' => $isLead,
+                    'isCurrentUser' => ($s->user_id == $studentId),
+                ];
+            })->values()->toArray();
+
+            $members = implode(', ', $allStudentsCollection->pluck('name')->toArray());
 
             // Fetch team lead
-            $lead = $students->firstWhere('role', 'project_lead');
-            $teamLead = $lead ? $lead->name : null;
+            $lead = collect($membersList)->firstWhere('isTeamLead', true);
+            $teamLead = $lead ? $lead['name'] : null;
 
 
-            // Calculate progress based on completed tasks
+            // Calculate progress and fetch modules + tasks
             $modules = DB::table('modules')
                 ->where('project_id', $project->id)
                 ->get();
 
             $moduleIds = $modules->pluck('id');
-            $totalTasks = DB::table('tasks')->whereIn('module_id', $moduleIds)->count();
-            $completedTasks = DB::table('tasks')->whereIn('module_id', $moduleIds)->where('status', 'completed')->count();
+            $allTasks = DB::table('tasks')
+                ->leftJoin('users', 'users.id', '=', 'tasks.assigned_to')
+                ->whereIn('tasks.module_id', $moduleIds)
+                ->select('tasks.id', 'tasks.module_id', 'tasks.title', 'tasks.assigned_to', 'users.name as assignee', 'tasks.status', 'tasks.due_date')
+                ->get();
+
+            $totalTasks = $allTasks->count();
+            $completedTasks = $allTasks->where('status', 'completed')->count();
+
+            $statusMap = [
+                'completed' => 'Completed',
+                'in_progress' => 'In Progress',
+                'todo' => 'Todo',
+                'blocked' => 'Blocked',
+                'not_started' => 'Todo',
+            ];
+
+            $tasksByModule = [];
+            foreach ($allTasks as $t) {
+                $tasksByModule[$t->module_id][] = [
+                    'id' => $t->id,
+                    'title' => $t->title,
+                    'assignedTo' => $t->assigned_to,
+                    'assignee' => $t->assignee ?: 'Unassigned',
+                    'isMyTask' => ($t->assigned_to == $studentId),
+                    'status' => $statusMap[strtolower($t->status ?: 'todo')] ?? 'Todo',
+                    'dueDate' => $t->due_date ? date('M d, Y', strtotime($t->due_date)) : null,
+                ];
+            }
+
+            $modulesList = $modules->map(function ($m) use ($tasksByModule, $statusMap) {
+                $rawStatus = strtolower($m->status ?: 'todo');
+                $mStatus = $statusMap[$rawStatus] ?? 'Todo';
+                $mTasks = $tasksByModule[$m->id] ?? [];
+                $completedMTasks = count(array_filter($mTasks, fn($t) => $t['status'] === 'Completed'));
+
+                return [
+                    'id' => $m->id,
+                    'name' => $m->module_name,
+                    'status' => $mStatus,
+                    'tasks' => $mTasks,
+                    'tasksCount' => count($mTasks),
+                    'completedTasksCount' => $completedMTasks,
+                ];
+            })->values()->toArray();
             
             $progress = 0;
             if ($project->status === 'closed') {
@@ -124,6 +208,11 @@ class StudentController extends Controller
                 'description' => $project->requirements ?: 'No description available.',
                 'members' => $members,
                 'membersList' => $membersList,
+                'team' => $membersList,
+                'modules' => $modulesList,
+                'modulesList' => $modulesList,
+                'totalTasksCount' => $totalTasks,
+                'completedTasksCount' => $completedTasks,
                 'clientInfo' => $project->client_name ?: 'Not specified',
                 'teamLead' => $teamLead,
                 'currentSprint' => $currentSprint,
@@ -141,12 +230,25 @@ class StudentController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $assignedModuleIds = DB::table('module_student')
+            ->where('student_id', $studentId)
+            ->pluck('module_id')
+            ->toArray();
+
         $projectIds = DB::table('project_student')
             ->where('student_id', $studentId)
-            ->pluck('project_id');
+            ->pluck('project_id')
+            ->toArray();
 
         $modules = DB::table('modules')
-            ->whereIn('project_id', $projectIds)
+            ->where(function ($q) use ($assignedModuleIds, $projectIds) {
+                if (!empty($assignedModuleIds)) {
+                    $q->whereIn('id', $assignedModuleIds);
+                }
+                if (!empty($projectIds)) {
+                    $q->orWhereIn('project_id', $projectIds);
+                }
+            })
             ->get();
 
         $sprints = [];
@@ -914,6 +1016,469 @@ class StudentController extends Controller
             'batch' => $profile->batch ?? '2025-2027',
             'semester' => $semesterNum,
             'semester_text' => $semesterText
+        ]);
+    }
+
+    public function getDashboard(Request $request)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // 1. Student Assigned Projects (from project_student + module_student)
+        $projectStudentData = DB::table('project_student')
+            ->where('student_id', $studentId)
+            ->get();
+        $projectIds = $projectStudentData->pluck('project_id')->toArray();
+
+        $moduleProjectIds = DB::table('module_student')
+            ->join('modules', 'modules.id', '=', 'module_student.module_id')
+            ->where('module_student.student_id', $studentId)
+            ->pluck('modules.project_id')
+            ->toArray();
+
+        $allProjectIds = array_values(array_unique(array_merge($projectIds, $moduleProjectIds)));
+
+        $projects = DB::table('projects')
+            ->whereIn('id', $allProjectIds)
+            ->get()
+            ->map(function ($p) use ($projectStudentData, $studentId) {
+                $assignment = $projectStudentData->firstWhere('project_id', $p->id);
+                $role = $assignment ? ucfirst(str_replace('_', ' ', $assignment->role)) : 'Team Member';
+
+                // Find student designation
+                $designation = DB::table('student_profiles')
+                    ->where('student_id', $studentId)
+                    ->value('designation') ?: 'Student';
+
+                // Find faculty supervisor
+                $facultyName = DB::table('project_faculty')
+                    ->join('users', 'users.id', '=', 'project_faculty.faculty_id')
+                    ->where('project_faculty.project_id', $p->id)
+                    ->value('users.name') ?: 'Faculty Member';
+
+                // Find team members (both from project_student and module_student)
+                $directStudents = DB::table('project_student')
+                    ->join('users', 'users.id', '=', 'project_student.student_id')
+                    ->leftJoin('student_profiles', 'student_profiles.student_id', '=', 'users.id')
+                    ->where('project_student.project_id', $p->id)
+                    ->select('users.id as user_id', 'users.name', 'users.email', 'student_profiles.designation', 'project_student.role')
+                    ->get();
+
+                $moduleStudents = DB::table('module_student')
+                    ->join('modules', 'modules.id', '=', 'module_student.module_id')
+                    ->join('users', 'users.id', '=', 'module_student.student_id')
+                    ->leftJoin('student_profiles', 'student_profiles.student_id', '=', 'users.id')
+                    ->where('modules.project_id', $p->id)
+                    ->select('users.id as user_id', 'users.name', 'users.email', 'student_profiles.designation', DB::raw("'developer' as role"))
+                    ->get();
+
+                $allStudentsCollection = $directStudents->concat($moduleStudents)->unique('user_id');
+
+                $membersList = $allStudentsCollection->map(function ($s) use ($studentId) {
+                    $rawRole = strtolower($s->role ?: 'developer');
+                    if ($rawRole === 'project_lead' || $rawRole === 'team_lead' || $rawRole === 'lead') {
+                        $roleDisplay = 'Project Lead';
+                        $isLead = true;
+                    } elseif ($rawRole === 'developer' || $rawRole === 'dev') {
+                        $roleDisplay = 'Developer';
+                        $isLead = false;
+                    } elseif ($rawRole === 'designer' || $rawRole === 'ui/ux') {
+                        $roleDisplay = 'UI/UX Designer';
+                        $isLead = false;
+                    } elseif ($rawRole === 'qa' || $rawRole === 'tester') {
+                        $roleDisplay = 'QA / Tester';
+                        $isLead = false;
+                    } else {
+                        $roleDisplay = ucwords(str_replace('_', ' ', $rawRole));
+                        $isLead = false;
+                    }
+
+                    return [
+                        'id' => $s->user_id,
+                        'name' => $s->name,
+                        'email' => $s->email ?? '',
+                        'designation' => $s->designation ?: 'Student',
+                        'role' => $s->role ?: 'developer',
+                        'roleDisplay' => $roleDisplay,
+                        'isTeamLead' => $isLead,
+                        'isCurrentUser' => ($s->user_id == $studentId),
+                    ];
+                })->values()->toArray();
+
+                $members = implode(', ', $allStudentsCollection->pluck('name')->toArray());
+
+                // Calculate progress and fetch modules + tasks
+                $modules = DB::table('modules')->where('project_id', $p->id)->get();
+                $moduleIds = $modules->pluck('id');
+                $allTasks = DB::table('tasks')
+                    ->leftJoin('users', 'users.id', '=', 'tasks.assigned_to')
+                    ->whereIn('tasks.module_id', $moduleIds)
+                    ->select('tasks.id', 'tasks.module_id', 'tasks.title', 'tasks.assigned_to', 'users.name as assignee', 'tasks.status', 'tasks.due_date')
+                    ->get();
+
+                $totalTasks = $allTasks->count();
+                $completedTasks = $allTasks->where('status', 'completed')->count();
+
+                $statusMap = [
+                    'completed' => 'Completed',
+                    'in_progress' => 'In Progress',
+                    'todo' => 'Todo',
+                    'blocked' => 'Blocked',
+                    'not_started' => 'Todo',
+                ];
+
+                $tasksByModule = [];
+                foreach ($allTasks as $t) {
+                    $tasksByModule[$t->module_id][] = [
+                        'id' => $t->id,
+                        'title' => $t->title,
+                        'assignedTo' => $t->assigned_to,
+                        'assignee' => $t->assignee ?: 'Unassigned',
+                        'isMyTask' => ($t->assigned_to == $studentId),
+                        'status' => $statusMap[strtolower($t->status ?: 'todo')] ?? 'Todo',
+                        'dueDate' => $t->due_date ? date('M d, Y', strtotime($t->due_date)) : null,
+                    ];
+                }
+
+                $modulesList = $modules->map(function ($m) use ($tasksByModule, $statusMap) {
+                    $rawStatus = strtolower($m->status ?: 'todo');
+                    $mStatus = $statusMap[$rawStatus] ?? 'Todo';
+                    $mTasks = $tasksByModule[$m->id] ?? [];
+                    $completedMTasks = count(array_filter($mTasks, fn($t) => $t['status'] === 'Completed'));
+
+                    return [
+                        'id' => $m->id,
+                        'name' => $m->module_name,
+                        'status' => $mStatus,
+                        'tasks' => $mTasks,
+                        'tasksCount' => count($mTasks),
+                        'completedTasksCount' => $completedMTasks,
+                    ];
+                })->values()->toArray();
+                
+                $progress = 0;
+                if ($p->status === 'closed') {
+                    $progress = 100;
+                } elseif ($totalTasks > 0) {
+                    $progress = round(($completedTasks / $totalTasks) * 100);
+                }
+
+                $timeline = 'Not specified';
+                if ($p->expected_timeline) {
+                    $timeline = date('M Y', strtotime($p->expected_timeline));
+                }
+
+                return [
+                    'id' => $p->id,
+                    'title' => $p->title,
+                    'status' => $p->status === 'closed' ? 'Completed' : ($p->status === 'proposed' ? 'Proposed' : 'In Progress'),
+                    'role' => $role,
+                    'designation' => ucfirst($designation),
+                    'faculty' => $facultyName,
+                    'timeline' => $timeline,
+                    'progress' => $progress,
+                    'description' => $p->requirements ?: 'No description available.',
+                    'members' => $members,
+                    'membersList' => $membersList,
+                    'team' => $membersList,
+                    'modules' => $modulesList,
+                    'modulesList' => $modulesList,
+                    'totalTasksCount' => $totalTasks,
+                    'completedTasksCount' => $completedTasks,
+                    'clientInfo' => $p->client_name ?: 'Not specified',
+                ];
+            });
+
+        // 2. Assigned Tasks & Deliverables directly from module_student (Faculty / Coordinator assignments)
+        $assignedFromModuleStudent = DB::table('module_student')
+            ->join('modules', 'modules.id', '=', 'module_student.module_id')
+            ->join('projects', 'projects.id', '=', 'modules.project_id')
+            ->leftJoin('users as creator', 'creator.id', '=', 'modules.created_by')
+            ->where('module_student.student_id', $studentId)
+            ->select(
+                'module_student.id as ms_id',
+                'module_student.module_id',
+                'module_student.assigned_date',
+                'modules.module_name',
+                'modules.description',
+                'modules.status as module_status',
+                'projects.id as project_id',
+                'projects.title as project_title',
+                'creator.name as assigned_by_name',
+                'creator.role as assigned_by_role'
+            )
+            ->get()
+            ->map(function ($ms) {
+                $rawStatus = strtolower($ms->module_status ?: 'todo');
+                if ($rawStatus === 'not_started' || $rawStatus === 'assigned') {
+                    $rawStatus = 'todo';
+                }
+                $statusMap = [
+                    'todo' => 'Todo',
+                    'in_progress' => 'In Progress',
+                    'completed' => 'Completed',
+                    'blocked' => 'Blocked',
+                ];
+                $assigner = $ms->assigned_by_name ? ($ms->assigned_by_name . ($ms->assigned_by_role ? ' (' . ucfirst($ms->assigned_by_role) . ')' : '')) : 'Faculty / Coordinator';
+
+                return [
+                    'id' => 'mod-' . $ms->module_id,
+                    'type' => 'module',
+                    'title' => $ms->module_name,
+                    'description' => $ms->description ?: 'Assigned module deliverable under ' . $ms->project_title,
+                    'status' => $statusMap[$rawStatus] ?? ucfirst($rawStatus),
+                    'rawStatus' => $rawStatus,
+                    'dueDate' => $ms->assigned_date ? date('M j, Y', strtotime($ms->assigned_date)) : 'Active',
+                    'createdAt' => $ms->assigned_date ?: null,
+                    'isOverdue' => false,
+                    'module' => $ms->module_name,
+                    'project' => $ms->project_title ?: 'Academic Project',
+                    'assignedBy' => $assigner,
+                ];
+            });
+
+        // Granular sub-tasks from tasks table
+        $assignedModuleIds = DB::table('module_student')
+            ->where('student_id', $studentId)
+            ->pluck('module_id')
+            ->toArray();
+
+        $granularTasks = DB::table('tasks')
+            ->leftJoin('modules', 'modules.id', '=', 'tasks.module_id')
+            ->leftJoin('projects', 'projects.id', '=', 'modules.project_id')
+            ->leftJoin('users as creator', 'creator.id', '=', 'tasks.created_by')
+            ->where(function ($q) use ($studentId, $assignedModuleIds) {
+                $q->where('tasks.assigned_to', $studentId);
+                if (!empty($assignedModuleIds)) {
+                    $q->orWhereIn('tasks.module_id', $assignedModuleIds);
+                }
+            })
+            ->select(
+                'tasks.id',
+                'tasks.title',
+                'tasks.description',
+                'tasks.status',
+                'tasks.due_date',
+                'tasks.created_at',
+                'modules.id as module_id',
+                'modules.module_name',
+                'projects.id as project_id',
+                'projects.title as project_title',
+                'creator.name as assigned_by_name',
+                'creator.role as assigned_by_role'
+            )
+            ->orderBy('tasks.id', 'desc')
+            ->get()
+            ->map(function ($t) {
+                $statusMap = [
+                    'todo' => 'Todo',
+                    'in_progress' => 'In Progress',
+                    'completed' => 'Completed',
+                    'blocked' => 'Blocked',
+                ];
+                $assigner = $t->assigned_by_name ? ($t->assigned_by_name . ($t->assigned_by_role ? ' (' . ucfirst($t->assigned_by_role) . ')' : '')) : 'Faculty / Coordinator';
+                return [
+                    'id' => (string)$t->id,
+                    'type' => 'task',
+                    'title' => $t->title,
+                    'description' => $t->description ?: '',
+                    'status' => $statusMap[strtolower($t->status)] ?? ucfirst($t->status),
+                    'rawStatus' => strtolower($t->status),
+                    'dueDate' => $t->due_date ? date('M j, Y', strtotime($t->due_date)) : 'No deadline',
+                    'createdAt' => $t->created_at ? (string)$t->created_at : null,
+                    'isOverdue' => $t->due_date ? (strtotime($t->due_date) < time() && strtolower($t->status) !== 'completed') : false,
+                    'module' => $t->module_name ?: 'General Module',
+                    'project' => $t->project_title ?: 'Academic Project',
+                    'assignedBy' => $assigner,
+                ];
+            });
+
+        // Combined: module assignments + granular tasks (sorted latest first)
+        $tasks = $assignedFromModuleStudent->concat($granularTasks)
+            ->sortByDesc(function ($item) {
+                if (!empty($item['createdAt'])) {
+                    return strtotime($item['createdAt']);
+                }
+                $num = preg_replace('/\D/', '', $item['id']);
+                return (int)$num;
+            })
+            ->values();
+
+        // 3. Assigned Modules / Sprints list
+        $modules = DB::table('modules')
+            ->join('projects', 'projects.id', '=', 'modules.project_id')
+            ->where(function ($q) use ($assignedModuleIds, $allProjectIds) {
+                if (!empty($assignedModuleIds)) {
+                    $q->whereIn('modules.id', $assignedModuleIds);
+                }
+                if (!empty($allProjectIds)) {
+                    $q->orWhereIn('modules.project_id', $allProjectIds);
+                }
+            })
+            ->select('modules.id', 'modules.module_name', 'modules.status', 'modules.project_id', 'projects.title as project_title')
+            ->distinct()
+            ->get()
+            ->map(function ($m) {
+                return [
+                    'id' => $m->id,
+                    'name' => $m->module_name,
+                    'status' => ucfirst(str_replace('_', ' ', $m->status)),
+                    'project' => $m->project_title,
+                ];
+            });
+
+        // 4. Upcoming Meetings (Scheduled by Faculty / Coordinator for student's projects)
+        $meetings = DB::table('meetings')
+            ->join('projects', 'projects.id', '=', 'meetings.project_id')
+            ->leftJoin('users as creator', 'creator.id', '=', 'meetings.created_by')
+            ->whereIn('meetings.project_id', $allProjectIds)
+            ->select(
+                'meetings.id',
+                'meetings.title',
+                'projects.title as project',
+                'meetings.scheduled_at',
+                'meetings.location',
+                'meetings.meeting_link',
+                'meetings.agenda',
+                'meetings.status',
+                'creator.name as scheduled_by'
+            )
+            ->orderBy('meetings.scheduled_at', 'asc')
+            ->get()
+            ->map(function ($m) {
+                $timestamp = strtotime($m->scheduled_at);
+                return [
+                    'id' => $m->id,
+                    'title' => $m->title,
+                    'project' => $m->project,
+                    'date' => $timestamp ? date('M j, Y', $timestamp) : 'TBD',
+                    'time' => $timestamp ? date('h:i A', $timestamp) : 'TBD',
+                    'status' => ucfirst($m->status),
+                    'location' => $m->location ?: 'Google Meet',
+                    'meetingLink' => $m->meeting_link,
+                    'agenda' => $m->agenda ?: '',
+                    'scheduledBy' => $m->scheduled_by ?: 'Coordinator / Faculty',
+                    'isUpcoming' => $timestamp ? ($timestamp >= time()) : true,
+                ];
+            });
+
+        // 5. Notifications
+        $notifications = DB::table('notifications')
+            ->where('user_id', $studentId)
+            ->orderBy('id', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($n) {
+                $ts = strtotime($n->created_at);
+                return [
+                    'id' => $n->id,
+                    'type' => $n->type,
+                    'message' => $n->message,
+                    'isRead' => (bool)$n->is_read,
+                    'time' => $ts ? Carbon::parse($n->created_at)->diffForHumans() : 'Recently'
+                ];
+            });
+
+        // 6. Summary Stats
+        $pendingTasksCount = $tasks->filter(fn($t) => $t['rawStatus'] !== 'completed')->count();
+        $completedTasksCount = $tasks->filter(fn($t) => $t['rawStatus'] === 'completed')->count();
+        $activeProjectsCount = $projects->filter(fn($p) => $p['status'] === 'In Progress')->count();
+        $upcomingMeetingsCount = $meetings->filter(fn($m) => $m['status'] === 'Scheduled' && $m['isUpcoming'])->count();
+
+        return response()->json([
+            'projects' => $projects,
+            'tasks' => $tasks,
+            'modules' => $modules,
+            'meetings' => $meetings,
+            'notifications' => $notifications,
+            'stats' => [
+                'activeProjectsCount' => $activeProjectsCount,
+                'totalProjectsCount' => $projects->count(),
+                'pendingTasksCount' => $pendingTasksCount,
+                'completedTasksCount' => $completedTasksCount,
+                'totalTasksCount' => $tasks->count(),
+                'assignedModulesCount' => $modules->count(),
+                'upcomingMeetingsCount' => $upcomingMeetingsCount,
+            ]
+        ]);
+    }
+
+    public function updateTaskStatus(Request $request, $id)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|string|in:todo,in_progress,completed,blocked,Todo,In Progress,Completed,Blocked',
+            'type' => 'nullable|string'
+        ]);
+
+        $statusNormalized = strtolower(str_replace(' ', '_', $validated['status']));
+
+        // If updating a module assigned from module_student
+        if (str_starts_with((string)$id, 'mod-') || $request->input('type') === 'module') {
+            $modId = (int) str_replace('mod-', '', (string)$id);
+            $isAssigned = DB::table('module_student')
+                ->where('module_id', $modId)
+                ->where('student_id', $studentId)
+                ->exists();
+
+            if (!$isAssigned) {
+                return response()->json(['error' => 'You do not have permission to update this module.'], 403);
+            }
+
+            $moduleStatus = $statusNormalized === 'todo' ? 'not_started' : $statusNormalized;
+
+            DB::table('modules')->where('id', $modId)->update([
+                'status' => $moduleStatus,
+                'updated_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Module status updated to ' . ucfirst(str_replace('_', ' ', $statusNormalized)),
+                'status' => $statusNormalized,
+            ]);
+        }
+
+        // Verify task exists and belongs to a project the student is on, or assigned to student
+        $task = DB::table('tasks')
+            ->join('modules', 'modules.id', '=', 'tasks.module_id')
+            ->where('tasks.id', $id)
+            ->select('tasks.*', 'modules.project_id')
+            ->first();
+
+        if (!$task) {
+            return response()->json(['error' => 'Task not found.'], 404);
+        }
+
+        $isStudentOnProject = DB::table('project_student')
+            ->where('project_id', $task->project_id)
+            ->where('student_id', $studentId)
+            ->exists();
+
+        $isAssignedToModule = DB::table('module_student')
+            ->where('module_id', $task->module_id)
+            ->where('student_id', $studentId)
+            ->exists();
+
+        if ($task->assigned_to != $studentId && !$isStudentOnProject && !$isAssignedToModule) {
+            return response()->json(['error' => 'You do not have permission to update this task.'], 403);
+        }
+
+        DB::table('tasks')->where('id', $id)->update([
+            'status' => $statusNormalized,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task status updated to ' . ucfirst(str_replace('_', ' ', $statusNormalized)),
+            'status' => $statusNormalized,
         ]);
     }
 }

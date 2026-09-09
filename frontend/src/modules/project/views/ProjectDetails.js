@@ -834,7 +834,13 @@ export async function ProjectDetails(route, router) {
           })
         });
 
-        const resData = await response.json();
+        let resData = {};
+        try {
+          resData = await response.json();
+        } catch (_) {
+          resData = {};
+        }
+
         if (response.ok && (resData.status === 'success' || resData.data)) {
           closeTaskModal();
           showFacultySuccessPopup(
@@ -847,7 +853,7 @@ export async function ProjectDetails(route, router) {
         }
       } catch (err) {
         console.error('Error adding task:', err);
-        alert('Error connecting to server. Please try again.');
+        alert(err.message || 'Error connecting to server. Please try again.');
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;

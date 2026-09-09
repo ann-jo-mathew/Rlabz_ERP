@@ -93,18 +93,22 @@ class ProjectTaskController extends Controller
             return response()->json(['error' => 'Cannot create task. This project is closed.'], 422);
         }
 
-        $userId = $this->getUserId($request);
+        $userId = $this->getUserId($request) ?: 4;
 
-        $task = Task::create([
-            'module_id' => $moduleId,
-            'title' => $request->title,
-            'description' => $request->description,
-            'weight' => $request->weight ? (int) $request->weight : 1,
-            'status' => 'todo',
-            'created_by' => $userId
-        ]);
+        try {
+            $task = Task::create([
+                'module_id' => $moduleId,
+                'title' => $request->title,
+                'description' => $request->description,
+                'weight' => $request->weight ? (int) $request->weight : 1,
+                'status' => 'todo',
+                'created_by' => $userId
+            ]);
 
-        return response()->json(['status' => 'success', 'data' => $task], 201);
+            return response()->json(['status' => 'success', 'data' => $task], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create task: ' . $e->getMessage()], 500);
+        }
     }
 
     public function updateTaskStatus(Request $request, $taskId)

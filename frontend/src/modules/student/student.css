@@ -2920,4 +2920,632 @@
   margin-bottom: 12px;
 }
 
+/* ==========================================================================
+   ENHANCED STUDENT DASHBOARD (COORDINATOR & FACULTY INTEGRATION)
+   ========================================================================== */
+
+/* Sync / Refresh Button */
+.student-sync-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #ffffff;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.08);
+}
+
+.student-sync-btn:hover {
+  background: #ecfdf5;
+  border-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.15);
+}
+
+.student-sync-btn:active {
+  transform: translateY(0);
+}
+
+.spin {
+  animation: spinAnim 0.7s linear infinite;
+}
+
+@keyframes spinAnim {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Overdue Badge */
+.student-badge-overdue {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+/* Interactive Status Select inside Task Table */
+.student-task-status-select {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.student-task-status-select:hover {
+  border-color: #94a3b8;
+  background-color: #ffffff;
+}
+
+.student-task-status-select.todo {
+  background-color: #fefce8;
+  color: #a16207;
+  border-color: #fef08a;
+}
+
+.student-task-status-select.in_progress {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.student-task-status-select.completed {
+  background-color: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.student-task-status-select.blocked {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+/* Dashboard Meetings List */
+.student-dash-meetings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-dash-meeting-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.student-dash-meeting-item:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transform: translateX(2px);
+}
+
+.student-dash-meeting-datebox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 48px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.student-dash-meeting-day {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #065f46;
+  line-height: 1;
+}
+
+.student-dash-meeting-month {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #059669;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.student-dash-meeting-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-dash-meeting-title {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-dash-meeting-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.student-dash-meeting-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #059669;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.student-dash-meeting-btn:hover {
+  background: #047857;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   DEVELOPMENT TEAM MEMBER CARDS & (YOU) TAGS IN MY PROJECTS & DASHBOARD
+   ========================================================================== */
+.project-team-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.project-team-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.project-team-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.project-team-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+.project-team-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.team-member-mini-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+}
+
+.team-member-mini-card:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.team-member-mini-card.is-me {
+  background: #f0fdf4;
+  border: 1.5px solid #059669;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.12);
+}
+
+.team-member-mini-card.is-me:hover {
+  background: #ecfdf5;
+  border-color: #047857;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.member-mini-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.25);
+}
+
+.member-mini-avatar.is-lead {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 2px 4px rgba(217, 119, 6, 0.25);
+}
+
+.member-mini-avatar.is-designer {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.25);
+}
+
+.member-mini-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.member-mini-name-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.member-mini-name {
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-tag-you {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.35);
+  flex-shrink: 0;
+}
+
+.member-tag-lead {
+  display: inline-flex;
+  align-items: center;
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.member-mini-role {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.member-mini-role.role-lead {
+  color: #b45309;
+  font-weight: 600;
+}
+
+/* Dashboard Project Card Enhancements */
+.student-dash-project-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.student-dash-project-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.06);
+}
+
+.student-dash-project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.student-dash-project-title-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-dash-project-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #0f172a;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.student-dash-project-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.student-dash-project-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.student-dash-project-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+/* ==========================================================================
+   MODULES & TASKS LIST IN PROJECT CARDS
+   ========================================================================== */
+.project-modules-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.project-modules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.project-modules-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.project-modules-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.project-modules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.project-modules-list::-webkit-scrollbar {
+  width: 4px;
+}
+.project-modules-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.project-module-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  transition: all 0.15s ease;
+}
+
+.project-module-card:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.project-module-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.project-module-name-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.module-folder-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.project-module-name {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.module-tasks-counter-pill {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 1px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.project-module-tasks-container {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.project-card-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+}
+
+.project-card-task-row.is-my-task {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.task-row-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.task-status-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.task-status-bullet.status-completed {
+  background: #10b981;
+}
+.task-status-bullet.status-progress {
+  background: #f59e0b;
+}
+.task-status-bullet.status-todo {
+  background: #94a3b8;
+}
+
+.task-row-title {
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-row-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.task-row-assignee {
+  font-size: 0.68rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+}
+
+.task-row-status-pill {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.task-row-status-pill.status-completed {
+  background: #ecfdf5;
+  color: #047857;
+}
+.task-row-status-pill.status-progress {
+  background: #fffbeb;
+  color: #b45309;
+}
+.task-row-status-pill.status-todo {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.project-module-tasks-empty {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-style: italic;
+  margin-top: 3px;
+  padding-left: 2px;
+}
+
+
 

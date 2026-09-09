@@ -18,6 +18,8 @@ Route::group(['prefix' => 'student', 'middleware' => ['auth.jwt']], function () 
     Route::get('/meetings', [StudentController::class, 'getMeetings']);
     Route::get('/notifications', [StudentController::class, 'getNotifications']);
     Route::get('/profile', [StudentController::class, 'getProfile']);
+    Route::get('/dashboard', [StudentController::class, 'getDashboard']);
+    Route::post('/tasks/{id}/status', [StudentController::class, 'updateTaskStatus']);
     Route::get('/chats/{projectId}', [StudentController::class, 'getChatMessages']);
     Route::post('/chats/{projectId}/messages', [StudentController::class, 'saveChatMessage']);
 });
