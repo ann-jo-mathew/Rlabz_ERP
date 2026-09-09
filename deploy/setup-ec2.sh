@@ -133,10 +133,16 @@ COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist --opt
 # Generate key if needed & create storage link
 php artisan storage:link || true
 
-# Run Migrations & Full Demo Seeder
-echo "  Running database migrations and seeders..."
+# Run Migrations & Import Dummy Data
+echo "  Running database migrations and importing seed data..."
 php artisan migrate --force
-php artisan db:seed --class=FullDatabaseDemoSeeder --force
+
+if [ -f "$PROJECT_DIR/seed_dummy_data.sql" ]; then
+    echo "  Importing schema-accurate demo dataset (users, projects, finances, tasks)..."
+    sudo mysql ${DB_NAME} < "$PROJECT_DIR/seed_dummy_data.sql"
+else
+    php artisan db:seed --class=DevUserSeeder --force || true
+fi
 
 # Optimize Laravel cache
 php artisan config:cache
