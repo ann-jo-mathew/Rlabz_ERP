@@ -5,12 +5,12 @@ export function LoginView(route, router) {
   const container = document.createElement('div');
   container.className = 'login-container';
 
-  const mockPresets = [
-    { label: 'Director', user: 'director', pass: 'director123' },
-    { label: 'Co-ordinator', user: 'coordinator', pass: 'password123' },
-    { label: 'Finance Head', user: 'finance_head', pass: 'finance123' },
-    { label: 'Faculty', user: 'faculty', pass: 'faculty123' },
-    { label: 'Student', user: 'student', pass: 'student123' }
+  const demoAccounts = [
+    { label: 'Director', email: 'director@rajagiri.edu', pass: 'director123' },
+    { label: 'Coordinator', email: 'coordinator@rajagiri.edu', pass: 'password123' },
+    { label: 'Finance Head', email: 'finance@rajagiri.edu', pass: 'finance123' },
+    { label: 'Faculty', email: 'faculty@rajagiri.edu', pass: 'faculty123' },
+    { label: 'Student (Nova)', email: 'nova@rajagiri.edu', pass: 'student123' }
   ];
 
   container.innerHTML = `
@@ -26,7 +26,7 @@ export function LoginView(route, router) {
       <form id="login-form">
         <div class="form-group">
           <label for="email">Email</label>
-          <input id="email" type="email" required placeholder="name@rajagiri.edu" pattern=".*@rajagiri\.edu$" title="Email must contain @rajagiri.edu" />
+          <input id="email" type="email" required placeholder="name@rajagiri.edu" pattern=".*@rajagiri\\.edu$" title="Email must contain @rajagiri.edu" />
         </div>
         <div class="form-group">
           <label for="password">Password</label>
@@ -40,6 +40,17 @@ export function LoginView(route, router) {
         <button id="submit-btn" type="submit" class="btn-primary">
           <span id="btn-text">Login to ERP</span>
         </button>
+
+        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color, #e2e8f0);">
+          <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted, #64748b); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;">Quick Demo Logins</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+            ${demoAccounts.map(a => `
+              <button type="button" class="btn-demo" data-email="${a.email}" data-pass="${a.pass}" style="font-size: 0.78rem; padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, #f8fafc); cursor: pointer; color: var(--text-main, #334155); transition: all 0.15s ease;">
+                ${a.label}
+              </button>
+            `).join('')}
+          </div>
+        </div>
       </form>
     </div>
   `;
@@ -48,6 +59,14 @@ export function LoginView(route, router) {
   const emailInput = container.querySelector('#email');
   const passwordInput = container.querySelector('#password');
   const submitBtn = container.querySelector('#submit-btn');
+
+  container.querySelectorAll('.btn-demo').forEach(btn => {
+    btn.addEventListener('click', () => {
+      emailInput.value = btn.dataset.email;
+      passwordInput.value = btn.dataset.pass;
+      errorBox.style.display = 'none';
+    });
+  });
   const btnText = container.querySelector('#btn-text');
   const errorBox = container.querySelector('#error-box');
   const togglePasswordBtn = container.querySelector('#toggle-password');

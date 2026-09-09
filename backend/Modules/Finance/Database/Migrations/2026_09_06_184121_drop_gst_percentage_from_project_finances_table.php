@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('project_finances', function (Blueprint $table) {
-            $table->dropColumn('gst_percentage');
-        });
+        if (Schema::hasColumn('project_finances', 'gst_percentage')) {
+            Schema::table('project_finances', function (Blueprint $table) {
+                $table->dropColumn('gst_percentage');
+            });
+        }
     }
 
     /**
