@@ -199,6 +199,18 @@ class CoordinatorController extends Controller
             'assigned_date' => $validated['assigned_date'] ?? now()->toDateString(),
         ]);
 
+        if (Schema::hasTable('notifications')) {
+            $roleLabel = ucfirst(str_replace('_', ' ', $validated['role']));
+            DB::table('notifications')->insert([
+                'user_id' => $validated['student_id'],
+                'type' => 'project_assigned',
+                'message' => "Coordinator assigned you to project '{$project->title}' as {$roleLabel}.",
+                'is_read' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         $record = $project->students()->where('student_id', $validated['student_id'])->first();
 
         return response()->json([
@@ -283,6 +295,17 @@ class CoordinatorController extends Controller
         $module->students()->attach($validated['student_id'], [
             'assigned_date' => $validated['assigned_date'] ?? now()->toDateString(),
         ]);
+
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                'user_id' => $validated['student_id'],
+                'type' => 'module_assigned',
+                'message' => "Coordinator assigned you to module '{$module->module_name}' in project '{$project->title}'.",
+                'is_read' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         $record = $module->students()->where('users.id', $validated['student_id'])->first();
 
@@ -377,6 +400,17 @@ class CoordinatorController extends Controller
             'due_date' => $validated['due_date'] ?? null,
             'created_by' => $this->currentUserId($request) ?? $request->user()?->id,
         ]);
+
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                'user_id' => $validated['assigned_to'],
+                'type' => 'task_assigned',
+                'message' => "Coordinator assigned you task '{$validated['title']}' under module '{$module->module_name}'.",
+                'is_read' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         return response()->json([
             'message' => 'Task created successfully',
@@ -721,6 +755,37 @@ class CoordinatorController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Automatically invite and notify students of the project
+        $studentIds = DB::table('project_student')
+            ->where('project_id', $proj->id)
+            ->pluck('student_id');
+
+        if (Schema::hasTable('meeting_participants')) {
+            foreach ($studentIds as $sId) {
+                DB::table('meeting_participants')->insert([
+                    'meeting_id' => $meetingId,
+                    'user_id' => $sId,
+                    'attendance_status' => 'invited',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        if (Schema::hasTable('notifications')) {
+            $formattedTime = date('M j, Y g:i A', strtotime($scheduledAt));
+            foreach ($studentIds as $sId) {
+                DB::table('notifications')->insert([
+                    'user_id' => $sId,
+                    'type' => 'meeting_scheduled',
+                    'message' => "New meeting scheduled by Coordinator for project '{$proj->title}': '{$validated['title']}' on {$formattedTime}.",
+                    'is_read' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
 
         $dt = new \DateTime($scheduledAt);
 

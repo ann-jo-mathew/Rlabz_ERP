@@ -64,23 +64,107 @@ export async function StudentProjects(route, router) {
 
     if (!isDetailView) {
       // Build project cards HTML (Initial View)
-      const projectCardsHtml = filteredProjects.map(p => `
+      const projectCardsHtml = filteredProjects.map(p => {
+        const teamList = p.membersList || p.team || [];
+        const teamChipsHtml = teamList.map(m => {
+          const isMe = m.isCurrentUser || (m.name && m.name.toLowerCase() === (currentUser?.name?.toLowerCase() || ''));
+          const initial = (m.name || 'U').charAt(0).toUpperCase();
+          let avatarClass = '';
+          if (m.isTeamLead) {
+            avatarClass = 'is-lead';
+          } else if (m.role?.toLowerCase()?.includes('designer')) {
+            avatarClass = 'is-designer';
+          }
+
+          return `
+            <div class="team-member-mini-card ${isMe ? 'is-me' : ''}" title="${m.name} - ${m.roleDisplay || m.role || 'Member'}">
+              <div class="member-mini-avatar ${avatarClass}">
+                ${initial}
+              </div>
+              <div class="member-mini-info">
+                <div class="member-mini-name-row">
+                  <span class="member-mini-name">${m.name}</span>
+                  ${isMe ? `<span class="member-tag-you">You</span>` : ''}
+                  ${m.isTeamLead ? `<span class="member-tag-lead">Lead</span>` : ''}
+                </div>
+                <span class="member-mini-role ${m.isTeamLead ? 'role-lead' : ''}">
+                  ${m.roleDisplay || m.role || 'Member'}
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Modules & Tasks for this project
+        const modulesList = p.modulesList || p.modules || [];
+        const totalTasks = p.totalTasksCount ?? modulesList.reduce((acc, m) => acc + (m.tasks ? m.tasks.length : 0), 0);
+        const completedTasks = p.completedTasksCount ?? modulesList.reduce((acc, m) => acc + (m.tasks ? m.tasks.filter(t => t.status === 'Completed').length : 0), 0);
+
+        const modulesHtml = modulesList.length > 0 ? modulesList.map(mod => {
+          const mStatus = mod.status || 'Todo';
+          const mStatusClass = mStatus === 'Completed' ? 'student-badge-success' : (mStatus === 'In Progress' ? 'student-badge-warning' : 'student-badge-neutral');
+          const modTasks = mod.tasks || [];
+          const modDone = modTasks.filter(t => t.status === 'Completed').length;
+
+          const tasksHtml = modTasks.length > 0 ? modTasks.map(t => {
+            const isMyTask = t.isMyTask || (t.assignee && t.assignee.toLowerCase() === (currentUser?.name?.toLowerCase() || ''));
+            const tStatusClass = t.status === 'Completed' ? 'status-completed' : (t.status === 'In Progress' ? 'status-progress' : 'status-todo');
+            return `
+              <div class="project-card-task-row ${isMyTask ? 'is-my-task' : ''}">
+                <div class="task-row-left">
+                  <span class="task-status-bullet ${tStatusClass}"></span>
+                  <span class="task-row-title" title="${t.title}">${t.title}</span>
+                </div>
+                <div class="task-row-right">
+                  <span class="task-row-assignee">
+                    ${t.assignee}
+                    ${isMyTask ? `<span class="member-tag-you" style="margin-left: 4px; font-size: 0.58rem; padding: 0 4px;">You</span>` : ''}
+                  </span>
+                  <span class="task-row-status-pill ${tStatusClass}">${t.status}</span>
+                </div>
+              </div>
+            `;
+          }).join('') : `<div class="project-module-tasks-empty">No individual tasks defined in this module</div>`;
+
+          return `
+            <div class="project-module-card">
+              <div class="project-module-card-header">
+                <div class="project-module-name-box">
+                  <span class="module-folder-icon">📦</span>
+                  <span class="project-module-name" title="${mod.name}">${mod.name}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="student-badge ${mStatusClass}" style="font-size: 0.65rem; padding: 2px 7px;">${mStatus}</span>
+                  <span class="module-tasks-counter-pill">${modDone}/${modTasks.length} Tasks</span>
+                </div>
+              </div>
+              <div class="project-module-tasks-container">
+                ${tasksHtml}
+              </div>
+            </div>
+          `;
+        }).join('') : `<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic; padding: 4px 0;">No modules assigned yet</div>`;
+
+        return `
         <div class="student-card project-summary-card" 
-             style="margin-bottom: 16px; cursor: pointer; transition: all 0.2s;" 
+             style="margin-bottom: 16px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column;" 
              data-id="${p.id}">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">${p.title}</h3>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div>
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">${p.title}</h3>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Timeline: ${p.timeline || 'Active'}</div>
+            </div>
             <span class="student-badge ${p.status === 'Completed' ? 'student-badge-success' : 'student-badge-warning'}">${p.status}</span>
           </div>
           
-          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;">
             <span class="student-badge student-badge-info" style="font-size: 0.7rem;">${p.designation}</span>
-            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Supervisor: ${p.faculty}</span>
+            <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 500;">Supervisor: <strong style="color: #334155;">${p.faculty}</strong></span>
           </div>
 
-          <div style="margin-bottom: 12px;">
+          <div style="margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">
-              <span>Progress</span>
+              <span>Progress (${completedTasks}/${totalTasks} Tasks)</span>
               <span style="font-weight: 600;">${p.progress}%</span>
             </div>
             <div class="student-progress-bar-bg">
@@ -88,11 +172,51 @@ export async function StudentProjects(route, router) {
             </div>
           </div>
 
-          <button class="student-btn student-btn-primary btn-view-details" data-id="${p.id}" style="width: auto; padding: 0.4rem 1.25rem; align-self: flex-start; margin-top: 8px;">
-            View Details
-          </button>
+          <!-- Development Team Section -->
+          <div class="project-team-section">
+            <div class="project-team-header">
+              <span class="project-team-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Development Team
+              </span>
+              <span class="project-team-count">${teamList.length} Member${teamList.length === 1 ? '' : 's'}</span>
+            </div>
+
+            <div class="project-team-cards-grid">
+              ${teamChipsHtml || '<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No team members assigned yet</div>'}
+            </div>
+          </div>
+
+          <!-- Project Modules & Tasks Section -->
+          <div class="project-modules-section">
+            <div class="project-modules-header">
+              <span class="project-modules-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #0284c7;">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+                Modules & Tasks
+              </span>
+              <span class="project-modules-count">${modulesList.length} Modules • ${totalTasks} Tasks</span>
+            </div>
+
+  
+          </div>
+
+          <div style="margin-top: auto; padding-top: 14px; display: flex; justify-content: flex-end;">
+            <button class="student-btn student-btn-primary btn-view-details" data-id="${p.id}" style="width: auto; padding: 0.4rem 1.25rem; font-size: 0.8rem;">
+              View Details →
+            </button>
+          </div>
         </div>
-      `).join('');
+        `;
+      }).join('');
 
       container.innerHTML = `
         <div class="student-header">
@@ -241,7 +365,7 @@ export async function StudentProjects(route, router) {
           `;
         } else if (activeTab === 'team') {
           const teamCards = teamMembers.map(m => {
-            const isMe = m.name.toLowerCase() === (currentUser?.name?.toLowerCase() || 'student nova');
+            const isMe = m.isCurrentUser || (m.name && m.name.toLowerCase() === (currentUser?.name?.toLowerCase() || ''));
             let badgesHtml = '';
             if (m.isTeamLead) {
               badgesHtml += `<span class="team-lead-badge">★ Team Lead</span>`;
@@ -250,17 +374,26 @@ export async function StudentProjects(route, router) {
               const rightOffset = m.isTeamLead ? '112px' : '14px';
               badgesHtml += `<span class="team-me-badge" style="right: ${rightOffset};">You</span>`;
             }
+
+            const initial = (m.name || 'U').charAt(0).toUpperCase();
+            const roleName = m.roleDisplay || m.role || (m.isTeamLead ? 'Project Lead' : 'Developer');
+            const avatarStyle = m.isTeamLead 
+              ? 'background: linear-gradient(135deg, #d97706 0%, #b45309 100%);' 
+              : (m.role?.toLowerCase()?.includes('designer') 
+                ? 'background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);' 
+                : '');
+
             return `
               <div class="team-member-card ${isMe ? 'is-current-user' : ''}">
                 ${badgesHtml}
-                <div class="member-avatar">
-                  ${m.name.charAt(0).toUpperCase()}
+                <div class="member-avatar" style="${avatarStyle}">
+                  ${initial}
                 </div>
                 <div class="member-name">${m.name}</div>
-                <div class="member-designation">${m.designation} Track</div>
+                <div class="member-designation">${m.designation || 'Student'} Track</div>
                 <div class="member-role">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                  <span>${m.isTeamLead ? 'Lead Developer' : 'Team Member'}</span>
+                  <span>${roleName}</span>
                 </div>
               </div>
             `;
@@ -281,22 +414,34 @@ export async function StudentProjects(route, router) {
             </div>
           `;
         } else if (activeTab === 'modules') {
-          if (!selectedModuleName && selectedProject.assignedModules && selectedProject.assignedModules.length > 0) {
-            selectedModuleName = selectedProject.assignedModules[0];
+          const currentProjectModules = (selectedProject.modulesList && selectedProject.modulesList.length > 0)
+            ? selectedProject.modulesList
+            : projectModules;
+
+          if (!selectedModuleName && currentProjectModules.length > 0) {
+            selectedModuleName = currentProjectModules[0].name;
           }
 
-          const foundModule = projectModules.find(s => s.name === selectedModuleName);
-          const moduleTasks = foundModule ? foundModule.tasks : [];
+          const foundModule = currentProjectModules.find(s => s.name === selectedModuleName);
+          const moduleTasks = foundModule ? (foundModule.tasks || []) : [];
 
-          const modulesLeftHtml = selectedProject.assignedModules && selectedProject.assignedModules.length > 0
-            ? selectedProject.assignedModules.map(m => {
-                const isActive = m === selectedModuleName;
+          const modulesLeftHtml = currentProjectModules.length > 0
+            ? currentProjectModules.map(m => {
+                const isActive = m.name === selectedModuleName;
+                const mStatus = m.status || 'Todo';
+                const mStatusClass = mStatus === 'Completed' ? 'student-badge-success' : (mStatus === 'In Progress' ? 'student-badge-warning' : 'student-badge-info');
                 return `
-                  <div class="module-item-card ${isActive ? 'active' : ''}" data-module-name="${m}">
+                  <div class="module-item-card ${isActive ? 'active' : ''}" data-module-name="${m.name}">
                     <div class="module-icon-box">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                     </div>
-                    <span class="module-item-name">${m}</span>
+                    <div style="flex: 1; min-width: 0;">
+                      <div class="module-item-name">${m.name}</div>
+                      <div style="display: flex; gap: 6px; margin-top: 4px; align-items: center;">
+                        <span class="student-badge ${mStatusClass}" style="font-size: 0.62rem; padding: 1px 6px;">${mStatus}</span>
+                        <span style="font-size: 0.68rem; color: var(--text-muted);">${(m.tasks || []).length} Tasks</span>
+                      </div>
+                    </div>
                     <svg class="module-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                   </div>
                 `;
@@ -304,18 +449,23 @@ export async function StudentProjects(route, router) {
             : '<div style="color:var(--text-muted); padding: 16px;">No modules assigned to this project.</div>';
 
           const tasksRowsHtml = moduleTasks.length > 0 
-            ? moduleTasks.map(t => `
-                <div class="student-task-item">
+            ? moduleTasks.map(t => {
+                const isMyTask = t.isMyTask || (t.assignee && t.assignee.toLowerCase() === (currentUser?.name?.toLowerCase() || ''));
+                const taskTitle = t.title || t.name;
+                return `
+                <div class="student-task-item ${isMyTask ? 'is-my-task' : ''}" style="${isMyTask ? 'border-left: 3px solid #059669; background: #f0fdf4;' : ''}">
                   <div class="student-task-main">
-                    <span class="student-task-title">${t.name}</span>
+                    <span class="student-task-title">${taskTitle}</span>
                     <span class="student-task-assignee">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                       Assignee: <strong>${t.assignee}</strong>
+                      ${isMyTask ? `<span class="member-tag-you" style="margin-left: 6px;">You</span>` : ''}
                     </span>
                   </div>
                   <span class="student-badge ${t.status === 'Completed' ? 'student-badge-success' : t.status === 'In Progress' ? 'student-badge-warning' : 'student-badge-info'}">${t.status}</span>
                 </div>
-              `).join('')
+              `;
+            }).join('')
             : '<div style="padding: 36px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">No tasks found under this module.</div>';
 
           tabContentHtml = `
@@ -352,17 +502,25 @@ export async function StudentProjects(route, router) {
         } else if (activeTab === 'tasks') {
           // Collect all tasks across modules
           const allTasks = [];
-          projectModules.forEach(s => {
-            s.tasks.forEach(t => {
+          const currentProjectModules = (selectedProject.modulesList && selectedProject.modulesList.length > 0)
+            ? selectedProject.modulesList
+            : projectModules;
+
+          currentProjectModules.forEach(s => {
+            (s.tasks || []).forEach(t => {
               allTasks.push({
                 ...t,
-                moduleName: s.name
+                name: t.title || t.name,
+                assignee: t.assignee || 'Unassigned',
+                status: t.status || 'Todo',
+                moduleName: s.name,
+                isMyTask: t.isMyTask || (t.assignee && t.assignee.toLowerCase() === (currentUser?.name?.toLowerCase() || ''))
               });
             });
           });
 
           const taskRowsHtml = allTasks.map(t => `
-            <tr>
+            <tr style="${t.isMyTask ? 'background: #f0fdf4;' : ''}">
               <td>
                 <div style="font-weight: 600; font-size: 0.9rem; color: #0f172a;">${t.name}</div>
                 <div style="font-size: 0.75rem; color: #64748b; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
@@ -370,7 +528,12 @@ export async function StudentProjects(route, router) {
                   ${t.moduleName}
                 </div>
               </td>
-              <td><span class="student-badge student-badge-info" style="font-size: 0.78rem;">${t.assignee}</span></td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="student-badge student-badge-info" style="font-size: 0.78rem;">${t.assignee}</span>
+                  ${t.isMyTask ? `<span class="member-tag-you">You</span>` : ''}
+                </div>
+              </td>
               <td><span class="student-badge ${t.status === 'Completed' ? 'student-badge-success' : t.status === 'In Progress' ? 'student-badge-warning' : 'student-badge-danger'}">${t.status}</span></td>
             </tr>
           `).join('');
@@ -460,14 +623,7 @@ export async function StudentProjects(route, router) {
           <div class="project-detail-header">
             <div class="project-detail-title-col">
               <div class="project-detail-meta-row">
-                <span class="project-detail-track-badge">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                  ${selectedProject.designation} Track
-                </span>
-                <span class="project-detail-supervisor-pill">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                  Supervisor: <strong>${selectedProject.faculty}</strong>
-                </span>
+                
               </div>
               <h2 class="project-detail-title">${selectedProject.title}</h2>
             </div>
