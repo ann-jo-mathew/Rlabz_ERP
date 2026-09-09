@@ -1,5 +1,6 @@
 import { authStore } from '@/core/stores/auth.js';
 import { showFacultySuccessPopup } from '@/modules/faculty/facultyPopup.js';
+import { API_BASE } from '@/core/config/api.js';
 
 export async function ProjectDetails(route, router) {
   const container = document.createElement('div');
@@ -276,7 +277,7 @@ export async function ProjectDetails(route, router) {
   const loadProject = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}`, {
+      const response = await fetch(`${API_BASE}/projects/${projectId}`, {
         headers: { 'Authorization': 'Bearer ' + token }
       });
       const data = await response.json();
@@ -452,7 +453,7 @@ export async function ProjectDetails(route, router) {
                 buttonEl.disabled = true;
                 try {
                   const token = localStorage.getItem('token');
-                  const res = await fetch(`http://127.0.0.1:8000/api/projects/modules/${moduleId}/status`, {
+                  const res = await fetch(`${API_BASE}/projects/modules/${moduleId}/status`, {
                     method: 'PATCH',
                     headers: {
                       'Authorization': 'Bearer ' + token,
@@ -493,7 +494,7 @@ export async function ProjectDetails(route, router) {
                 buttonEl.disabled = true;
                 try {
                   const token = localStorage.getItem('token');
-                  const res = await fetch(`http://127.0.0.1:8000/api/projects/tasks/${taskId}/status`, {
+                  const res = await fetch(`${API_BASE}/projects/tasks/${taskId}/status`, {
                     method: 'PATCH',
                     headers: {
                       'Authorization': 'Bearer ' + token,
@@ -574,7 +575,7 @@ export async function ProjectDetails(route, router) {
   const closeProject = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}/close`, {
+      const response = await fetch(`${API_BASE}/projects/${projectId}/close`, {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token }
       });
@@ -678,7 +679,7 @@ export async function ProjectDetails(route, router) {
 
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}/github/verify`, {
+          const response = await fetch(`${API_BASE}/projects/${projectId}/github/verify`, {
             method: 'POST',
             headers: {
               'Authorization': 'Bearer ' + token,
@@ -713,7 +714,7 @@ export async function ProjectDetails(route, router) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}/github`, {
+      const response = await fetch(`${API_BASE}/projects/${projectId}/github`, {
         headers: { 'Authorization': 'Bearer ' + token }
       });
       const data = await response.json();
@@ -749,7 +750,7 @@ export async function ProjectDetails(route, router) {
       try {
         const token = localStorage.getItem('token');
         const formData = new FormData(formModule);
-        const response = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}/modules`, {
+        const response = await fetch(`${API_BASE}/projects/${projectId}/modules`, {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer ' + token,
@@ -820,7 +821,7 @@ export async function ProjectDetails(route, router) {
 
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/projects/modules/${moduleId}/tasks`, {
+        const response = await fetch(`${API_BASE}/projects/modules/${moduleId}/tasks`, {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer ' + token,
@@ -866,7 +867,7 @@ export async function ProjectDetails(route, router) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/finance/projects/${projectId}`, {
+      const response = await fetch(`${API_BASE}/finance/projects/${projectId}`, {
         headers: { 'Authorization': 'Bearer ' + token }
       });
       const data = await response.json();
@@ -930,7 +931,7 @@ export async function ProjectDetails(route, router) {
       const formData = new FormData(formFaculty);
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}/faculty`, {
+        const response = await fetch(`${API_BASE}/projects/${projectId}/faculty`, {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer ' + token,
@@ -967,7 +968,7 @@ export async function ProjectDetails(route, router) {
       const formData = new FormData(formStudent);
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}/students`, {
+        const response = await fetch(`${API_BASE}/projects/${projectId}/students`, {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer ' + token,
@@ -1017,7 +1018,7 @@ export async function ProjectDetails(route, router) {
       debounceTimer = setTimeout(async () => {
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch(`http://127.0.0.1:8000/api/auth/users?role=${role}&search=${encodeURIComponent(query)}`, {
+          const response = await fetch(`${API_BASE}/auth/users?role=${role}&search=${encodeURIComponent(query)}`, {
             headers: { 'Authorization': 'Bearer ' + token }
           });
           const data = await response.json();

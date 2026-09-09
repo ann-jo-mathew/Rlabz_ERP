@@ -1,5 +1,6 @@
 import { authStore } from '@/core/stores/auth.js';
 import html2pdf from 'html2pdf.js';
+import { API_BASE } from '@/core/config/api.js';
 
 function getAuthToken() {
   return authStore?.token || localStorage.getItem('token') || localStorage.getItem('access_token') || null;
@@ -33,7 +34,7 @@ async function fetchProjects() {
   const token = getAuthToken();
   if (!token) return [];
 
-  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/projects', {
+  const resp = await fetch(`${API_BASE}/coordinator/projects`, {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

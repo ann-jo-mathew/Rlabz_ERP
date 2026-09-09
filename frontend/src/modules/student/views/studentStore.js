@@ -3,6 +3,8 @@
  * Fetches and submits student records to/from the Laravel REST backend.
  */
 
+import { API_BASE } from '@/core/config/api.js';
+
 let cachedProjects = [];
 let cachedSprints = [];
 let cachedReports = [];
@@ -29,7 +31,7 @@ async function apiFetch(path, options = {}) {
     headers['Content-Type'] = 'application/json';
   }
   
-  const response = await fetch(`http://127.0.0.1:8000/api${path}`, {
+  const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers
   });

@@ -1,0 +1,615 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<title>Rlabz ERP - Database Tables Documentation</title>
+<style>
+body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1a1a1a;margin:40px;line-height:1.5;}
+h1{font-size:22pt;color:#1F3864;text-align:center;border-bottom:3px solid #1F3864;padding-bottom:8px;margin-bottom:6px;}
+.subtitle{text-align:center;color:#555;font-size:10pt;margin-bottom:30px;}
+h2{font-size:15pt;color:#FFF;background-color:#1F3864;padding:6px 12px;margin-top:30px;margin-bottom:4px;}
+h3{font-size:12pt;color:#1F3864;background-color:#D6E4F7;padding:4px 10px;margin-top:18px;margin-bottom:4px;border-left:5px solid #1F3864;}
+.tn{font-size:10pt;color:#555;font-style:italic;margin-bottom:6px;margin-left:4px;}
+table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:10pt;}
+th{background-color:#2E5FAC;color:white;padding:7px 10px;text-align:left;font-weight:bold;border:1px solid #1F3864;}
+td{padding:6px 10px;border:1px solid #C0C0C0;vertical-align:top;}
+tr:nth-child(even){background-color:#EBF0F8;}
+tr:nth-child(odd){background-color:#FFF;}
+.pk{color:#8B0000;font-weight:bold;}
+.fk{color:#1F5C99;font-weight:bold;}
+.ev{font-family:Consolas,monospace;font-size:9pt;color:#333;}
+.note{background-color:#FFF8DC;border-left:4px solid #DAA520;padding:6px 12px;font-size:9.5pt;margin-bottom:10px;color:#5a4200;}
+.toc-table{width:80%;margin:0 auto 30px auto;border-collapse:collapse;font-size:10.5pt;}
+.toc-table td{padding:4px 10px;border:1px solid #C0C0C0;}
+.toc-table th{background-color:#1F3864;color:white;padding:6px 10px;border:1px solid #1F3864;}
+.pb{page-break-before:always;}
+</style>
+</head>
+<body>
+<h1>Rlabz ERP &mdash; Database Tables Documentation</h1>
+<p class="subtitle">Generated: September 2026 &nbsp;|&nbsp; Laravel 10 MySQL Schema &nbsp;|&nbsp; All Modules</p>
+
+<h2>Table of Contents</h2>
+<table class="toc-table">
+<tr><th>#</th><th>Table Name</th><th>Module</th><th>Description</th></tr>
+<tr><td>1</td><td>users</td><td>Auth</td><td>All system users (all roles)</td></tr>
+<tr><td>2</td><td>projects</td><td>Project</td><td>Project master record</td></tr>
+<tr><td>3</td><td>modules</td><td>Project</td><td>Project sub-modules</td></tr>
+<tr><td>4</td><td>module_student</td><td>Project</td><td>Students assigned to modules (pivot)</td></tr>
+<tr><td>5</td><td>tasks</td><td>Project</td><td>Tasks inside modules</td></tr>
+<tr><td>6</td><td>audit_logs</td><td>Dashboard</td><td>System action audit trail</td></tr>
+<tr><td>7</td><td>notifications</td><td>Dashboard</td><td>User notifications</td></tr>
+<tr><td>8</td><td>project_student</td><td>Coordinator</td><td>Students assigned to projects (pivot)</td></tr>
+<tr><td>9</td><td>project_faculty</td><td>Coordinator</td><td>Faculty assigned to projects (pivot)</td></tr>
+<tr><td>10</td><td>client_requirements</td><td>Coordinator</td><td>Client requirement items per project</td></tr>
+<tr><td>11</td><td>requirement_changes</td><td>Coordinator</td><td>Change history for client requirements</td></tr>
+<tr><td>12</td><td>project_closures</td><td>Coordinator</td><td>Project closure records</td></tr>
+<tr><td>13</td><td>faculty_profiles</td><td>Faculty</td><td>Faculty profile data</td></tr>
+<tr><td>14</td><td>student_profiles</td><td>Student</td><td>Student profile data</td></tr>
+<tr><td>15</td><td>student_reports</td><td>Student</td><td>Daily / weekly reports submitted by students</td></tr>
+<tr><td>16</td><td>student_work_logs</td><td>Student</td><td>Work log entries per task</td></tr>
+<tr><td>17</td><td>project_finances</td><td>Finance</td><td>Financial summary per project</td></tr>
+<tr><td>18</td><td>development_allocations</td><td>Finance</td><td>Amount allocation by category</td></tr>
+<tr><td>19</td><td>hosting_charges</td><td>Finance</td><td>Hosting / SSL / domain charges</td></tr>
+<tr><td>20</td><td>maintenance_support_charges</td><td>Finance</td><td>AMC / support charges per project</td></tr>
+<tr><td>21</td><td>invoices</td><td>Finance</td><td>Client invoices</td></tr>
+<tr><td>22</td><td>student_payments</td><td>Finance</td><td>Payments made to students</td></tr>
+<tr><td>23</td><td>client_payments</td><td>Finance</td><td>Payments received from clients</td></tr>
+<tr><td>24</td><td>faculty_payments</td><td>Finance</td><td>Payments made to faculty</td></tr>
+<tr><td>25</td><td>finance_settings</td><td>Finance</td><td>Global finance configuration</td></tr>
+<tr><td>26</td><td>student_hourly_rate_history</td><td>Finance</td><td>History of hourly rate changes</td></tr>
+<tr><td>27</td><td>ssl_renewal_history</td><td>Finance</td><td>SSL certificate renewal log</td></tr>
+<tr><td>28</td><td>meetings</td><td>Communication</td><td>Project meetings</td></tr>
+<tr><td>29</td><td>meeting_notes</td><td>Communication</td><td>Minutes and decisions for meetings</td></tr>
+<tr><td>30</td><td>meeting_participants</td><td>Communication</td><td>Meeting attendance (pivot)</td></tr>
+<tr><td>31</td><td>chats</td><td>Communication</td><td>Chat rooms per project</td></tr>
+<tr><td>32</td><td>chat_participants</td><td>Communication</td><td>Chat room members (pivot)</td></tr>
+<tr><td>33</td><td>chat_messages</td><td>Communication</td><td>Chat room messages</td></tr>
+<tr><td>34</td><td>feedback</td><td>Communication</td><td>Faculty feedback on students per project</td></tr>
+<tr><td>35</td><td>certificates</td><td>Certificates</td><td>Completion certificates issued to students</td></tr>
+<tr><td>36</td><td>project_reports</td><td>Certificates</td><td>Project-level report documents</td></tr>
+<tr><td>37</td><td>final_project_documents</td><td>Certificates</td><td>Final handover documents per project</td></tr>
+<tr><td>38</td><td>github_repositories</td><td>Github</td><td>GitHub repo links per project</td></tr>
+</table>
+
+<h2>1. Auth Module</h2>
+<h3>1.1 users</h3>
+<p class="tn">DB Table: <strong>users</strong> &mdash; Core user table for all roles in the system</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique user ID</td></tr>
+<tr><td>name</td><td>VARCHAR(150)</td><td>NOT NULL</td><td>Full name of the user</td></tr>
+<tr><td>email</td><td>VARCHAR(255)</td><td>NOT NULL, UNIQUE</td><td>Login email address</td></tr>
+<tr><td>password</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Hashed password (bcrypt)</td></tr>
+<tr><td>phone</td><td>VARCHAR(20)</td><td>NULLABLE</td><td>Contact phone number</td></tr>
+<tr><td>role</td><td>ENUM</td><td>NOT NULL</td><td>User role: <span class="ev">'director' | 'coordinator' | 'finance' | 'faculty' | 'student'</span></td></tr>
+<tr><td>permissions</td><td>JSON</td><td>NULLABLE</td><td>Additional fine-grained permissions (JSON object)</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>2. Project Module</h2>
+<h3>2.1 projects</h3>
+<p class="tn">DB Table: <strong>projects</strong> &mdash; Master table for all projects in the ERP</p>
+<div class="note">Note: source_type enum updated (2026_08_30) to include 'student' in addition to original values.</div>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique project ID</td></tr>
+<tr><td>title</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Project title</td></tr>
+<tr><td>project_type</td><td>VARCHAR(100)</td><td>NULLABLE</td><td>Category/type of project</td></tr>
+<tr><td>source_type</td><td>ENUM</td><td>NULLABLE</td><td>Origin: <span class="ev">'faculty' | 'student' | 'alumni' | 'institution' | 'external'</span></td></tr>
+<tr><td>brought_by</td><td>VARCHAR(150)</td><td>NULLABLE</td><td>Name of person who brought the project</td></tr>
+<tr><td>client_name</td><td>VARCHAR(150)</td><td>NULLABLE</td><td>Client/organisation name</td></tr>
+<tr><td>contact_email</td><td>VARCHAR(255)</td><td>NULLABLE</td><td>Client contact email</td></tr>
+<tr><td>contact_phone</td><td>VARCHAR(30)</td><td>NULLABLE</td><td>Client contact phone</td></tr>
+<tr><td>requirements</td><td>TEXT</td><td>NULLABLE</td><td>General project requirements description</td></tr>
+<tr><td>deliverables</td><td>TEXT</td><td>NULLABLE</td><td>Expected deliverables</td></tr>
+<tr><td>expected_timeline</td><td>DATE</td><td>NULLABLE</td><td>Target completion date</td></tr>
+<tr><td>budget</td><td>DECIMAL(12,2)</td><td>NULLABLE</td><td>Proposed/estimated budget</td></tr>
+<tr><td>priority</td><td>ENUM</td><td>NOT NULL, DEFAULT 'normal'</td><td>Priority: <span class="ev">'normal' | 'urgent'</span></td></tr>
+<tr><td>status</td><td>ENUM</td><td>NOT NULL</td><td>Status: <span class="ev">'proposed' | 'accepted' | 'rejected' | 'in_progress' | 'closed'</span></td></tr>
+<tr><td class="fk">created_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who created this record</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>2.2 modules</h3>
+<p class="tn">DB Table: <strong>modules</strong> &mdash; Sub-modules / phases of a project</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique module ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>Parent project</td></tr>
+<tr><td>weight_percentage</td><td>DECIMAL(5,2)</td><td>NULLABLE</td><td>Percentage weight of this module in the project</td></tr>
+<tr><td>module_name</td><td>VARCHAR(150)</td><td>NOT NULL</td><td>Name/title of the module</td></tr>
+<tr><td>description</td><td>TEXT</td><td>NULLABLE</td><td>Detailed module description</td></tr>
+<tr><td>status</td><td>ENUM</td><td>NOT NULL</td><td>Progress: <span class="ev">'not_started' | 'in_progress' | 'completed'</span></td></tr>
+<tr><td class="fk">created_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who created this module</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>2.3 module_student (Pivot)</h3>
+<p class="tn">DB Table: <strong>module_student</strong> &mdash; Assignment of students to specific modules</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique assignment ID</td></tr>
+<tr><td class="fk">module_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; modules.id, CASCADE DELETE</td><td>The module being assigned</td></tr>
+<tr><td class="fk">student_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>The student being assigned</td></tr>
+<tr><td>assigned_date</td><td>DATE</td><td>NOT NULL</td><td>Date of assignment</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>2.4 tasks</h3>
+<p class="tn">DB Table: <strong>tasks</strong> &mdash; Individual tasks within a module</p>
+<div class="note">Note: assigned_to made NULLABLE via migration 2026_09_06 to allow unassigned tasks.</div>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique task ID</td></tr>
+<tr><td class="fk">module_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; modules.id, CASCADE DELETE</td><td>Parent module</td></tr>
+<tr><td>title</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Task title</td></tr>
+<tr><td>description</td><td>TEXT</td><td>NULLABLE</td><td>Detailed task description</td></tr>
+<tr><td class="fk">assigned_to</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, NULLABLE</td><td>Student assigned to this task</td></tr>
+<tr><td>status</td><td>ENUM</td><td>NOT NULL</td><td>Status: <span class="ev">'todo' | 'in_progress' | 'completed' | 'blocked'</span></td></tr>
+<tr><td>due_date</td><td>DATE</td><td>NULLABLE</td><td>Target completion date</td></tr>
+<tr><td class="fk">reviewed_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, NULLABLE</td><td>Faculty/coordinator who reviewed</td></tr>
+<tr><td>review_status</td><td>ENUM</td><td>NULLABLE</td><td>Review: <span class="ev">'pending' | 'approved' | 'rejected'</span></td></tr>
+<tr><td>reviewed_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Timestamp of review</td></tr>
+<tr><td class="fk">created_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who created this task</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>3. Dashboard Module</h2>
+<h3>3.1 audit_logs</h3>
+<p class="tn">DB Table: <strong>audit_logs</strong> &mdash; Tracks all significant user actions in the system</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique log ID</td></tr>
+<tr><td class="fk">user_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>User who performed the action</td></tr>
+<tr><td>action</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Short action code/name</td></tr>
+<tr><td>description</td><td>TEXT</td><td>NULLABLE</td><td>Human-readable description of the action</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NOT NULL</td><td>Timestamp when action occurred</td></tr>
+</table>
+
+<h3>3.2 notifications</h3>
+<p class="tn">DB Table: <strong>notifications</strong> &mdash; In-app notifications for users</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique notification ID</td></tr>
+<tr><td class="fk">user_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>Recipient user</td></tr>
+<tr><td>type</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Notification type/category</td></tr>
+<tr><td>message</td><td>TEXT</td><td>NOT NULL</td><td>Notification message content</td></tr>
+<tr><td>is_read</td><td>TINYINT(1)</td><td>NOT NULL, DEFAULT 0</td><td>Read flag (0=unread, 1=read)</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>4. Coordinator Module</h2>
+<h3>4.1 project_student (Pivot)</h3>
+<p class="tn">DB Table: <strong>project_student</strong> &mdash; Maps students to projects with their role</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique assignment ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>The project</td></tr>
+<tr><td class="fk">student_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>The student</td></tr>
+<tr><td>role</td><td>ENUM</td><td>NOT NULL</td><td>Role: <span class="ev">'project_lead' | 'developer' | 'designer' | 'tester' | 'other'</span></td></tr>
+<tr><td>assigned_date</td><td>DATE</td><td>NOT NULL</td><td>Date of assignment to the project</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>4.2 project_faculty (Pivot)</h3>
+<p class="tn">DB Table: <strong>project_faculty</strong> &mdash; Maps faculty members to projects</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique assignment ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>The project</td></tr>
+<tr><td class="fk">faculty_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>The faculty member</td></tr>
+<tr><td>assigned_date</td><td>DATE</td><td>NOT NULL</td><td>Date of assignment to the project</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>4.3 client_requirements</h3>
+<p class="tn">DB Table: <strong>client_requirements</strong> &mdash; Client requirement items for a project</p>
+<div class="note">Note: Restructured by migration 2026_09_03. task_id, document_path, uploaded_by, uploaded_on removed; title, status, timestamps added. project_id FK dropped (2026_09_06).</div>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique requirement ID</td></tr>
+<tr><td>title</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Short title/name of the requirement</td></tr>
+<tr><td>description</td><td>TEXT</td><td>NOT NULL</td><td>Full description of the requirement</td></tr>
+<tr><td>status</td><td>VARCHAR(255)</td><td>NOT NULL, DEFAULT 'new'</td><td>Requirement status (new, in_progress, done, etc.)</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>4.4 requirement_changes</h3>
+<p class="tn">DB Table: <strong>requirement_changes</strong> &mdash; History of changes to client requirements</p>
+<div class="note">Note: Restructured by migration 2026_09_03. Previous_description, new_description, status, approved_by, etc. replaced with previous_value, updated_value, changed_by. project_id FK dropped (2026_09_06).</div>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique change record ID</td></tr>
+<tr><td class="fk">client_requirement_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; client_requirements.id, CASCADE DELETE</td><td>The requirement that was changed</td></tr>
+<tr><td>previous_value</td><td>TEXT</td><td>NULLABLE</td><td>Value before the change</td></tr>
+<tr><td>updated_value</td><td>TEXT</td><td>NULLABLE</td><td>Value after the change</td></tr>
+<tr><td class="fk">changed_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who made this change</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>4.5 project_closures</h3>
+<p class="tn">DB Table: <strong>project_closures</strong> &mdash; Formal closure record for a completed project</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique closure ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE, UNIQUE</td><td>Project being closed (one record per project)</td></tr>
+<tr><td class="fk">closed_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who authorised the closure</td></tr>
+<tr><td>closure_date</td><td>DATETIME</td><td>NOT NULL</td><td>Official closure date and time</td></tr>
+<tr><td>final_status</td><td>VARCHAR(50)</td><td>NOT NULL</td><td>Final project outcome description</td></tr>
+<tr><td>remarks</td><td>TEXT</td><td>NULLABLE</td><td>Closure remarks or notes</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>5. Faculty Module</h2>
+<h3>5.1 faculty_profiles</h3>
+<p class="tn">DB Table: <strong>faculty_profiles</strong> &mdash; Additional profile information for faculty users</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique profile ID</td></tr>
+<tr><td class="fk">faculty_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE, UNIQUE</td><td>The faculty user (one profile per user)</td></tr>
+<tr><td>department</td><td>VARCHAR(150)</td><td>NOT NULL</td><td>Department name</td></tr>
+<tr><td>designation</td><td>VARCHAR(100)</td><td>NULLABLE</td><td>Faculty designation/title</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>6. Student Module</h2>
+<h3>6.1 student_profiles</h3>
+<p class="tn">DB Table: <strong>student_profiles</strong> &mdash; Additional academic profile for student users</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique profile ID</td></tr>
+<tr><td class="fk">student_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE, UNIQUE</td><td>The student user (one profile per user)</td></tr>
+<tr><td>course</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Enrolled course/programme name</td></tr>
+<tr><td>batch</td><td>VARCHAR(50)</td><td>NOT NULL</td><td>Academic batch/year (e.g. 2024-26)</td></tr>
+<tr><td>semester</td><td>TINYINT</td><td>NOT NULL</td><td>Current semester number</td></tr>
+<tr><td>designation</td><td>ENUM</td><td>NULLABLE</td><td>Rlabz tier: <span class="ev">'nova' | 'orbit' | 'spark'</span></td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>6.2 student_reports</h3>
+<p class="tn">DB Table: <strong>student_reports</strong> &mdash; Daily or weekly reports submitted by students</p>
+<div class="note">Note: report_file column added (2026_09_08_000001); project_id FK added (2026_09_08_000002).</div>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique report ID</td></tr>
+<tr><td class="fk">student_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>Student who submitted the report</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, SET NULL, NULLABLE</td><td>Project this report relates to</td></tr>
+<tr><td>report_type</td><td>ENUM</td><td>NOT NULL</td><td>Frequency: <span class="ev">'daily' | 'weekly'</span></td></tr>
+<tr><td>report_date</td><td>DATE</td><td>NOT NULL</td><td>Date the report covers</td></tr>
+<tr><td>work_done</td><td>TEXT</td><td>NOT NULL</td><td>Description of work completed</td></tr>
+<tr><td>report_file</td><td>VARCHAR(255)</td><td>NULLABLE</td><td>Path to attached report file</td></tr>
+<tr><td>approval_status</td><td>ENUM</td><td>NOT NULL, DEFAULT 'pending'</td><td>Status: <span class="ev">'pending' | 'approved' | 'rejected'</span></td></tr>
+<tr><td>feedback</td><td>TEXT</td><td>NULLABLE</td><td>Reviewer feedback/comments</td></tr>
+<tr><td>submitted_at</td><td>TIMESTAMP</td><td>NOT NULL</td><td>Exact submission timestamp</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>6.3 student_work_logs</h3>
+<p class="tn">DB Table: <strong>student_work_logs</strong> &mdash; Daily work log entries for student task work</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique log ID</td></tr>
+<tr><td class="fk">project_student_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; project_student.id, CASCADE DELETE</td><td>Project-student assignment context</td></tr>
+<tr><td class="fk">task_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; tasks.id, CASCADE DELETE</td><td>Task this work was performed on</td></tr>
+<tr><td>work_date</td><td>DATE</td><td>NOT NULL</td><td>Date work was done</td></tr>
+<tr><td>hours_worked</td><td>DECIMAL(5,2)</td><td>NOT NULL</td><td>Number of hours worked (e.g. 2.50)</td></tr>
+<tr><td>description</td><td>TEXT</td><td>NULLABLE</td><td>Description of work done</td></tr>
+<tr><td>approval_status</td><td>ENUM</td><td>NOT NULL, DEFAULT 'pending'</td><td>Status: <span class="ev">'pending' | 'approved' | 'rejected'</span></td></tr>
+<tr><td class="fk">approved_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, NULLABLE</td><td>User who approved/rejected the log</td></tr>
+<tr><td>approved_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Approval timestamp</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>7. Finance Module</h2>
+<h3>7.1 project_finances</h3>
+<p class="tn">DB Table: <strong>project_finances</strong> &mdash; Financial summary record for each project</p>
+<div class="note">Note: gst_percentage removed via migration 2026_09_06 (moved to invoice level).</div>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique finance record ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE, UNIQUE</td><td>Project this finance record belongs to</td></tr>
+<tr><td>total_development_amount</td><td>DECIMAL(12,2)</td><td>NULLABLE</td><td>Total agreed development amount</td></tr>
+<tr><td class="fk">created_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who created this record</td></tr>
+<tr><td class="fk">approved_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, NULLABLE</td><td>User who approved this finance record</td></tr>
+<tr><td>approved_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Approval timestamp</td></tr>
+<tr><td>status</td><td>ENUM</td><td>NOT NULL, DEFAULT 'draft'</td><td>Status: <span class="ev">'draft' | 'pending_approval' | 'approved' | 'rejected'</span></td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.2 development_allocations</h3>
+<p class="tn">DB Table: <strong>development_allocations</strong> &mdash; Breakdown of development amount by beneficiary category</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique allocation ID</td></tr>
+<tr><td class="fk">project_finance_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; project_finances.id, CASCADE DELETE</td><td>Parent finance record</td></tr>
+<tr><td>category</td><td>ENUM</td><td>NOT NULL</td><td>Beneficiary: <span class="ev">'student' | 'faculty' | 'rlabz'</span></td></tr>
+<tr><td>amount</td><td>DECIMAL(12,2)</td><td>NOT NULL</td><td>Allocated amount for this category</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.3 hosting_charges</h3>
+<p class="tn">DB Table: <strong>hosting_charges</strong> &mdash; Hosting, SSL, domain, and API charges per project</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique charge ID</td></tr>
+<tr><td class="fk">project_finance_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; project_finances.id, CASCADE DELETE</td><td>Parent finance record</td></tr>
+<tr><td>charge_type</td><td>ENUM</td><td>NOT NULL</td><td>Type: <span class="ev">'ssl' | 'domain' | 'api' | 'hosting'</span></td></tr>
+<tr><td>amount</td><td>DECIMAL(12,2)</td><td>NOT NULL</td><td>Charge amount</td></tr>
+<tr><td>purchase_date</td><td>DATE</td><td>NULLABLE</td><td>Date of purchase</td></tr>
+<tr><td>expiry_date</td><td>DATE</td><td>NULLABLE</td><td>Expiry/renewal date</td></tr>
+<tr><td>reference_details</td><td>TEXT</td><td>NULLABLE</td><td>Additional reference info (provider, account, etc.)</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.4 maintenance_support_charges</h3>
+<p class="tn">DB Table: <strong>maintenance_support_charges</strong> &mdash; AMC / post-launch support charges per project</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique record ID</td></tr>
+<tr><td class="fk">project_finance_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; project_finances.id, CASCADE DELETE</td><td>Parent finance record</td></tr>
+<tr><td>amount</td><td>DECIMAL(12,2)</td><td>NOT NULL</td><td>Maintenance charge amount</td></tr>
+<tr><td>start_date</td><td>DATE</td><td>NULLABLE</td><td>Maintenance period start</td></tr>
+<tr><td>end_date</td><td>DATE</td><td>NULLABLE</td><td>Maintenance period end</td></tr>
+<tr><td>description</td><td>TEXT</td><td>NULLABLE</td><td>Description of support scope</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.5 invoices</h3>
+<p class="tn">DB Table: <strong>invoices</strong> &mdash; Invoices raised to clients for a project</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique invoice ID</td></tr>
+<tr><td class="fk">project_finance_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; project_finances.id, CASCADE DELETE</td><td>Parent finance record</td></tr>
+<tr><td>invoice_number</td><td>VARCHAR(255)</td><td>NOT NULL, UNIQUE</td><td>Unique invoice reference number</td></tr>
+<tr><td>invoice_date</td><td>DATE</td><td>NOT NULL</td><td>Date invoice was raised</td></tr>
+<tr><td>due_date</td><td>DATE</td><td>NULLABLE</td><td>Payment due date</td></tr>
+<tr><td>amount_before_gst</td><td>DECIMAL(12,2)</td><td>NOT NULL</td><td>Invoice amount excluding GST</td></tr>
+<tr><td>gst_percentage</td><td>DECIMAL(5,2)</td><td>NOT NULL, DEFAULT 18.00</td><td>GST percentage applicable to this invoice</td></tr>
+<tr><td>description</td><td>TEXT</td><td>NULLABLE</td><td>Invoice description / line items summary</td></tr>
+<tr><td class="fk">created_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who created this invoice</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.6 student_payments</h3>
+<p class="tn">DB Table: <strong>student_payments</strong> &mdash; Payments disbursed to students for their project work</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique payment ID</td></tr>
+<tr><td class="fk">project_student_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; project_student.id, CASCADE DELETE</td><td>Project-student assignment context</td></tr>
+<tr><td>designation</td><td>ENUM</td><td>NOT NULL</td><td>Tier at time of payment (historical): <span class="ev">'nova' | 'orbit' | 'spark'</span></td></tr>
+<tr><td>approved_hours</td><td>DECIMAL(7,2)</td><td>NULLABLE</td><td>Total approved billable hours</td></tr>
+<tr><td>hourly_rate</td><td>DECIMAL(10,2)</td><td>NULLABLE</td><td>Rate per hour at time of payment (historical)</td></tr>
+<tr><td>amount</td><td>DECIMAL(12,2)</td><td>NOT NULL</td><td>Actual payment amount</td></tr>
+<tr><td>payment_date</td><td>DATE</td><td>NULLABLE</td><td>Date payment was made</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.7 client_payments</h3>
+<p class="tn">DB Table: <strong>client_payments</strong> &mdash; Payments received from clients against invoices</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique payment ID</td></tr>
+<tr><td class="fk">invoice_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; invoices.id, CASCADE DELETE</td><td>Invoice this payment is for</td></tr>
+<tr><td>amount</td><td>DECIMAL(12,2)</td><td>NOT NULL</td><td>Amount received</td></tr>
+<tr><td>payment_date</td><td>DATE</td><td>NULLABLE</td><td>Date payment was received</td></tr>
+<tr><td>payment_method</td><td>VARCHAR(50)</td><td>NULLABLE</td><td>Mode (e.g. NEFT, UPI, Cheque)</td></tr>
+<tr><td>payment_reference</td><td>VARCHAR(255)</td><td>NULLABLE</td><td>Transaction reference number</td></tr>
+<tr><td>remarks</td><td>TEXT</td><td>NULLABLE</td><td>Additional remarks</td></tr>
+<tr><td class="fk">recorded_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who recorded this payment</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.8 faculty_payments</h3>
+<p class="tn">DB Table: <strong>faculty_payments</strong> &mdash; Payments made to faculty for their project involvement</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique payment ID</td></tr>
+<tr><td class="fk">project_faculty_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; project_faculty.id, CASCADE DELETE</td><td>Project-faculty assignment context</td></tr>
+<tr><td>amount</td><td>DECIMAL(12,2)</td><td>NOT NULL</td><td>Payment amount</td></tr>
+<tr><td>payment_date</td><td>DATE</td><td>NULLABLE</td><td>Date payment was made</td></tr>
+<tr><td>status</td><td>ENUM</td><td>NOT NULL</td><td>Status: <span class="ev">'calculated' | 'approved' | 'processing' | 'paid' | 'failed'</span></td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.9 finance_settings</h3>
+<p class="tn">DB Table: <strong>finance_settings</strong> &mdash; Global financial configuration values</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique settings ID</td></tr>
+<tr><td>student_hourly_rate</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>Current global hourly rate for students</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.10 student_hourly_rate_history</h3>
+<p class="tn">DB Table: <strong>student_hourly_rate_history</strong> &mdash; Audit log of changes to global student hourly rate</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique history record ID</td></tr>
+<tr><td>old_rate</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>Hourly rate before the update</td></tr>
+<tr><td>new_rate</td><td>DECIMAL(10,2)</td><td>NOT NULL</td><td>New hourly rate after the update</td></tr>
+<tr><td class="fk">updated_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>Admin user who changed the rate</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>7.11 ssl_renewal_history</h3>
+<p class="tn">DB Table: <strong>ssl_renewal_history</strong> &mdash; Log of SSL certificate renewal events</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique renewal record ID</td></tr>
+<tr><td class="fk">hosting_charge_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; hosting_charges.id, CASCADE DELETE</td><td>The SSL hosting charge being renewed</td></tr>
+<tr><td>renewal_date</td><td>DATE</td><td>NOT NULL</td><td>Date of renewal</td></tr>
+<tr><td>previous_expiry_date</td><td>DATE</td><td>NULLABLE</td><td>Old expiry date before renewal</td></tr>
+<tr><td>new_expiry_date</td><td>DATE</td><td>NOT NULL</td><td>New expiry date after renewal</td></tr>
+<tr><td>renewal_amount</td><td>DECIMAL(12,2)</td><td>NOT NULL</td><td>Cost of renewal</td></tr>
+<tr><td>payment_reference</td><td>VARCHAR(255)</td><td>NULLABLE</td><td>Transaction reference</td></tr>
+<tr><td>remarks</td><td>TEXT</td><td>NULLABLE</td><td>Any additional remarks</td></tr>
+<tr><td class="fk">renewed_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who processed the renewal</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>8. Communication Module</h2>
+<h3>8.1 meetings</h3>
+<p class="tn">DB Table: <strong>meetings</strong> &mdash; Project meetings (virtual or physical)</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique meeting ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>Project this meeting belongs to</td></tr>
+<tr><td>title</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Meeting title</td></tr>
+<tr><td>scheduled_at</td><td>DATETIME</td><td>NOT NULL</td><td>Scheduled date and time of meeting</td></tr>
+<tr><td>location</td><td>VARCHAR(255)</td><td>NULLABLE</td><td>Physical meeting location</td></tr>
+<tr><td>meeting_link</td><td>VARCHAR(500)</td><td>NULLABLE</td><td>Online meeting URL (Zoom, Meet, etc.)</td></tr>
+<tr><td>agenda</td><td>TEXT</td><td>NULLABLE</td><td>Meeting agenda</td></tr>
+<tr><td>status</td><td>ENUM</td><td>NOT NULL</td><td>State: <span class="ev">'scheduled' | 'completed' | 'cancelled'</span></td></tr>
+<tr><td class="fk">created_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who created the meeting</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>8.2 meeting_notes</h3>
+<p class="tn">DB Table: <strong>meeting_notes</strong> &mdash; Meeting minutes and important decisions</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique note ID</td></tr>
+<tr><td class="fk">meeting_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; meetings.id, CASCADE DELETE</td><td>Meeting these notes belong to</td></tr>
+<tr><td>minutes</td><td>TEXT</td><td>NOT NULL</td><td>Full meeting minutes</td></tr>
+<tr><td>important_decisions</td><td>TEXT</td><td>NOT NULL</td><td>Key decisions made during meeting</td></tr>
+<tr><td class="fk">uploaded_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who uploaded/recorded the notes</td></tr>
+<tr><td>uploaded_on</td><td>DATETIME</td><td>NOT NULL</td><td>Date/time notes were uploaded</td></tr>
+</table>
+
+<h3>8.3 meeting_participants (Pivot)</h3>
+<p class="tn">DB Table: <strong>meeting_participants</strong> &mdash; Tracks who was invited/attended each meeting</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique participant record ID</td></tr>
+<tr><td class="fk">meeting_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; meetings.id, CASCADE DELETE</td><td>The meeting</td></tr>
+<tr><td class="fk">user_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>The participant user</td></tr>
+<tr><td>attendance_status</td><td>ENUM</td><td>NOT NULL</td><td>Attendance: <span class="ev">'invited' | 'attended' | 'absent'</span></td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>8.4 chats</h3>
+<p class="tn">DB Table: <strong>chats</strong> &mdash; Chat rooms / channels per project</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique chat room ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>Project this chat belongs to</td></tr>
+<tr><td>title</td><td>VARCHAR(255)</td><td>NULLABLE</td><td>Chat room title/name</td></tr>
+<tr><td class="fk">created_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who created the chat room</td></tr>
+<tr><td>is_active</td><td>TINYINT(1)</td><td>NOT NULL, DEFAULT 1</td><td>Whether the chat room is active (1=yes, 0=no)</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>8.5 chat_participants (Pivot)</h3>
+<p class="tn">DB Table: <strong>chat_participants</strong> &mdash; Members of each chat room</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique participant record ID</td></tr>
+<tr><td class="fk">chat_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; chats.id, CASCADE DELETE</td><td>The chat room</td></tr>
+<tr><td class="fk">user_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>The participant user</td></tr>
+<tr><td>joined_at</td><td>TIMESTAMP</td><td>NOT NULL</td><td>When the user joined the chat</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>8.6 chat_messages</h3>
+<p class="tn">DB Table: <strong>chat_messages</strong> &mdash; Individual messages in a chat room</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique message ID</td></tr>
+<tr><td class="fk">chat_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; chats.id, CASCADE DELETE</td><td>The chat room this message belongs to</td></tr>
+<tr><td class="fk">sender_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>User who sent the message</td></tr>
+<tr><td>message</td><td>TEXT</td><td>NOT NULL</td><td>Message content</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<h3>8.7 feedback</h3>
+<p class="tn">DB Table: <strong>feedback</strong> &mdash; Faculty feedback on students within a project</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique feedback ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>Project context of the feedback</td></tr>
+<tr><td class="fk">faculty_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>Faculty member giving the feedback</td></tr>
+<tr><td class="fk">student_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>Student receiving the feedback</td></tr>
+<tr><td>comments</td><td>TEXT</td><td>NOT NULL</td><td>Feedback comments</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>9. Certificates Module</h2>
+<h3>9.1 certificates</h3>
+<p class="tn">DB Table: <strong>certificates</strong> &mdash; Completion certificates issued to students per project/module</p>
+<div class="note">Note: module_id FK added (2026_09_06_000000); description column widened from VARCHAR(100) to TEXT (2026_09_06_000001).</div>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique certificate ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>Project the certificate is for</td></tr>
+<tr><td class="fk">module_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; modules.id, CASCADE DELETE, NULLABLE</td><td>Specific module (optional)</td></tr>
+<tr><td class="fk">student_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, CASCADE DELETE</td><td>Student receiving the certificate</td></tr>
+<tr><td>certificate_number</td><td>VARCHAR(50)</td><td>NOT NULL, UNIQUE</td><td>Unique certificate reference number</td></tr>
+<tr><td>description</td><td>TEXT</td><td>NOT NULL</td><td>Certificate description / body text</td></tr>
+<tr><td>issue_date</td><td>DATE</td><td>NOT NULL</td><td>Date certificate was issued</td></tr>
+<tr><td>certificate_file</td><td>VARCHAR(500)</td><td>NULLABLE</td><td>Path to generated certificate PDF/image</td></tr>
+<tr><td class="fk">issued_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User (director/coordinator) who issued it</td></tr>
+</table>
+
+<h3>9.2 project_reports</h3>
+<p class="tn">DB Table: <strong>project_reports</strong> &mdash; Project-level report documents uploaded to the system</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique report ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>Project this report belongs to</td></tr>
+<tr><td>report_title</td><td>VARCHAR(200)</td><td>NOT NULL</td><td>Title of the report document</td></tr>
+<tr><td>report_file</td><td>VARCHAR(500)</td><td>NOT NULL</td><td>Path to the uploaded report file</td></tr>
+<tr><td class="fk">uploaded_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id</td><td>User who uploaded the report</td></tr>
+<tr><td>upload_date</td><td>DATETIME</td><td>NOT NULL</td><td>Date and time of upload</td></tr>
+</table>
+
+<h3>9.3 final_project_documents</h3>
+<p class="tn">DB Table: <strong>final_project_documents</strong> &mdash; Final handover documents for completed projects</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique record ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE, UNIQUE</td><td>Project (one final document set per project)</td></tr>
+<tr><td>final_report</td><td>VARCHAR(500)</td><td>NULLABLE</td><td>Path to the final project report</td></tr>
+<tr><td>code_handover</td><td>VARCHAR(500)</td><td>NULLABLE</td><td>Path to the code handover package</td></tr>
+<tr><td>closure_notes</td><td>TEXT</td><td>NULLABLE</td><td>Notes from the closure meeting</td></tr>
+<tr><td>uploaded_on</td><td>DATETIME</td><td>NOT NULL</td><td>Date/time documents were uploaded</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>10. Github Module</h2>
+<h3>10.1 github_repositories</h3>
+<p class="tn">DB Table: <strong>github_repositories</strong> &mdash; GitHub repository links submitted for a project</p>
+<table><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+<tr><td class="pk">id</td><td>BIGINT UNSIGNED</td><td>PRIMARY KEY, AUTO INCREMENT</td><td>Unique repository record ID</td></tr>
+<tr><td class="fk">project_id</td><td>BIGINT UNSIGNED</td><td>FK &rarr; projects.id, CASCADE DELETE</td><td>Project the repository belongs to</td></tr>
+<tr><td>repository_name</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Name of the GitHub repository</td></tr>
+<tr><td>repository_url</td><td>VARCHAR(500)</td><td>NOT NULL</td><td>Full GitHub URL to the repository</td></tr>
+<tr><td>submitted_date</td><td>DATE</td><td>NOT NULL</td><td>Date the link was submitted</td></tr>
+<tr><td>is_verified</td><td>TINYINT(1)</td><td>NOT NULL, DEFAULT 0</td><td>Whether the repo has been verified (0=No, 1=Yes)</td></tr>
+<tr><td class="fk">verified_by</td><td>BIGINT UNSIGNED</td><td>FK &rarr; users.id, NULLABLE</td><td>User who verified the repository</td></tr>
+<tr><td>verified_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Timestamp of verification</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record creation time</td></tr>
+<tr><td>updated_at</td><td>TIMESTAMP</td><td>NULLABLE</td><td>Record last update time</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>Legend &amp; Key Conventions</h2>
+<table style="width:70%"><tr><th>Symbol / Style</th><th>Meaning</th></tr>
+<tr><td style="color:#8B0000;font-weight:bold;">Red Bold Column</td><td>Primary Key column</td></tr>
+<tr><td style="color:#1F5C99;font-weight:bold;">Blue Bold Column</td><td>Foreign Key column</td></tr>
+<tr><td>FK &rarr; table.column</td><td>Foreign key reference and target table/column</td></tr>
+<tr><td>CASCADE DELETE</td><td>Child rows deleted automatically when parent is deleted</td></tr>
+<tr><td>SET NULL on delete</td><td>FK column set to NULL when parent is deleted</td></tr>
+<tr><td>NULLABLE</td><td>Column allows NULL values</td></tr>
+<tr><td>UNIQUE</td><td>Column must have unique values across all rows</td></tr>
+<tr><td>DEFAULT x</td><td>Default value if none is provided on insert</td></tr>
+<tr><td>DECIMAL(p,s)</td><td>p = total digits, s = decimal places</td></tr>
+<tr><td>ENUM('a'|'b')</td><td>Only the listed string values are permitted</td></tr>
+<tr><td>created_at / updated_at</td><td>Laravel auto-managed timestamps</td></tr>
+<tr><td>(Pivot)</td><td>A many-to-many relationship join table</td></tr>
+</table>
+<br><br>
+<p style="text-align:center;color:#999;font-size:9pt;">Rlabz ERP &mdash; Database Schema Documentation &mdash; Auto-generated from Laravel Migration Files &mdash; September 2026</p>
+</body>
+</html>

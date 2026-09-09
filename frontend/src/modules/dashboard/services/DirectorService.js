@@ -3,6 +3,8 @@
  * Central Data & State Management for Module 2: Director Dashboard & Oversight
  */
 
+import { API_BASE as ROOT_API_BASE } from '@/core/config/api.js';
+
 const STORAGE_KEY = 'rlabz_director_data';
 
 const initialData = {
@@ -57,13 +59,13 @@ function saveState(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-const API_BASE = 'http://127.0.0.1:8000/api/dashboard';
+const API_BASE = `${ROOT_API_BASE}/dashboard`;
 
 async function getAuthHeadersAsync(forceRefresh = false) {
   let token = localStorage.getItem('token');
   if (!token || forceRefresh) {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/login', {
+      const res = await fetch(`${ROOT_API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'director@rajagiri.edu', password: 'director123' })

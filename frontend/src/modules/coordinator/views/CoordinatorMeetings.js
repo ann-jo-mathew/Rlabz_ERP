@@ -1,6 +1,5 @@
 import { authStore } from '@/core/stores/auth.js';
-
-const API_BASE = 'http://127.0.0.1:8000/api';
+import { API_BASE } from '@/core/config/api.js';
 
 function getAuthToken() {
   return authStore?.token || localStorage.getItem('token') || localStorage.getItem('access_token') || null;
@@ -43,10 +42,13 @@ function isPastScheduledMeeting(meeting) {
 
 async function apiRequest(path, options = {}) {
   const token = getAuthToken();
+  if (!token) return { ok: false, status: 401, body: { error: 'Authentication required' } };
+
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    Authorization: `Bearer ${token}`,
+    ...(options.headers || {}),
   };
 
   const resp = await fetch(`${API_BASE}${path}`, { ...options, headers });
@@ -61,8 +63,19 @@ async function fetchMeetings() {
 }
 
 async function fetchProjects() {
-  const { ok, body } = await apiRequest('/coordinator/projects');
-  if (!ok) return [];
+  const token = getAuthToken();
+  if (!token) return [];
+
+  const resp = await fetch(`${API_BASE}/coordinator/projects`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resp.ok) return [];
+  const body = await resp.json().catch(() => ({}));
   return Array.isArray(body?.data) ? body.data : (Array.isArray(body) ? body : []);
 }
 
