@@ -93,6 +93,16 @@ class FinanceService {
     return this._fetch('/finance/invoices', { method: 'POST', body: JSON.stringify(data) });
   }
 
+  async getBillingLimits(projectId) {
+    return await this._fetch(`/finance/projects/${projectId}/billing-limits`) || {
+      total_development_amount: 0,
+      remaining_dev_billable: 0,
+      total_project_budget: 0,
+      hosting_charges: [],
+      maintenance_charges: []
+    };
+  }
+
   async getProjectStudents(projectId) {
     return await this._fetch(`/finance/projects/${projectId}`).then(data => {
       return (data?.assigned_resources || []).filter(r => r.type === 'Student');

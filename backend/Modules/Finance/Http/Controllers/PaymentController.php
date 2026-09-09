@@ -138,6 +138,40 @@ class PaymentController extends Controller
         return response()->json(['message' => 'Maintenance record added successfully', 'charge' => $charge]);
     }
 
+    public function getProjectBillingLimits($id)
+    {
+        $pf = \Modules\Finance\Models\ProjectFinance::with(['project', 'hostingCharges', 'maintenanceSupportCharges'])
+            ->where('id', $id)
+            ->orWhere('project_id', $id)
+            ->first();
+
+        if (!$pf) {
+            return response()->json(['error' => 'Project finance record not found'], 404);
+        }
+
+        $totalDevAmount = (float) ($pf->total_development_amount ?? 0);
+        $totalProjectBudget = (float) ($pf->project->budget ?? $totalDevAmount);
+
+        $alreadyBilledDev = (float) DB::table('invoice_items')
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->where('invoices.project_finance_id', $pf->id)
+            ->where(function ($q) {
+                $q->where('invoice_items.description', 'LIKE', '%development%')
+                  ->orWhere('invoice_items.description', 'LIKE', '%dev%');
+            })
+            ->sum('invoice_items.amount');
+
+        $remainingDevBillable = max(0, $totalDevAmount - $alreadyBilledDev);
+
+        return response()->json([
+            'total_development_amount' => $totalDevAmount,
+            'remaining_dev_billable' => $remainingDevBillable,
+            'total_project_budget' => $totalProjectBudget,
+            'hosting_charges' => $pf->hostingCharges,
+            'maintenance_charges' => $pf->maintenanceSupportCharges
+        ]);
+    }
+
     public function createInvoice(Request $request)
     {
         $validated = $request->validate([
@@ -145,15 +179,53 @@ class PaymentController extends Controller
             'invoice_number' => 'required|string|unique:invoices,invoice_number',
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date',
-            'amount_before_gst' => 'required|numeric|min:0',
             'gst_percentage' => 'nullable|numeric|min:0',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string',
+            'items.*.rate' => 'required|numeric|min:0',
+            'items.*.quantity' => 'required|integer|min:1',
         ]);
 
-        $validated['created_by'] = $this->currentUserId($request);
-        $validated['gst_percentage'] = $validated['gst_percentage'] ?? 18.00;
+        $userId = $this->currentUserId($request);
 
-        $invoice = \Modules\Finance\Models\Invoice::create($validated);
+        $invoice = DB::transaction(function () use ($validated, $userId) {
+            $totalAmountBeforeGst = 0;
+            $itemsData = [];
+
+            foreach ($validated['items'] as $item) {
+                $rate = (float) $item['rate'];
+                $qty = (int) $item['quantity'];
+                $amount = round($rate * $qty, 2);
+                $totalAmountBeforeGst += $amount;
+
+                $itemsData[] = [
+                    'description' => $item['description'],
+                    'rate' => $rate,
+                    'quantity' => $qty,
+                    'amount' => $amount,
+                ];
+            }
+
+            $inv = \Modules\Finance\Models\Invoice::create([
+                'project_finance_id' => $validated['project_finance_id'],
+                'invoice_number' => $validated['invoice_number'],
+                'invoice_date' => $validated['invoice_date'],
+                'due_date' => $validated['due_date'] ?? null,
+                'amount_before_gst' => round($totalAmountBeforeGst, 2),
+                'gst_percentage' => $validated['gst_percentage'] ?? 18.00,
+                'description' => $validated['description'] ?? null,
+                'created_by' => $userId,
+            ]);
+
+            foreach ($itemsData as $itemData) {
+                $inv->items()->create($itemData);
+            }
+
+            return $inv;
+        });
+
+        $invoice->load(['items', 'projectFinance.project', 'clientPayments']);
 
         return response()->json(['message' => 'Invoice created successfully', 'invoice' => $invoice]);
     }

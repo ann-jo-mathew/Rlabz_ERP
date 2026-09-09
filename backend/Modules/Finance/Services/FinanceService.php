@@ -156,7 +156,7 @@ class FinanceService
 
     public function getAllInvoices()
     {
-        return Invoice::with(['projectFinance.project', 'clientPayments'])->get();
+        return Invoice::with(['projectFinance.project', 'clientPayments', 'items'])->get();
     }
 
     public function getAllTransactions()

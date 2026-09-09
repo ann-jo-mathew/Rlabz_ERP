@@ -40,6 +40,11 @@ class Invoice extends Model
         return $this->hasMany(ClientPayment::class);
     }
 
+    public function items()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+
     public function getGstAmountAttribute()
     {
         return round($this->amount_before_gst * ($this->gst_percentage / 100), 2);
