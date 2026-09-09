@@ -48,30 +48,6 @@ export function CertificatesHome(route, router) {
     };
   }
 
-  const reports = [
-    {
-      id: 1,
-      project: 'Hospital Management System',
-      description: 'Final report and code handover documentation',
-      date: '12 Aug 2026',
-      status: 'Completed'
-    },
-    {
-      id: 2,
-      project: 'Campus ERP',
-      description: 'Final project documentation',
-      date: '10 Aug 2026',
-      status: 'Completed'
-    },
-    {
-      id: 3,
-      project: 'Student Portal',
-      description: 'Final report pending submission',
-      date: '-',
-      status: 'Pending'
-    }
-  ];
-
   function render() {
     container.innerHTML = `
       <div class="certificates-page">
@@ -79,9 +55,9 @@ export function CertificatesHome(route, router) {
         <!-- HEADER -->
         <div class="certificates-header">
           <div>
-            <h1>Certificates & Reporting</h1>
+            <h1>Certificates</h1>
             <p>
-              Generate, manage and retrieve project certificates and final reports.
+              Generate, manage and retrieve certificates issued to students for completed project modules.
             </p>
           </div>
 
@@ -110,11 +86,6 @@ export function CertificatesHome(route, router) {
             <strong>
               ${certificates.filter(c => c.status === 'Pending').length}
             </strong>
-          </div>
-
-          <div class="cert-stat-card">
-            <span>Final Reports</span>
-            <strong>${reports.length}</strong>
           </div>
 
         </div>
@@ -158,31 +129,6 @@ export function CertificatesHome(route, router) {
 
         </div>
 
-        <!-- REPORTS -->
-        <div class="cert-panel">
-
-          <div class="cert-panel-header">
-
-            <div>
-              <h2>Final Project Reports</h2>
-              <p>
-                Final reports and code handover documentation submitted when
-                projects are closed.
-              </p>
-            </div>
-
-            <input
-              type="text"
-              id="report-search"
-              placeholder="Search projects..."
-            />
-
-          </div>
-
-          <div id="report-list" class="report-list"></div>
-
-        </div>
-
         <!-- ISSUE CERTIFICATE MODAL -->
         <div id="certificate-modal-root"></div>
 
@@ -196,8 +142,6 @@ export function CertificatesHome(route, router) {
       if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#b91c1c;">${err.message}</td></tr>`;
     });
 
-    renderReports(reports);
-
     // Search certificates
     container
       .querySelector('#certificate-search')
@@ -210,19 +154,6 @@ export function CertificatesHome(route, router) {
         );
 
         renderCertificates(filtered);
-      });
-
-    // Search reports
-    container
-      .querySelector('#report-search')
-      ?.addEventListener('input', (e) => {
-        const search = e.target.value.toLowerCase();
-
-        const filtered = reports.filter(r =>
-          r.project.toLowerCase().includes(search)
-        );
-
-        renderReports(filtered);
       });
 
     // Issue certificate
@@ -303,53 +234,6 @@ export function CertificatesHome(route, router) {
           console.error(err);
           alert(err.message || 'Unable to load certificate details');
         }
-      });
-    });
-  }
-
-  function renderReports(data) {
-    const reportList = container.querySelector('#report-list');
-    if (!reportList) return;
-
-    if (data.length === 0) {
-      reportList.innerHTML = `
-        <div style="padding:2rem; text-align:center; color:#6b7280;">
-          No reports found.
-        </div>
-      `;
-      return;
-    }
-
-    reportList.innerHTML = data.map(report => `
-      <div class="report-item">
-
-        <div>
-
-          <strong>${report.project}</strong>
-
-          <p>${report.description}</p>
-
-          <small>
-            ${report.date} • ${report.status}
-          </small>
-
-        </div>
-
-        <button
-          class="cert-action"
-          data-report-id="${report.id}"
-        >
-          View Report
-        </button>
-
-      </div>
-    `).join('');
-
-    reportList.querySelectorAll('.cert-action').forEach(button => {
-      button.addEventListener('click', () => {
-        const id = Number(button.dataset.reportId);
-        const report = reports.find(r => r.id === id);
-        if (report) showReportDetails(report);
       });
     });
   }
@@ -494,83 +378,6 @@ export function CertificatesHome(route, router) {
       alert(
   'Certificate for ' + certificate.student + ' is ready for printing.'
 );
-      });
-  }
-
-  function showReportDetails(report) {
-    const modalRoot = container.querySelector('#certificate-modal-root');
-
-    modalRoot.innerHTML = `
-
-      <div class="director-modal-overlay">
-
-        <div class="director-modal">
-
-          <div class="director-modal-header">
-
-            <h3>${report.project}</h3>
-
-            <button
-              class="btn-director btn-director-outline"
-              id="close-report-modal"
-            >
-              ✕
-            </button>
-
-          </div>
-
-          <div class="director-modal-body">
-
-            <p>
-              <strong>Documentation:</strong>
-              ${report.description}
-            </p>
-
-            <p>
-              <strong>Status:</strong>
-              ${report.status}
-            </p>
-
-            <p>
-              <strong>Date:</strong>
-              ${report.date}
-            </p>
-
-            <hr>
-
-            <p>
-              Final project report and code handover documentation
-              would be attached here when connected to the backend.
-            </p>
-
-          </div>
-
-          <div class="director-modal-footer">
-
-            <button
-              class="cert-primary-btn"
-              id="close-report-btn"
-            >
-              Close
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-    `;
-
-    modalRoot
-      .querySelector('#close-report-modal')
-      ?.addEventListener('click', () => {
-        modalRoot.innerHTML = '';
-      });
-
-    modalRoot
-      .querySelector('#close-report-btn')
-      ?.addEventListener('click', () => {
-        modalRoot.innerHTML = '';
       });
   }
 

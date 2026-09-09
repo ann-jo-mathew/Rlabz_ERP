@@ -50,12 +50,82 @@ async function fetchProjects() {
   return [];
 }
 
+async function fetchFinanceSummary() {
+  const token = getAuthToken();
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/finance/dashboard', {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    return null;
+  }
+}
+
+function formatCurrency(value) {
+  const amount = Number(value) || 0;
+  return `₹${amount.toLocaleString('en-IN')}`;
+}
+
+function formatSslDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function renderSslWarnings(sslExpiring) {
+  if (!Array.isArray(sslExpiring) || sslExpiring.length === 0) {
+    return '';
+  }
+
+  const banners = sslExpiring.map((cert) => {
+    const days = Number(cert.days_until_expiry);
+    const dateLabel = formatSslDate(cert.expiry_date);
+    const projectTitle = cert.project_title || 'Unknown project';
+
+    const message = cert.expired
+      ? `URGENT: SSL Certificate for project ${projectTitle} has EXPIRED! (${dateLabel})`
+      : `URGENT: SSL Certificate for project ${projectTitle} is expiring in ${days} day${days === 1 ? '' : 's'}! (${dateLabel})`;
+
+    return `
+      <div class="coordinator-alert-banner ${cert.expired ? 'expired' : 'warning'}">
+        <i class="fa fa-triangle-exclamation"></i>
+        <span>${message}</span>
+      </div>
+    `;
+  }).join('');
+
+  return `<div class="coordinator-alert-stack">${banners}</div>`;
+}
+
 export async function CoordinatorHome(route, router) {
   const container = document.createElement('div');
   container.className = 'coordinator-dashboard';
 
   try {
-    const projects = await fetchProjects();
+    const [projects, financeSummary] = await Promise.all([
+      fetchProjects(),
+      fetchFinanceSummary(),
+    ]);
+
+    const totalProfit = financeSummary && financeSummary.totalProfit !== undefined
+      ? financeSummary.totalProfit
+      : null;
+    const sslExpiring = Array.isArray(financeSummary?.sslExpiring) ? financeSummary.sslExpiring : [];
 
     const activeProjects = projects.filter((project) => {
       const status = String(project.status || '').toLowerCase();
@@ -106,6 +176,8 @@ export async function CoordinatorHome(route, router) {
         <span class="coordinator-role-badge">Co-ordinator</span>
       </div>
 
+      ${renderSslWarnings(sslExpiring)}
+
       <div class="coordinator-kpi-grid">
         <div class="coordinator-kpi-card">
           <span>Active Projects</span>
@@ -129,6 +201,12 @@ export async function CoordinatorHome(route, router) {
           <span>Urgent Projects</span>
           <strong>${urgentProjects}</strong>
           <small>Require coordination</small>
+        </div>
+
+        <div class="coordinator-kpi-card">
+          <span>Total Profit</span>
+          <strong>${totalProfit !== null ? formatCurrency(totalProfit) : '—'}</strong>
+          <small>Revenue minus costs</small>
         </div>
       </div>
 

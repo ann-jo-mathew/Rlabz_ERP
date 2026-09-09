@@ -46,6 +46,56 @@ async function fetchProjects() {
   return Array.isArray(body?.data) ? body.data : [];
 }
 
+async function fetchFinalDocuments() {
+  const token = getAuthToken();
+  if (!token) return [];
+
+  const resp = await fetch('http://127.0.0.1:8000/api/certificates/final-documents', {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resp.ok) return [];
+  const body = await resp.json().catch(() => ({}));
+  return Array.isArray(body?.data) ? body.data : [];
+}
+
+async function saveFinalDocument(projectId, payload) {
+  const token = getAuthToken();
+  if (!token) throw new Error('Authentication required. Please log in.');
+
+  const resp = await fetch(`http://127.0.0.1:8000/api/certificates/projects/${projectId}/final-document`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    throw new Error(body.error || body.message || 'Failed to save final project document.');
+  }
+  return body;
+}
+
+const FINAL_DOC_STATUS_LABEL = {
+  pending: 'Pending',
+  partial: 'Partially Submitted',
+  completed: 'Completed',
+};
+
+const FINAL_DOC_STATUS_CLASS = {
+  pending: 'pending',
+  partial: 'pending',
+  completed: 'issued',
+};
+
 function buildReportBodyHtml(project) {
   const completion = getCompletion(project);
   const students = Array.isArray(project.students) ? project.students : [];
@@ -146,6 +196,7 @@ export function CoordinatorReports(route, router) {
   const container = document.createElement('div');
 
   let projects = [];
+  let finalDocuments = [];
   let loadError = null;
 
   function render() {
@@ -154,8 +205,8 @@ export function CoordinatorReports(route, router) {
 
         <div class="certificates-header">
           <div>
-            <h1>Project Reports</h1>
-            <p>View and download a full PDF report for every project.</p>
+            <h1>Reports</h1>
+            <p>View project documentation, final project reports and project closure information.</p>
           </div>
         </div>
 
@@ -204,6 +255,32 @@ export function CoordinatorReports(route, router) {
           </div>
         </div>
 
+        <div class="cert-panel">
+          <div class="cert-panel-header">
+            <div>
+              <h2>Final Project Reports</h2>
+              <p>Final reports and code handover documentation submitted for completed projects. Closure status is shown alongside each project.</p>
+            </div>
+          </div>
+
+          <div class="cert-table-wrapper">
+            <table class="cert-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Client</th>
+                  <th>Final Report</th>
+                  <th>Code Handover</th>
+                  <th>Status</th>
+                  <th>Closure</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="final-documents-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div id="report-modal-root"></div>
 
       </div>
@@ -219,6 +296,16 @@ export function CoordinatorReports(route, router) {
         loadError = err.message || 'Failed to load projects';
         const tbody = container.querySelector('#reports-table-body');
         if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#b91c1c;">${loadError}</td></tr>`;
+      });
+
+    fetchFinalDocuments()
+      .then((data) => {
+        finalDocuments = data;
+        renderFinalDocuments(finalDocuments);
+      })
+      .catch((err) => {
+        const tbody = container.querySelector('#final-documents-table-body');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#b91c1c;">${err.message || 'Failed to load final project reports.'}</td></tr>`;
       });
 
     container.querySelector('#report-search')?.addEventListener('input', (e) => {
@@ -321,6 +408,137 @@ export function CoordinatorReports(route, router) {
     modalRoot.querySelector('#close-report')?.addEventListener('click', () => { modalRoot.innerHTML = ''; });
     modalRoot.querySelector('#close-report-btn')?.addEventListener('click', () => { modalRoot.innerHTML = ''; });
     modalRoot.querySelector('#download-report')?.addEventListener('click', (e) => downloadReportPdf(project, e.currentTarget));
+  }
+
+  function renderFinalDocuments(data) {
+    const tbody = container.querySelector('#final-documents-table-body');
+    if (!tbody) return;
+
+    if (!data.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:2rem;">
+            No closed projects yet. Final project reports appear here once a project is closed.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = data.map((entry) => {
+      const statusLabel = FINAL_DOC_STATUS_LABEL[entry.status] || formatLabel(entry.status);
+      const statusClass = FINAL_DOC_STATUS_CLASS[entry.status] || 'pending';
+      const closureText = entry.final_status
+        ? `${formatLabel(entry.final_status)}${entry.closure_date ? ` — ${formatDate(entry.closure_date)}` : ''}`
+        : (entry.closure_date ? formatDate(entry.closure_date) : '—');
+
+      return `
+        <tr>
+          <td><strong>${entry.project_title}</strong></td>
+          <td>${entry.client_name || '—'}</td>
+          <td>${entry.final_report ? `<a href="${entry.final_report}" target="_blank" rel="noopener noreferrer">View</a>` : '<span style="color:#9ca3af;">Not submitted</span>'}</td>
+          <td>${entry.code_handover ? `<a href="${entry.code_handover}" target="_blank" rel="noopener noreferrer">View</a>` : '<span style="color:#9ca3af;">Not submitted</span>'}</td>
+          <td><span class="cert-status ${statusClass}">${statusLabel}</span></td>
+          <td>${closureText}</td>
+          <td>
+            <button class="cert-action" data-project-id="${entry.project_id}">
+              ${entry.status === 'pending' ? 'Submit Documents' : 'Update Documents'}
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.querySelectorAll('.cert-action').forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = Number(button.dataset.projectId);
+        const entry = finalDocuments.find((e) => e.project_id === id);
+        if (entry) showFinalDocumentForm(entry);
+      });
+    });
+  }
+
+  function showFinalDocumentForm(entry) {
+    const modalRoot = container.querySelector('#report-modal-root');
+    if (!modalRoot) return;
+
+    modalRoot.innerHTML = `
+      <div class="director-modal-overlay">
+        <div class="director-modal" style="max-width:650px; width:95%;">
+
+          <div class="director-modal-header">
+            <div>
+              <h3>${entry.project_title}</h3>
+              <p style="margin:5px 0 0; color:#6b7280;">Final report &amp; code handover documentation</p>
+            </div>
+            <button class="btn-director btn-director-outline" id="close-final-doc-modal">✕</button>
+          </div>
+
+          <div class="director-modal-body">
+            <div style="margin-bottom:0.75rem;">
+              <label><strong>Final Report (path or URL)</strong></label>
+              <input type="text" id="final-doc-report" placeholder="e.g. /docs/reports/project_final_report.pdf" value="${entry.final_report || ''}" style="width:100%; box-sizing:border-box; padding:0.6rem; border:1px solid #d1d5db; border-radius:6px; margin-top:0.3rem;" />
+            </div>
+
+            <div style="margin-bottom:0.75rem;">
+              <label><strong>Code Handover (path or URL)</strong></label>
+              <input type="text" id="final-doc-handover" placeholder="e.g. https://github.com/org/repo" value="${entry.code_handover || ''}" style="width:100%; box-sizing:border-box; padding:0.6rem; border:1px solid #d1d5db; border-radius:6px; margin-top:0.3rem;" />
+            </div>
+
+            <div style="margin-bottom:0.5rem;">
+              <label><strong>Closure Notes</strong></label>
+              <textarea id="final-doc-notes" rows="4" style="width:100%; box-sizing:border-box; padding:0.6rem; border:1px solid #d1d5db; border-radius:6px; margin-top:0.3rem;">${entry.closure_notes || ''}</textarea>
+            </div>
+
+            <div id="final-doc-error" style="color:#b91c1c;margin-top:0.5rem;"></div>
+          </div>
+
+          <div class="director-modal-footer">
+            <button class="cert-primary-btn" id="save-final-doc">Save</button>
+            <button class="cert-outline-btn" id="close-final-doc-btn">Close</button>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    const close = () => { modalRoot.innerHTML = ''; };
+    modalRoot.querySelector('#close-final-doc-modal')?.addEventListener('click', close);
+    modalRoot.querySelector('#close-final-doc-btn')?.addEventListener('click', close);
+
+    modalRoot.querySelector('#save-final-doc')?.addEventListener('click', async (e) => {
+      const errEl = modalRoot.querySelector('#final-doc-error');
+      errEl.textContent = '';
+
+      const final_report = modalRoot.querySelector('#final-doc-report').value.trim();
+      const code_handover = modalRoot.querySelector('#final-doc-handover').value.trim();
+      const closure_notes = modalRoot.querySelector('#final-doc-notes').value.trim();
+
+      if (!final_report && !code_handover && !closure_notes) {
+        errEl.textContent = 'Please provide at least one of final report, code handover, or closure notes.';
+        return;
+      }
+
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        await saveFinalDocument(entry.project_id, {
+          final_report: final_report || null,
+          code_handover: code_handover || null,
+          closure_notes: closure_notes || null,
+        });
+        close();
+        finalDocuments = await fetchFinalDocuments();
+        renderFinalDocuments(finalDocuments);
+      } catch (err) {
+        errEl.textContent = err.message || 'Failed to save final project document.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      }
+    });
   }
 
   render();

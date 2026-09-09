@@ -53,48 +53,67 @@ async function fetchProjects() {
   return [];
 }
 
+// Priority/newest/oldest sorting uses the real fields already returned by the API
+// (projects.priority, projects.created_at) — no mock data, no invented fields.
+function sortProjects(data, sortBy) {
+  const copy = [...data];
+  const priorityRank = (p) => (String(p.priority || '').toLowerCase() === 'urgent' ? 0 : 1);
+  const createdAt = (p) => new Date(p.created_at || 0).getTime();
+
+  copy.sort((a, b) => {
+    if (sortBy === 'priority') return priorityRank(a) - priorityRank(b) || createdAt(b) - createdAt(a);
+    if (sortBy === 'oldest') return createdAt(a) - createdAt(b);
+    return createdAt(b) - createdAt(a); // 'newest' (default)
+  });
+  return copy;
+}
+
+function renderRows(data) {
+  return data.map((project) => {
+    const progress = getProjectProgress(project);
+    const status = String(project.status || 'in_progress');
+    return `
+      <tr data-status="${status}">
+        <td>
+          <strong>${project.title || 'Untitled project'}</strong>
+        </td>
+        <td>${project.client_name || '—'}</td>
+        <td>${formatLabel(project.project_type || project.type || 'General')}</td>
+        <td>${Array.isArray(project.students) ? project.students.length : 0}</td>
+        <td>
+          <div class="coordinator-progress">
+            <div class="coordinator-progress-bg">
+              <div class="coordinator-progress-fill" style="width:${progress.percent}%"></div>
+            </div>
+            <span>${progress.percent}%</span>
+          </div>
+        </td>
+        <td>
+          <span class="priority-badge ${String(project.priority || 'normal').toLowerCase()}">
+            ${formatLabel(project.priority || 'Normal')}
+          </span>
+        </td>
+        <td>
+          <span class="project-status ${status.toLowerCase().replace(/_/g, '-')}">
+            ${formatLabel(status)}
+          </span>
+        </td>
+        <td>
+          <button class="coord-btn coord-btn-secondary" data-id="${project.id}">View details</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
 export async function CoordinatorProjects(route, router) {
   const container = document.createElement('div');
   container.className = 'coordinator-dashboard';
 
   try {
-    const projects = await fetchProjects();
+    let projects = await fetchProjects();
 
-    const rows = projects.map((project) => {
-      const progress = getProjectProgress(project);
-      const status = String(project.status || 'in_progress');
-      return `
-        <tr data-status="${status}">
-          <td>
-            <strong>${project.title || 'Untitled project'}</strong>
-          </td>
-          <td>${project.client_name || '—'}</td>
-          <td>${formatLabel(project.project_type || project.type || 'General')}</td>
-          <td>${Array.isArray(project.students) ? project.students.length : 0}</td>
-          <td>
-            <div class="coordinator-progress">
-              <div class="coordinator-progress-bg">
-                <div class="coordinator-progress-fill" style="width:${progress.percent}%"></div>
-              </div>
-              <span>${progress.percent}%</span>
-            </div>
-          </td>
-          <td>
-            <span class="priority-badge ${String(project.priority || 'normal').toLowerCase()}">
-              ${formatLabel(project.priority || 'Normal')}
-            </span>
-          </td>
-          <td>
-            <span class="project-status ${status.toLowerCase().replace(/_/g, '-')}">
-              ${formatLabel(status)}
-            </span>
-          </td>
-          <td>
-            <button class="coord-btn coord-btn-secondary" data-id="${project.id}">View details</button>
-          </td>
-        </tr>
-      `;
-    }).join('');
+    const rows = renderRows(projects);
 
     container.innerHTML = `
       <div class="coordinator-header">
@@ -140,13 +159,21 @@ export async function CoordinatorProjects(route, router) {
             <p>Track project status and view more detail for each record.</p>
           </div>
 
-          <select id="project-filter">
-            <option value="all">All projects</option>
-            <option value="in_progress">In progress</option>
-            <option value="accepted">Accepted</option>
-            <option value="proposed">Proposed</option>
-            <option value="closed">Closed</option>
-          </select>
+          <div style="display:flex; gap:0.5rem;">
+            <select id="project-sort">
+              <option value="priority">Sort: Urgent first</option>
+              <option value="newest">Sort: Newest first</option>
+              <option value="oldest">Sort: Oldest first</option>
+            </select>
+
+            <select id="project-filter">
+              <option value="all">All projects</option>
+              <option value="in_progress">In progress</option>
+              <option value="accepted">Accepted</option>
+              <option value="proposed">Proposed</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
         </div>
 
         <div class="coordinator-table-wrapper">
@@ -172,19 +199,35 @@ export async function CoordinatorProjects(route, router) {
       <div id="project-modal-root"></div>
     `;
 
-    container.querySelector('#project-filter')?.addEventListener('change', (event) => {
-      const filterValue = event.target.value;
+    function bindDetailButtons() {
+      container.querySelectorAll('#projects-table-body [data-id]').forEach((button) => {
+        button.addEventListener('click', () => {
+          router.push(`/coordinator/projects/${button.dataset.id}`);
+        });
+      });
+    }
+
+    function applySortAndFilter() {
+      const sortBy = container.querySelector('#project-sort')?.value || 'priority';
+      const filterValue = container.querySelector('#project-filter')?.value || 'all';
+
+      const tbody = container.querySelector('#projects-table-body');
+      const sorted = sortProjects(projects, sortBy);
+      tbody.innerHTML = renderRows(sorted) || '<tr><td colspan="8">No projects found.</td></tr>';
+
       container.querySelectorAll('#projects-table-body tr').forEach((row) => {
         const shouldShow = filterValue === 'all' || row.dataset.status === filterValue;
         row.style.display = shouldShow ? '' : 'none';
       });
-    });
 
-    container.querySelectorAll('[data-id]')?.forEach((button) => {
-      button.addEventListener('click', () => {
-        router.push(`/coordinator/projects/${button.dataset.id}`);
-      });
-    });
+      bindDetailButtons();
+    }
+
+    container.querySelector('#project-filter')?.addEventListener('change', applySortAndFilter);
+    container.querySelector('#project-sort')?.addEventListener('change', applySortAndFilter);
+
+    // Apply the default sort (Urgent first) on initial load too.
+    applySortAndFilter();
 
     // Add Project modal
     container.querySelector('#add-project-btn')?.addEventListener('click', showAddProjectModal);
@@ -217,18 +260,19 @@ export async function CoordinatorProjects(route, router) {
 
                 <div class="coordinator-form-group">
                   <label>Source Type</label>
-                  <select name="source_type">
+                  <select name="source_type" id="source-type-select">
                     <option value="faculty">Faculty</option>
                     <option value="student">Student</option>
                     <option value="alumni">Alumni</option>
                     <option value="institution">Institution</option>
                     <option value="external">External</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
 
                 <div class="coordinator-form-group">
-                  <label>Brought By</label>
-                  <input type="text" name="brought_by" />
+                  <label id="brought-by-label">Brought By</label>
+                  <input type="text" name="brought_by" id="brought-by-input" placeholder="Optional" />
                 </div>
 
                 <div class="coordinator-form-group">
@@ -287,6 +331,22 @@ export async function CoordinatorProjects(route, router) {
       modalRoot.querySelector('#close-project-modal')?.addEventListener('click', closeModal);
       modalRoot.querySelector('#cancel-project')?.addEventListener('click', closeModal);
 
+      const sourceTypeSelect = modalRoot.querySelector('#source-type-select');
+      const broughtByLabel = modalRoot.querySelector('#brought-by-label');
+      const broughtByInput = modalRoot.querySelector('#brought-by-input');
+
+      function syncSourceOtherField() {
+        const isOther = sourceTypeSelect?.value === 'other';
+        if (broughtByLabel) broughtByLabel.textContent = isOther ? 'Please specify source *' : 'Brought By';
+        if (broughtByInput) {
+          broughtByInput.required = isOther;
+          broughtByInput.placeholder = isOther ? 'Please specify source' : 'Optional';
+        }
+      }
+
+      sourceTypeSelect?.addEventListener('change', syncSourceOtherField);
+      syncSourceOtherField();
+
       modalRoot.querySelector('#new-project-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -295,6 +355,12 @@ export async function CoordinatorProjects(route, router) {
 
         // normalize empty strings to null
         Object.keys(payload).forEach(k => { if (payload[k] === '') payload[k] = null; });
+
+        if (payload.source_type === 'other' && !String(payload.brought_by || '').trim()) {
+          alert('Please specify the source.');
+          broughtByInput?.focus();
+          return;
+        }
 
         const token = getAuthToken();
         if (!token) {
