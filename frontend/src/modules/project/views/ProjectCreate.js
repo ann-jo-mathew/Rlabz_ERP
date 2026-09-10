@@ -8,7 +8,13 @@ export async function ProjectCreate(route, router) {
         <h1>Create New Project</h1>
         <p>Fill out the details below to initiate a new project.</p>
       </div>
-      <button class="btn btn-outline" id="btn-back"><i class="fa fa-arrow-left" style="margin-right: 0.5rem;"></i>Back to Projects</button>
+      <button id="btn-back" class="btn-back-nav" title="Return to Projects">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Projects</span>
+      </button>
     </div>
     
     <div class="dashboard-content">

@@ -8,7 +8,7 @@ export function FacultyNotifications() {
     const notifications = [
         {
             id: 1,
-            title: '📁 New Project Assigned',
+            title: 'New Project Assigned',
             description: 'You have been assigned as the faculty mentor for the "Hospital Management System" project.',
             time: 'Just now',
             unread: true,
@@ -16,7 +16,7 @@ export function FacultyNotifications() {
         },
         {
             id: 2,
-            title: '🏃‍♂️ New Sprint Uploaded',
+            title: 'New Sprint Uploaded',
             description: 'Students of the "RLabZ ERP" project have uploaded a new sprint: "Sprint 2: Dashboard Layout".',
             time: '2 hours ago',
             unread: true,
@@ -24,7 +24,7 @@ export function FacultyNotifications() {
         },
         {
             id: 3,
-            title: '🐙 New GitHub Repository Added',
+            title: 'New GitHub Repository Added',
             description: 'Students of the "Booking System" project have linked their GitHub repository: https://github.com/student/temple-booking.',
             time: 'Yesterday',
             unread: true,
@@ -32,7 +32,7 @@ export function FacultyNotifications() {
         },
         {
             id: 4,
-            title: '📅 Meeting Scheduled',
+            title: 'Meeting Scheduled',
             description: 'A status check meeting for RLabZ ERP is scheduled for August 15th, 2026 at 10:00 AM.',
             time: '2 days ago',
             unread: false,
@@ -47,7 +47,7 @@ export function FacultyNotifications() {
                 <p>View alerts and updates on project submissions and student assignments.</p>
             </div>
             <button id="mark-all-read-btn" class="btn-edit" style="font-size: 13px; font-weight: 600;">
-                ✓ Mark All as Read
+                Mark All as Read
             </button>
         </div>
 
@@ -82,7 +82,7 @@ export function FacultyNotifications() {
                                 Mark as Read
                             </button>
                         ` : `
-                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600; padding: 6px 12px; display: inline-block;">✓ Read</span>
+                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600; padding: 6px 12px; display: inline-block;">Read</span>
                         `}
                     </div>
                 </div>

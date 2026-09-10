@@ -1,5 +1,5 @@
 import '../faculty.css';
-import { showFacultySuccessPopup } from '../facultyPopup.js';
+import { showFacultySuccessPopup, showFacultyErrorPopup, showCustomConfirmModal } from '../facultyPopup.js';
 
 export function FacultySprints() {
     const container = document.createElement('div');
@@ -199,18 +199,7 @@ export function FacultySprints() {
         const isClosed = status === 'closed';
 
         container.innerHTML = `
-            <!-- Top bar with Back button -->
-            <div style="margin-bottom: 1.25rem;">
-                <button id="btn-back-projects" class="btn-back-nav" title="Return to Projects">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                        <polyline points="12 19 5 12 12 5"></polyline>
-                    </svg>
-                    <span>Back to Projects</span>
-                </button>
-            </div>
-
-            <!-- Project Summary Header (Name & Short Description) -->
+            <!-- Project Summary Header (Name & Short Description) with Back Button on top right -->
             <div class="faculty-card-panel" style="margin-bottom: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
                     <div>
@@ -229,6 +218,15 @@ export function FacultySprints() {
                             Modules: <strong style="color: var(--text-main, #0f172a);">${modules.length}</strong> &nbsp;|&nbsp; 
                             Tasks: <strong style="color: var(--text-main, #0f172a);">${tasks.length}</strong>
                         </div>
+                    </div>
+                    <div>
+                        <button id="btn-back-projects" class="btn-back-nav" title="Return to Projects">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                            <span>Back to Projects</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -336,11 +334,18 @@ export function FacultySprints() {
                             </label>
                             <select id="select-module-dropdown" class="premium-input" required>
                                 <option value="">-- Select a module from this project --</option>
-                                ${modules.map(m => `
-                                    <option value="${m.id}">${m.module_name}</option>
-                                `).join('')}
+                                ${modules.map(m => {
+                                    const assigned = m.assigned_students || [];
+                                    const isAssigned = assigned.length > 0;
+                                    const names = assigned.map(s => s.name).join(', ');
+                                    const label = isAssigned 
+                                        ? `${m.module_name} — [Assigned: ${names}]` 
+                                        : `${m.module_name} — [Unassigned]`;
+                                    return `<option value="${m.id}" data-assigned="${isAssigned ? 'true' : 'false'}">${label}</option>`;
+                                }).join('')}
                                 <option value="new">+ Create New Module</option>
                             </select>
+                            <div id="module-assignment-info-banner" style="display: none; margin-top: 0.6rem; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; line-height: 1.45;"></div>
                         </div>
 
                         <!-- DYNAMIC NEW MODULE FIELDS (ONLY SHOWN IF '+ Create New Module' IS SELECTED) -->
@@ -384,7 +389,7 @@ export function FacultySprints() {
                                     <span style="font-size: 0.75rem; color: var(--text-muted, #64748b);">▼</span>
                                 </button>
 
-                                <div id="student-dropdown-menu" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 220px; overflow-y: auto; background: #ffffff; border: 1px solid var(--border-color, #cbd5e1); border-radius: var(--radius-md, 8px); box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.1)); z-index: 60; padding: 0.5rem;">
+                                <div id="student-dropdown-menu" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 280px; overflow-y: auto; background: #ffffff; border: 1px solid var(--border-color, #cbd5e1); border-radius: var(--radius-md, 8px); box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.1)); z-index: 60; padding: 0.5rem;">
                                     <div style="display: flex; justify-content: space-between; padding: 0.25rem 0.5rem 0.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0); font-size: 0.75rem;">
                                         <button type="button" id="btn-select-all-students" style="background: none; border: none; color: var(--primary, #059669); font-weight: 600; cursor: pointer; padding: 0;">Select All</button>
                                         <button type="button" id="btn-clear-students" style="background: none; border: none; color: var(--text-muted, #64748b); cursor: pointer; padding: 0;">Clear</button>
@@ -392,21 +397,44 @@ export function FacultySprints() {
                                     <div style="display: flex; flex-direction: column; gap: 0.25rem; padding-top: 0.5rem;">
                                         ${students.length === 0 ? `
                                             <div style="font-size: 0.8rem; color: var(--text-muted, #94a3b8); padding: 0.5rem; text-align: center;">No students assigned to this project yet.</div>
-                                        ` : students.map(s => `
-                                            <label style="display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.5rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s ease;">
-                                                <input
-                                                    type="checkbox"
-                                                    value="${s.student_id}"
-                                                    data-name="${s.name}"
-                                                    class="module-student-checkbox"
-                                                    style="width: 16px; height: 16px; accent-color: var(--primary, #059669); cursor: pointer;"
-                                                />
-                                                <div style="flex: 1;">
-                                                    <strong style="color: var(--text-main, #0f172a);">${s.name}</strong>
-                                                    <span style="color: var(--text-muted, #64748b); font-size: 0.78rem;"> (${s.designation || 'Student'} - ${s.email})</span>
-                                                </div>
-                                            </label>
-                                        `).join('')}
+                                        ` : students.map(s => {
+                                            const studentModules = (projectDetail.modules || []).filter(m => 
+                                                (m.assigned_students || []).some(st => st.student_id === s.student_id)
+                                            );
+                                            const studentTasks = (projectDetail.tasks || []).filter(t => t.assigned_to === s.student_id);
+
+                                            return `
+                                                <label style="display: flex; align-items: flex-start; gap: 0.65rem; padding: 0.55rem 0.65rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s ease; border-bottom: 1px solid #f1f5f9;">
+                                                    <input
+                                                        type="checkbox"
+                                                        value="${s.student_id}"
+                                                        data-name="${s.name}"
+                                                        class="module-student-checkbox"
+                                                        style="width: 16px; height: 16px; margin-top: 3px; accent-color: var(--primary, #059669); cursor: pointer;"
+                                                    />
+                                                    <div style="flex: 1; min-width: 0;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
+                                                            <strong style="color: var(--text-main, #0f172a); font-size: 0.88rem;">${s.name}</strong>
+                                                            <span style="color: var(--text-muted, #64748b); font-size: 0.76rem;">${s.designation || 'Student'} &bull; ${s.email}</span>
+                                                        </div>
+                                                        <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; font-size: 0.76rem;">
+                                                            ${studentModules.length > 0 ? `
+                                                                <span style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 1px 6px; border-radius: 4px; font-weight: 600;">
+                                                                    Modules (${studentModules.length}): ${studentModules.map(m => m.module_name).join(', ')}
+                                                                </span>
+                                                            ` : `
+                                                                <span style="background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 1px 6px; border-radius: 4px;">
+                                                                    No modules assigned yet
+                                                                </span>
+                                                            `}
+                                                            <span style="background: #f1f5f9; color: #475569; padding: 1px 6px; border-radius: 4px;">
+                                                                ${studentTasks.length} task${studentTasks.length === 1 ? '' : 's'} assigned
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            `;
+                                        }).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -471,9 +499,10 @@ export function FacultySprints() {
                             </label>
                             <select id="select-task-module" class="premium-input" required>
                                 <option value="">-- Select a module from this project --</option>
-                                ${modules.map(m => `
-                                    <option value="${m.id}">${m.module_name}</option>
-                                `).join('')}
+                                ${modules.map(m => {
+                                    const teamCount = (m.assigned_students || []).length;
+                                    return `<option value="${m.id}">${m.module_name} (${teamCount} student${teamCount === 1 ? '' : 's'} in team)</option>`;
+                                }).join('')}
                             </select>
                         </div>
 
@@ -528,6 +557,8 @@ export function FacultySprints() {
                             <div id="module-students-hint" style="font-size: 0.8rem; color: var(--text-muted, #64748b); margin-top: 0.4rem;">
                                 Only students assigned to this specific module appear in this list.
                             </div>
+                            <!-- Selected Student's Currently Assigned Tasks Specifically -->
+                            <div id="student-assigned-tasks-preview" style="display: none; margin-top: 0.5rem; padding: 0.65rem 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.82rem; color: #334155;"></div>
                         </div>
 
                         <!-- 4. DUE DATE -->
@@ -890,36 +921,103 @@ export function FacultySprints() {
             updateStudentPillsAndLabel();
         });
 
-        // When module dropdown changes:
-        selectModule?.addEventListener('change', () => {
-            const val = selectModule.value;
+        let previousModuleVal = '';
+
+        function applyModuleSelection(val, isReassign = false) {
+            const banner = container.querySelector('#module-assignment-info-banner');
+
             if (val === 'new') {
                 if (containerNewModule) containerNewModule.style.display = 'block';
                 if (newModuleNameInput) newModuleNameInput.required = true;
+                if (banner) banner.style.display = 'none';
                 // Clear checkboxes for fresh creation
                 container.querySelectorAll('.module-student-checkbox').forEach(cb => cb.checked = false);
                 updateStudentPillsAndLabel();
-            } else {
+            } else if (val) {
                 if (containerNewModule) containerNewModule.style.display = 'none';
                 if (newModuleNameInput) newModuleNameInput.required = false;
 
-                if (val) {
-                    // Pre-check students already assigned to this module
-                    const modId = parseInt(val);
-                    const modules = projectDetail?.modules || [];
-                    const matchedMod = modules.find(m => m.id === modId);
-                    const currentAssigned = (matchedMod?.assigned_students || []).map(s => s.student_id);
+                // Pre-check students already assigned to this module
+                const modId = parseInt(val);
+                const modules = projectDetail?.modules || [];
+                const matchedMod = modules.find(m => m.id === modId);
+                const currentAssigned = (matchedMod?.assigned_students || []).map(s => s.student_id);
 
-                    container.querySelectorAll('.module-student-checkbox').forEach(cb => {
-                        const sId = parseInt(cb.value);
-                        cb.checked = currentAssigned.includes(sId);
+                container.querySelectorAll('.module-student-checkbox').forEach(cb => {
+                    const sId = parseInt(cb.value);
+                    cb.checked = currentAssigned.includes(sId);
+                });
+                updateStudentPillsAndLabel();
+
+                if (banner && matchedMod) {
+                    banner.style.display = 'block';
+                    if (isReassign) {
+                        banner.style.background = '#fffbeb';
+                        banner.style.border = '1px solid #fde68a';
+                        banner.style.color = '#92400e';
+                        banner.innerHTML = `
+                            <strong style="color: #b45309;">⚠️ Re-assigning Module "${matchedMod.module_name}"</strong><br/>
+                            Currently assigned students: <strong>${(matchedMod.assigned_students || []).map(s => s.name).join(', ')}</strong>.<br/>
+                            <span style="font-size: 0.8rem;">You can update the student checkboxes in the dropdown below and click "Assign Students to Module" to apply changes.</span>
+                        `;
+                    } else if (currentAssigned.length > 0) {
+                        banner.style.background = '#eff6ff';
+                        banner.style.border = '1px solid #bfdbfe';
+                        banner.style.color = '#1e40af';
+                        banner.innerHTML = `
+                            <strong>Assigned Module:</strong> "${matchedMod.module_name}" is assigned to <strong>${(matchedMod.assigned_students || []).map(s => s.name).join(', ')}</strong>.
+                        `;
+                    } else {
+                        banner.style.background = '#f0fdf4';
+                        banner.style.border = '1px solid #bbf7d0';
+                        banner.style.color = '#166534';
+                        banner.innerHTML = `
+                            <strong>Unassigned Module:</strong> "${matchedMod.module_name}" has no students assigned yet. Select students below to assign.
+                        `;
+                    }
+                }
+            } else {
+                if (containerNewModule) containerNewModule.style.display = 'none';
+                if (newModuleNameInput) newModuleNameInput.required = false;
+                if (banner) banner.style.display = 'none';
+                container.querySelectorAll('.module-student-checkbox').forEach(cb => cb.checked = false);
+                updateStudentPillsAndLabel();
+            }
+        }
+
+        // When module dropdown changes:
+        selectModule?.addEventListener('change', () => {
+            const val = selectModule.value;
+            if (val && val !== 'new') {
+                const modId = parseInt(val);
+                const modules = projectDetail?.modules || [];
+                const matchedMod = modules.find(m => m.id === modId);
+                const assigned = matchedMod?.assigned_students || [];
+
+                if (assigned.length > 0) {
+                    showCustomConfirmModal({
+                        title: 'Module Already Assigned',
+                        message: `Module "${matchedMod.module_name}" already assigned. Want to re-assign..?`,
+                        detailsHtml: `
+                            <strong>Currently Assigned Students:</strong><br/>
+                            ${assigned.map(s => `&bull; ${s.name} (${s.email})`).join('<br/>')}
+                        `,
+                        confirmText: 'Yes, Re-assign',
+                        cancelText: 'Cancel',
+                        onConfirm: () => {
+                            previousModuleVal = val;
+                            applyModuleSelection(val, true);
+                        },
+                        onCancel: () => {
+                            selectModule.value = previousModuleVal;
+                        }
                     });
-                    updateStudentPillsAndLabel();
-                } else {
-                    container.querySelectorAll('.module-student-checkbox').forEach(cb => cb.checked = false);
-                    updateStudentPillsAndLabel();
+                    return;
                 }
             }
+
+            previousModuleVal = val;
+            applyModuleSelection(val, false);
         });
 
         // Submit Assign Module
@@ -928,7 +1026,7 @@ export function FacultySprints() {
                 e.preventDefault();
 
                 if ((projectDetail?.project?.status || '').toLowerCase() === 'closed') {
-                    alert('Cannot assign modules. This project is closed.');
+                    showFacultyErrorPopup('Project Closed', 'Cannot assign modules. This project is closed.');
                     return;
                 }
 
@@ -1027,28 +1125,35 @@ export function FacultySprints() {
 
         // Remove student from module button (in the right-hand list)
         container.querySelectorAll('.btn-remove-module-student').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const mId = btn.getAttribute('data-module-id');
                 const sId = btn.getAttribute('data-student-id');
-                if (!confirm('Remove this student from the module?')) return;
 
-                try {
-                    const headers = {
-                        'Content-Type': 'application/json',
-                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                    };
-                    const res = await fetch(`${apiBase}/faculty/modules/${mId}/students/${sId}`, {
-                        method: 'DELETE',
-                        headers
-                    });
-                    if (res.ok) {
-                        showFacultySuccessPopup('Student Removed', 'Student has been removed from this module.');
-                        await loadProjectDetail(selectedProjectId);
+                showCustomConfirmModal({
+                    title: 'Remove Student from Module',
+                    message: 'Are you sure you want to remove this student from the module?',
+                    confirmText: 'Yes, Remove',
+                    cancelText: 'Cancel',
+                    onConfirm: async () => {
+                        try {
+                            const headers = {
+                                'Content-Type': 'application/json',
+                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                            };
+                            const res = await fetch(`${apiBase}/faculty/modules/${mId}/students/${sId}`, {
+                                method: 'DELETE',
+                                headers
+                            });
+                            if (res.ok) {
+                                showFacultySuccessPopup('Student Removed', 'Student has been removed from this module.');
+                                await loadProjectDetail(selectedProjectId);
+                            }
+                        } catch (err) {
+                            console.error('Error removing student from module:', err);
+                        }
                     }
-                } catch (err) {
-                    console.error('Error removing student from module:', err);
-                }
+                });
             });
         });
 
@@ -1065,9 +1170,116 @@ export function FacultySprints() {
         const taskDescInput = container.querySelector('#input-task-desc');
         const taskPreview = container.querySelector('#container-task-preview');
 
+        let previousTaskVal = '';
+
+        function updateStudentTaskPreview(studentId) {
+            const previewEl = container.querySelector('#student-assigned-tasks-preview');
+            if (!previewEl) return;
+
+            if (!studentId) {
+                previewEl.style.display = 'none';
+                previewEl.innerHTML = '';
+                return;
+            }
+
+            const tasks = projectDetail?.tasks || [];
+            const studentTasks = tasks.filter(t => t.assigned_to === studentId);
+            const students = projectDetail?.project_students || [];
+            const studentObj = students.find(s => s.student_id === studentId);
+            const sName = studentObj ? studentObj.name : `Student #${studentId}`;
+
+            previewEl.style.display = 'block';
+            previewEl.innerHTML = `
+                <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Assigned Tasks for ${sName} (${studentTasks.length}):</span>
+                </div>
+                ${studentTasks.length === 0 ? `
+                    <div style="color: #64748b; font-size: 0.8rem;">No other tasks currently assigned to this student in this project.</div>
+                ` : `
+                    <div style="display: flex; flex-direction: column; gap: 0.3rem; max-height: 120px; overflow-y: auto;">
+                        ${studentTasks.map(t => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px 8px; font-size: 0.78rem;">
+                                <span style="color: #1e293b; font-weight: 600;">${t.title}</span>
+                                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                                    <span style="color: #64748b; font-size: 0.74rem;">${t.module_name || 'Module'}</span>
+                                    <span class="status-badge ${t.status.replace(' ', '_')}" style="padding: 1px 5px; font-size: 0.7rem;">
+                                        ${t.status.toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            `;
+        }
+
+        function applyTaskSelection(taskIdVal, isReassign = false) {
+            if (taskIdVal === 'new') {
+                if (containerNewTask) containerNewTask.style.display = 'block';
+                if (taskTitleInput) taskTitleInput.required = true;
+                if (taskPreview) taskPreview.style.display = 'none';
+                taskStudentSelect.value = '';
+                updateStudentTaskPreview(null);
+            } else if (taskIdVal && taskIdVal !== '') {
+                if (containerNewTask) containerNewTask.style.display = 'none';
+                if (taskTitleInput) taskTitleInput.required = false;
+
+                const taskId = parseInt(taskIdVal);
+                const tasks = projectDetail?.tasks || [];
+                const matchedTask = tasks.find(t => t.id === taskId);
+
+                if (matchedTask && taskPreview) {
+                    taskPreview.style.display = 'block';
+                    if (isReassign) {
+                        taskPreview.style.background = '#fffbeb';
+                        taskPreview.style.border = '1px solid #fde68a';
+                        taskPreview.style.color = '#92400e';
+                        taskPreview.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #b45309; margin-bottom: 0.25rem;">
+                                <span>⚠️ Re-assigning Task: "${matchedTask.title}"</span>
+                            </div>
+                            <span style="font-size: 0.8rem; color: #78350f;">Currently assigned to: <strong>${matchedTask.assigned_to_name || 'Unassigned'}</strong> &bull; Current Status: <strong>${matchedTask.status.toUpperCase()}</strong> &bull; Due: <strong>${matchedTask.due_date || 'None'}</strong></span>
+                            ${matchedTask.description ? `<p style="margin: 4px 0 0; font-size: 0.8rem; color: #78350f;">${matchedTask.description}</p>` : ''}
+                            <div style="margin-top: 6px; font-size: 0.78rem; color: #b45309; font-weight: 600;">
+                                Select a different student or update due date below, then click "Assign Task" to update.
+                            </div>
+                        `;
+                    } else {
+                        taskPreview.style.background = '#eff6ff';
+                        taskPreview.style.border = '1px solid #bfdbfe';
+                        taskPreview.style.color = '#1e40af';
+                        taskPreview.innerHTML = `
+                            <strong>Selected Task:</strong> ${matchedTask.title}<br />
+                            <span style="font-size: 0.8rem;">Current Assignment: <strong>${matchedTask.assigned_to_name || 'Unassigned'}</strong> &bull; Current Status: <strong>${matchedTask.status.toUpperCase()}</strong></span>
+                            ${matchedTask.description ? `<p style="margin: 4px 0 0; font-size: 0.8rem; color: #334155;">${matchedTask.description}</p>` : ''}
+                        `;
+                    }
+
+                    // If task already has assigned student, pre-select if in module
+                    if (matchedTask.assigned_to) {
+                        taskStudentSelect.value = matchedTask.assigned_to;
+                        updateStudentTaskPreview(matchedTask.assigned_to);
+                    } else {
+                        taskStudentSelect.value = '';
+                        updateStudentTaskPreview(null);
+                    }
+                    if (matchedTask.due_date) {
+                        const dueInput = container.querySelector('#input-task-due');
+                        if (dueInput) dueInput.value = matchedTask.due_date;
+                    }
+                }
+            } else {
+                if (containerNewTask) containerNewTask.style.display = 'none';
+                if (taskPreview) taskPreview.style.display = 'none';
+                if (taskTitleInput) taskTitleInput.required = false;
+                updateStudentTaskPreview(null);
+            }
+        }
+
         // When Task Module changes:
         taskModuleSelect?.addEventListener('change', () => {
             const moduleId = parseInt(taskModuleSelect.value);
+            previousTaskVal = '';
 
             if (!moduleId) {
                 taskDropdown.innerHTML = `<option value="">-- First choose a module above --</option>`;
@@ -1077,6 +1289,7 @@ export function FacultySprints() {
                 if (containerNewTask) containerNewTask.style.display = 'none';
                 if (taskPreview) taskPreview.style.display = 'none';
                 if (studentsHint) studentsHint.innerHTML = 'Only students assigned to this specific module appear in this list.';
+                updateStudentTaskPreview(null);
                 return;
             }
 
@@ -1084,18 +1297,20 @@ export function FacultySprints() {
             const tasks = projectDetail?.tasks || [];
             const matchedModule = modules.find(m => m.id === moduleId);
 
-            // 1. Populate Tasks Dropdown from Tasks table under this module
+            // 1. Populate Tasks Dropdown from Tasks table under this module with assigned info
             const moduleTasks = tasks.filter(t => t.module_id === moduleId);
             taskDropdown.disabled = false;
             taskDropdown.innerHTML = `
                 <option value="">-- Select a task under this module --</option>
-                ${moduleTasks.map(t => `
-                    <option value="${t.id}">${t.title} [Status: ${t.status.replace('_', ' ').toUpperCase()}]</option>
-                `).join('')}
+                ${moduleTasks.map(t => {
+                    const isAssigned = !!t.assigned_to;
+                    const assignedText = isAssigned ? `— [Assigned to: ${t.assigned_to_name || 'Student'}]` : `— [Unassigned]`;
+                    return `<option value="${t.id}">${t.title} ${assignedText} (${t.status.toUpperCase()})</option>`;
+                }).join('')}
                 <option value="new">+ Create / Add New Task</option>
             `;
 
-            // 2. Populate Students Dropdown with ONLY students assigned to this module
+            // 2. Populate Students Dropdown with ONLY students assigned to this module and show their tasks count
             const assignedStudents = matchedModule?.assigned_students || [];
 
             if (assignedStudents.length === 0) {
@@ -1108,11 +1323,15 @@ export function FacultySprints() {
                 taskStudentSelect.disabled = false;
                 taskStudentSelect.innerHTML = `
                     <option value="">-- Select student assigned to this module --</option>
-                    ${assignedStudents.map(s => `
-                        <option value="${s.student_id}">
-                            ${s.name} ${s.designation ? `(${s.designation})` : ''} - ${s.email}
-                        </option>
-                    `).join('')}
+                    ${assignedStudents.map(s => {
+                        const studentTasks = (projectDetail.tasks || []).filter(t => t.assigned_to === s.student_id);
+                        const modTasks = studentTasks.filter(t => t.module_id === moduleId);
+                        return `
+                            <option value="${s.student_id}">
+                                ${s.name} ${s.designation ? `(${s.designation})` : ''} — [${modTasks.length} task(s) in this module, ${studentTasks.length} total]
+                            </option>
+                        `;
+                    }).join('')}
                 `;
                 if (studentsHint) {
                     studentsHint.innerHTML = `<span style="color: var(--primary, #059669); font-weight: 600;">✓ Showing ${assignedStudents.length} student(s) assigned to this module.</span>`;
@@ -1121,45 +1340,50 @@ export function FacultySprints() {
 
             if (containerNewTask) containerNewTask.style.display = 'none';
             if (taskPreview) taskPreview.style.display = 'none';
+            updateStudentTaskPreview(null);
         });
 
         // When Task Dropdown selection changes:
         taskDropdown?.addEventListener('change', () => {
             const taskIdVal = taskDropdown.value;
 
-            if (taskIdVal === 'new') {
-                if (containerNewTask) containerNewTask.style.display = 'block';
-                if (taskTitleInput) taskTitleInput.required = true;
-                if (taskPreview) taskPreview.style.display = 'none';
-            } else if (taskIdVal && taskIdVal !== '') {
-                if (containerNewTask) containerNewTask.style.display = 'none';
-                if (taskTitleInput) taskTitleInput.required = false;
-
+            if (taskIdVal && taskIdVal !== 'new') {
                 const taskId = parseInt(taskIdVal);
                 const tasks = projectDetail?.tasks || [];
                 const matchedTask = tasks.find(t => t.id === taskId);
 
-                if (matchedTask && taskPreview) {
-                    taskPreview.style.display = 'block';
-                    taskPreview.innerHTML = `
-                        <strong>Selected Task:</strong> ${matchedTask.title}<br />
-                        <span style="font-size: 0.8rem;">Current Assignment: <strong>${matchedTask.assigned_to_name || 'Unassigned'}</strong> &bull; Current Status: <strong>${matchedTask.status.toUpperCase()}</strong></span>
-                        ${matchedTask.description ? `<p style="margin: 4px 0 0; font-size: 0.8rem; color: #334155;">${matchedTask.description}</p>` : ''}
-                    `;
-                    // If task already has assigned student, pre-select if in module
-                    if (matchedTask.assigned_to) {
-                        taskStudentSelect.value = matchedTask.assigned_to;
-                    }
-                    if (matchedTask.due_date) {
-                        const dueInput = container.querySelector('#input-task-due');
-                        if (dueInput) dueInput.value = matchedTask.due_date;
-                    }
+                if (matchedTask && matchedTask.assigned_to) {
+                    // Already assigned task! Prompt custom confirmation modal (not browser localhost msg)
+                    showCustomConfirmModal({
+                        title: 'Task Already Assigned',
+                        message: `Task "${matchedTask.title}" already assigned. Want to re-assign..?`,
+                        detailsHtml: `
+                            <strong>Currently Assigned To:</strong> ${matchedTask.assigned_to_name || 'Student #' + matchedTask.assigned_to}<br/>
+                            <strong>Current Status:</strong> ${matchedTask.status.toUpperCase()}<br/>
+                            <strong>Due Date:</strong> ${matchedTask.due_date || 'No due date'}
+                        `,
+                        confirmText: 'Yes, Re-assign',
+                        cancelText: 'Cancel',
+                        onConfirm: () => {
+                            previousTaskVal = taskIdVal;
+                            applyTaskSelection(taskIdVal, true);
+                        },
+                        onCancel: () => {
+                            taskDropdown.value = previousTaskVal;
+                        }
+                    });
+                    return;
                 }
-            } else {
-                if (containerNewTask) containerNewTask.style.display = 'none';
-                if (taskPreview) taskPreview.style.display = 'none';
-                if (taskTitleInput) taskTitleInput.required = false;
             }
+
+            previousTaskVal = taskIdVal;
+            applyTaskSelection(taskIdVal, false);
+        });
+
+        // When Task Student selection changes:
+        taskStudentSelect?.addEventListener('change', () => {
+            const studentId = parseInt(taskStudentSelect.value);
+            updateStudentTaskPreview(studentId);
         });
 
         // Submit Assign Task (Sets status to 'todo')
@@ -1168,7 +1392,7 @@ export function FacultySprints() {
                 e.preventDefault();
 
                 if ((projectDetail?.project?.status || '').toLowerCase() === 'closed') {
-                    alert('Cannot assign tasks. This project is closed.');
+                    showFacultyErrorPopup('Project Closed', 'Cannot assign tasks. This project is closed.');
                     return;
                 }
 
@@ -1178,17 +1402,17 @@ export function FacultySprints() {
                 const dueDate = container.querySelector('#input-task-due')?.value || null;
 
                 if (!moduleId) {
-                    alert('Please choose a module.');
+                    showFacultyErrorPopup('Module Required', 'Please choose a module first.');
                     return;
                 }
 
                 if (!taskIdVal) {
-                    alert('Please select a task from the dropdown or choose + Create New Task.');
+                    showFacultyErrorPopup('Task Required', 'Please select a task from the dropdown or choose + Create New Task.');
                     return;
                 }
 
                 if (!studentId) {
-                    alert('Please choose a student assigned to this module.');
+                    showFacultyErrorPopup('Student Required', 'Please choose a student assigned to this module.');
                     return;
                 }
 

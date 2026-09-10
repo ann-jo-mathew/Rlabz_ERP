@@ -65,7 +65,7 @@ class ProjectController extends Controller
         $user = $request->input('auth_user');
         $permissions = $user['permissions'] ?? [];
         
-        $project = Project::with(['faculty', 'students.studentProfile', 'modules.tasks', 'modules.students.studentProfile'])->find($id);
+        $project = Project::with(['faculty', 'students.studentProfile', 'modules.tasks.assignee', 'modules.tasks.creator', 'modules.students.studentProfile'])->find($id);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }

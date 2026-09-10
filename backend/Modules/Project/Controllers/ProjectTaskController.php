@@ -77,9 +77,9 @@ class ProjectTaskController extends Controller
         $this->checkPermission($request, 'project.task.create');
 
         $request->validate([
-            'title' => 'required|string',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'weight' => 'nullable|numeric|min:1|max:10',
+            'weight' => 'nullable|numeric|min:0|max:1000',
             'priority' => 'nullable|string'
         ]);
 
@@ -94,12 +94,24 @@ class ProjectTaskController extends Controller
         }
 
         $userId = $this->getUserId($request);
+        if (!$userId) {
+            $userId = auth()->id();
+        }
+        if (!$userId && isset($request->input('auth_user')['email'])) {
+            $foundUser = DB::table('users')->where('email', $request->input('auth_user')['email'])->first();
+            if ($foundUser) {
+                $userId = $foundUser->id;
+            }
+        }
+        if (!$userId) {
+            $userId = DB::table('users')->where('role', 'faculty')->value('id') ?? 1;
+        }
 
         $task = Task::create([
             'module_id' => $moduleId,
             'title' => $request->title,
             'description' => $request->description,
-            'weight' => $request->weight ? (int) $request->weight : 1,
+            'weight' => $request->weight ? round((float) $request->weight) : 1,
             'status' => 'todo',
             'created_by' => $userId
         ]);

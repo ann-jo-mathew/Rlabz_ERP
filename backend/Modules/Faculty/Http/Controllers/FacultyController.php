@@ -1051,6 +1051,14 @@ class FacultyController extends Controller
 
         $assignedStudentIds = $validated['student_ids'] ?? [];
 
+        // Sync module_student table when re-assigning an existing module
+        if ($moduleId !== 'new' && is_numeric($moduleId)) {
+            DB::table('module_student')
+                ->where('module_id', $moduleId)
+                ->whereNotIn('student_id', $assignedStudentIds)
+                ->delete();
+        }
+
         // Insert each student into module_student table
         foreach ($assignedStudentIds as $sId) {
             $exists = DB::table('module_student')

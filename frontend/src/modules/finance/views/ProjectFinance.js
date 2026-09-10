@@ -36,14 +36,19 @@ export async function ProjectFinance(route, router) {
       const hostTotal = projectData.hosting_charges ? (projectData.hosting_charges.reduce((sum, h) => sum + parseFloat(h.amount), 0)) : 0;
 
       container.innerHTML = `
-        <div class="fin-page-header">
+        <div class="fin-page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
           <div>
-            <button class="fin-back-link" id="back-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-              Back to Projects
-            </button>
             <h1>${project.title || 'Unknown Project'}</h1>
             <p>Client: ${project.client_name || '-'}&nbsp;&nbsp;|&nbsp;&nbsp;Status: <span class="fin-badge ${project.status === 'closed' ? 'success' : 'info'}">${project.status || 'Active'}</span></p>
+          </div>
+          <div>
+            <button class="btn-back-nav" id="back-btn" title="Return to Projects">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              <span>Back to Projects</span>
+            </button>
           </div>
         </div>
 

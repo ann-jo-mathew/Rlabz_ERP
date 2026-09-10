@@ -514,7 +514,7 @@ export async function StudentProjects(route, router) {
       `;
 
       container.innerHTML = `
-        <div class="student-header">
+        <div class="student-header" style="display: flex; justify-content: flex-end; margin-bottom: 1.25rem;">
           <button class="btn-back-to-cards">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
