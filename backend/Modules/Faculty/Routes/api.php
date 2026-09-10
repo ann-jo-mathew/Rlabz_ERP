@@ -15,6 +15,9 @@ Route::prefix('faculty')->group(function () {
     Route::post('/tasks/{id}/verify', [FacultyController::class, 'verifyTask']);
     Route::get('/projects/{id}/work-logs', [FacultyController::class, 'getProjectWorkLogs']);
     Route::post('/work-logs/{id}/approve', [FacultyController::class, 'approveWorkLog']);
+    Route::post('/work-logs/{id}/rate', [FacultyController::class, 'rateWorkLog']);
+    Route::get('/projects/{id}/client-requirements', [FacultyController::class, 'getProjectClientRequirements']);
+    Route::get('/projects/{id}/requirement-changes', [FacultyController::class, 'getProjectRequirementChanges']);
     Route::get('/students', [FacultyController::class, 'getStudents']);
     Route::get('/meetings', [FacultyController::class, 'getMeetings']);
     Route::post('/meetings', [FacultyController::class, 'createMeeting']);

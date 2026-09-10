@@ -109,47 +109,51 @@ export function FacultyHome(route, router) {
                 </div>
             </div>
 
-            <!-- LIVE STATS OF THE LOGGED-IN FACULTY (CLEAN MONOCHROMATIC ELEGANCE) -->
+            <!-- LIVE STATS OF THE LOGGED-IN FACULTY (INTERACTIVE CARDS) -->
             <div class="faculty-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2.25rem;">
                 
-                <div class="faculty-card-panel" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; color: var(--primary, #059669); flex-shrink: 0;">
+                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/projects" role="button" tabindex="0" title="Click to view Assigned Projects" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #ecfdf5; border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center; color: var(--primary, #059669); flex-shrink: 0;">
                         ${iconProjects}
                     </div>
-                    <div>
+                    <div style="flex-grow: 1;">
                         <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.projects_count}</h3>
                         <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Projects Assigned</p>
                     </div>
+                    <span style="color: var(--primary, #059669); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
-                <div class="faculty-card-panel" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; color: #475569; flex-shrink: 0;">
+                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/students" role="button" tabindex="0" title="Click to view Students Mentored" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; color: #166534; flex-shrink: 0;">
                         ${iconStudents}
                     </div>
-                    <div>
+                    <div style="flex-grow: 1;">
                         <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.students_count}</h3>
                         <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Students Mentored</p>
                     </div>
+                    <span style="color: var(--primary, #059669); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
-                <div class="faculty-card-panel" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; color: #475569; flex-shrink: 0;">
+                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/meetings" role="button" tabindex="0" title="Click to view Meetings" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; color: #1d4ed8; flex-shrink: 0;">
                         ${iconCalendar}
                     </div>
-                    <div>
+                    <div style="flex-grow: 1;">
                         <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.meetings_today_count}</h3>
                         <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Meetings Today</p>
                     </div>
+                    <span style="color: var(--primary, #059669); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
-                <div class="faculty-card-panel" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; color: #475569; flex-shrink: 0;">
+                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/github" role="button" tabindex="0" title="Click to view Linked Repositories" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #f8fafc; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; color: #334155; flex-shrink: 0;">
                         ${iconGit}
                     </div>
-                    <div>
+                    <div style="flex-grow: 1;">
                         <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.github_repos_count}</h3>
                         <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Linked Repositories</p>
                     </div>
+                    <span style="color: var(--primary, #059669); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
             </div>
@@ -295,12 +299,29 @@ export function FacultyHome(route, router) {
             }
         });
 
-        // SPA Navigation for links and buttons
-        container.querySelectorAll('a[href^="/faculty"]').forEach(a => {
+        // KPI Cards Click Redirection
+        container.querySelectorAll('.faculty-kpi-card-clickable').forEach(card => {
+            card.addEventListener('click', () => {
+                const target = card.getAttribute('data-route');
+                if (target && router) router.push(target);
+            });
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const target = card.getAttribute('data-route');
+                    if (target && router) router.push(target);
+                }
+            });
+        });
+
+        // SPA Navigation for links (internal /faculty and /github)
+        container.querySelectorAll('a[href^="/"]').forEach(a => {
             a.addEventListener('click', (e) => {
-                e.preventDefault();
                 const path = a.getAttribute('href');
-                if (router) router.push(path);
+                if (path && (path.startsWith('/faculty') || path.startsWith('/github'))) {
+                    e.preventDefault();
+                    if (router) router.push(path);
+                }
             });
         });
 

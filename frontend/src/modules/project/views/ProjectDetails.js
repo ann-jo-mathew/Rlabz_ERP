@@ -55,6 +55,10 @@ export async function ProjectDetails(route, router) {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
         <span>Finance</span>
       </button>
+      <button class="project-tab-btn" data-tab="client">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Client Details</span>
+      </button>
       <button class="project-tab-btn" data-tab="github">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
         <span>GitHub</span>
@@ -111,23 +115,43 @@ export async function ProjectDetails(route, router) {
             </div>
           </div>
 
-          <!-- Requirements Card -->
-          <div class="project-section-card">
-            <div class="project-section-header">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #2563eb;"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-              <span>Project Requirements</span>
+          <!-- Card 1: Project Requirements (client_requirements) -->
+          <div class="project-section-card" style="text-align: left;">
+            <div class="project-section-header" style="display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem; text-align: left;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #2563eb; flex-shrink: 0;"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+              <span style="text-align: left;">Project Requirements</span>
             </div>
-            <p id="val-project-requirements" class="project-section-text" style="white-space: pre-wrap;"></p>
+            <div id="overview-client-requirements-list" style="text-align: left; display: flex; flex-direction: column; gap: 0.75rem;">
+              <p id="val-project-requirements" class="project-section-text" style="white-space: pre-wrap; margin: 0; color: var(--text-muted, #64748b); text-align: left;">Loading requirements...</p>
+            </div>
           </div>
 
-          <!-- Students Working in Project Card -->
-          <div class="project-section-card">
-            <div class="project-section-header">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #7c3aed;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              <span>Assigned Development Team</span>
+          <!-- Card 2: Requirement Changes & Updates (requirement_changes with notification symbol) -->
+          <div class="project-section-card" style="text-align: left;">
+            <div class="project-section-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.6rem; text-align: left;">
+              <div style="display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem; text-align: left;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #d97706; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <span style="text-align: left;">Requirement Changes</span>
+              </div>
+              <div id="req-changes-badge-wrapper" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; font-size: 0.78rem; font-weight: 700;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2);"></span>
+                <span>🔔</span>
+                <span id="req-changes-count-text">0 Updates</span>
+              </div>
             </div>
-            <div id="overview-students-list" style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
-              <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0; font-style: italic;">Loading students...</p>
+            <div id="overview-requirement-changes-list" style="text-align: left; display: flex; flex-direction: column; gap: 0.75rem;">
+              <p style="color: var(--text-muted, #64748b); font-size: 0.9rem; margin: 0; font-style: italic; text-align: left;">No requirement changes recorded for this project.</p>
+            </div>
+          </div>
+
+          <!-- Card 3: Students Working in Project Card -->
+          <div class="project-section-card" style="text-align: left;">
+            <div class="project-section-header" style="display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem; text-align: left;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #7c3aed; flex-shrink: 0;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span style="text-align: left;">Assigned Development Team</span>
+            </div>
+            <div id="overview-students-list" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-start; text-align: left;">
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0; font-style: italic; text-align: left;">Loading students...</p>
             </div>
           </div>
         </div>
@@ -189,6 +213,36 @@ export async function ProjectDetails(route, router) {
                 </button>
               ` : ''}
             </div>
+          </div>
+
+          <!-- INLINE ADD TASK FORM (Identical style to Add Module) -->
+          <div id="task-form-container" style="display: none; margin-bottom: 1.25rem; padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-surface, #ffffff); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <form id="form-task-inline" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 220px;">
+                  <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main, #334155);">Target Module *</label>
+                  <select id="inline-task-module-select" name="module_id" class="premium-input" style="width: 100%; box-sizing: border-box; height: 40px; font-size: 0.88rem;" required>
+                    <option value="">-- Select Module --</option>
+                  </select>
+                </div>
+                <div style="flex: 2; min-width: 260px;">
+                  <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main, #334155);">Task Title *</label>
+                  <input type="text" id="inline-task-title" name="title" placeholder="Task Title (e.g. Implement authentication flow)" class="premium-input" style="width: 100%; box-sizing: border-box; height: 40px; font-size: 0.88rem;" required />
+                </div>
+                <div style="width: 130px;">
+                  <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main, #334155);">Weight</label>
+                  <input type="number" id="inline-task-weight" name="weight" min="1" max="1000" value="1" placeholder="1" class="premium-input" style="width: 100%; box-sizing: border-box; height: 40px; font-size: 0.88rem;" />
+                </div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main, #334155);">Task Description (Optional)</label>
+                <textarea id="inline-task-desc" name="description" placeholder="Description of task deliverables and scope..." class="premium-input" rows="2" style="width: 100%; box-sizing: border-box; resize: vertical; font-size: 0.88rem;"></textarea>
+              </div>
+              <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                <button type="button" id="btn-cancel-task-inline" class="btn btn-outline btn-sm" style="padding: 0.45rem 1rem;">Cancel</button>
+                <button type="submit" id="btn-submit-task-inline" class="btn btn-primary btn-sm shadow-hover" style="padding: 0.45rem 1.25rem;">Save Task</button>
+              </div>
+            </form>
           </div>
 
           <div class="project-table-container animate-fade-in" style="margin-top: 0; background: #ffffff; border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0);">
@@ -274,6 +328,49 @@ export async function ProjectDetails(route, router) {
         </div>
       </div>
 
+      <!-- CLIENT DETAILS TAB -->
+      <div id="tab-client" class="tab-content" style="display: none;">
+        <div class="card-panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h3 style="margin: 0; font-size: 1.25rem;">Client Details & Requirements</h3>
+              <p style="margin: 0.25rem 0 0; color: var(--text-muted); font-size: 0.85rem;">Client agency information and recorded requirements for this project.</p>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem;">
+            <div style="padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Client / Sponsor Agency</span>
+              <strong id="client-tab-name" style="display: block; font-size: 1.15rem; margin-top: 0.4rem; color: var(--text-main);">-</strong>
+            </div>
+            <div style="padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Contact Email</span>
+              <strong id="client-tab-email" style="display: block; font-size: 1rem; margin-top: 0.4rem; color: var(--text-main); word-break: break-all;">-</strong>
+            </div>
+            <div style="padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Contact Phone</span>
+              <strong id="client-tab-phone" style="display: block; font-size: 1rem; margin-top: 0.4rem; color: var(--text-main);">-</strong>
+            </div>
+            <div style="padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">Project Type</span>
+              <strong id="client-tab-type" style="display: block; font-size: 1rem; margin-top: 0.4rem; color: var(--text-main);">-</strong>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.75rem; padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface);">
+            <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; font-weight: 700; color: var(--text-main);">Deliverables & Scope</h4>
+            <p id="client-tab-deliverables" style="margin: 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">-</p>
+          </div>
+
+          <div>
+            <h4 style="margin-bottom: 1rem; font-size: 1rem; font-weight: 700;">Documented Client Requirements</h4>
+            <div id="client-requirements-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <div class="spinner" style="border-top-color: var(--primary); margin: 20px auto; display: block; width: 24px; height: 24px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- GITHUB TAB -->
       <div id="tab-github" class="tab-content" style="display: none;">
         <div class="card-panel">
@@ -288,184 +385,128 @@ export async function ProjectDetails(route, router) {
       </div>
 
     </div>
-
-    <!-- ADD TASK MODAL -->
-    <div id="modal-add-task" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 999999; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-      <div style="background: var(--bg-surface, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; width: 92%; max-width: 520px; padding: 1.75rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1); animation: fadeIn 0.2s ease;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-          <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">Add New Task</h3>
-          <button type="button" id="btn-close-task-modal" style="background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</button>
-        </div>
-        <p id="task-modal-module-title" style="margin: 0 0 1.25rem; font-size: 0.88rem; color: var(--primary, #059669); font-weight: 600;"></p>
-        
-        <form id="form-create-task" style="display: flex; flex-direction: column; gap: 1rem;">
-          <input type="hidden" id="task-modal-module-id" />
-          <div id="task-modal-module-select-group">
-            <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main);">Assign to Module <span style="color: #ef4444;">*</span></label>
-            <select id="task-modal-module-select" class="premium-input" style="width: 100%; box-sizing: border-box;" required></select>
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main);">Task Title <span style="color: #ef4444;">*</span></label>
-            <input type="text" id="task-input-title" class="premium-input" placeholder="e.g. Implement authentication flow" required style="width: 100%; box-sizing: border-box;" />
-          </div>
-
-          <div>
-            <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main);">Task Description</label>
-            <textarea id="task-input-desc" class="premium-input" rows="3" placeholder="Provide detailed task instructions..." style="width: 100%; box-sizing: border-box; resize: vertical;"></textarea>
-          </div>
-
-          <div>
-            <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main);">Time / Weight (Story Points or Hours)</label>
-            <input type="number" id="task-input-weight" class="premium-input" min="1" max="1000" value="1" placeholder="1" style="width: 100%; box-sizing: border-box;" />
-            <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 0.25rem;">Estimated time or difficulty weight score (default: 1)</small>
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-            <button type="button" id="btn-cancel-task-modal" class="btn btn-outline btn-sm">Cancel</button>
-            <button type="submit" id="btn-submit-task" class="btn btn-primary btn-sm shadow-hover">Add Task</button>
-          </div>
-        </form>
-      </div>
-    </div>
   `;
-
-  // Cleanup any previously mounted modal from document.body
-  const oldModal = document.getElementById('modal-add-task');
-  if (oldModal && oldModal.parentElement === document.body) {
-    oldModal.remove();
-  }
 
   // State
   let selectedModuleId = null;
   let projectModules = [];
+  let currentProjectData = null;
 
-  const getModalEl = () => {
-    let modal = document.getElementById('modal-add-task');
-    if (!modal) {
-      modal = container.querySelector('#modal-add-task');
-      if (modal) {
-        document.body.appendChild(modal);
-      }
+  // Inline Add Task Form Elements
+  const taskFormContainer = container.querySelector('#task-form-container');
+  const btnAddTaskTasksTab = container.querySelector('#btn-add-task-tasks-tab');
+  const btnCancelTaskInline = container.querySelector('#btn-cancel-task-inline');
+  const formTaskInline = container.querySelector('#form-task-inline');
+  const inlineTaskModuleSelect = container.querySelector('#inline-task-module-select');
+  const inlineTaskTitle = container.querySelector('#inline-task-title');
+  const inlineTaskDesc = container.querySelector('#inline-task-desc');
+  const inlineTaskWeight = container.querySelector('#inline-task-weight');
+
+  const populateInlineTaskModuleOptions = (targetModuleId) => {
+    if (!inlineTaskModuleSelect) return;
+    if (!projectModules || projectModules.length === 0) {
+      inlineTaskModuleSelect.innerHTML = '<option value="">No modules available</option>';
+      return;
     }
-    return modal;
+    inlineTaskModuleSelect.innerHTML = projectModules.map(m => `
+      <option value="${m.id}" ${String(m.id) === String(targetModuleId) ? 'selected' : ''}>${m.module_name || m.name || 'Module'}</option>
+    `).join('');
+    if (targetModuleId) {
+      inlineTaskModuleSelect.value = targetModuleId;
+    }
   };
 
-  const closeTaskModal = () => {
-    const taskModal = getModalEl();
-    if (taskModal) {
-      taskModal.style.display = 'none';
-      const form = taskModal.querySelector('#form-create-task');
-      if (form) form.reset();
-    }
-  };
-
-  const openTaskModal = (targetModuleId) => {
-    const taskModal = getModalEl();
-    if (!taskModal) return;
-
+  const showInlineTaskForm = (targetModuleId) => {
     if (!projectModules || projectModules.length === 0) {
       alert('Please create at least one module first using "+ Add Module" before adding tasks.');
       return;
     }
 
-    const modalModuleSelect = taskModal.querySelector('#task-modal-module-select');
-    const modalModuleId = taskModal.querySelector('#task-modal-module-id');
-    const modalModuleTitle = taskModal.querySelector('#task-modal-module-title');
-    const taskInputTitle = taskModal.querySelector('#task-input-title');
-    const taskInputDesc = taskModal.querySelector('#task-input-desc');
-    const taskInputWeight = taskModal.querySelector('#task-input-weight');
-
-    if (modalModuleSelect) {
-      modalModuleSelect.innerHTML = projectModules.map(m => `
-        <option value="${m.id}" ${String(m.id) === String(targetModuleId) ? 'selected' : ''}>${m.module_name || m.name || 'Module'}</option>
-      `).join('');
+    // Switch to tasks tab so the form is visible
+    const tabTasksBtn = container.querySelector('.project-tab-btn[data-tab="tasks"]');
+    if (tabTasksBtn && !tabTasksBtn.classList.contains('active')) {
+      tabTasksBtn.click();
     }
 
-    const chosenId = targetModuleId || (modalModuleSelect ? modalModuleSelect.value : projectModules[0].id);
-    if (modalModuleSelect) modalModuleSelect.value = chosenId;
-    if (modalModuleId) modalModuleId.value = chosenId;
+    populateInlineTaskModuleOptions(targetModuleId || selectedModuleId || (projectModules[0] ? projectModules[0].id : null));
 
-    const matchedMod = projectModules.find(m => String(m.id) === String(chosenId));
-    if (modalModuleTitle) {
-      modalModuleTitle.textContent = matchedMod ? `Assigning task to module: ${matchedMod.module_name || matchedMod.name}` : '';
+    if (taskFormContainer) {
+      taskFormContainer.style.display = 'block';
     }
+    if (btnAddTaskTasksTab) {
+      btnAddTaskTasksTab.style.display = 'none';
+    }
+    if (inlineTaskTitle) {
+      inlineTaskTitle.value = '';
+      setTimeout(() => inlineTaskTitle.focus(), 50);
+    }
+    if (inlineTaskDesc) inlineTaskDesc.value = '';
+    if (inlineTaskWeight) inlineTaskWeight.value = '1';
 
-    if (taskInputTitle) taskInputTitle.value = '';
-    if (taskInputDesc) taskInputDesc.value = '';
-    if (taskInputWeight) taskInputWeight.value = '1';
-
-    taskModal.style.display = 'flex';
-    initTaskModalListeners();
-    setTimeout(() => taskInputTitle && taskInputTitle.focus(), 50);
+    taskFormContainer?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
 
-  const initTaskModalListeners = () => {
-    const taskModal = getModalEl();
-    if (!taskModal) return;
-
-    const btnClose = taskModal.querySelector('#btn-close-task-modal');
-    if (btnClose && !btnClose._bound) {
-      btnClose._bound = true;
-      btnClose.addEventListener('click', closeTaskModal);
+  const hideInlineTaskForm = () => {
+    if (taskFormContainer) {
+      taskFormContainer.style.display = 'none';
     }
-
-    const btnCancel = taskModal.querySelector('#btn-cancel-task-modal');
-    if (btnCancel && !btnCancel._bound) {
-      btnCancel._bound = true;
-      btnCancel.addEventListener('click', closeTaskModal);
+    if (btnAddTaskTasksTab) {
+      btnAddTaskTasksTab.style.display = 'inline-flex';
     }
-
-    if (!taskModal._backdropBound) {
-      taskModal._backdropBound = true;
-      taskModal.addEventListener('click', (e) => {
-        if (e.target === taskModal) closeTaskModal();
-      });
+    if (formTaskInline) {
+      formTaskInline.reset();
     }
+  };
 
-    const selectEl = taskModal.querySelector('#task-modal-module-select');
-    if (selectEl && !selectEl._bound) {
-      selectEl._bound = true;
-      selectEl.addEventListener('change', (e) => {
-        const modalModuleId = taskModal.querySelector('#task-modal-module-id');
-        if (modalModuleId) modalModuleId.value = e.target.value;
-        const modalModuleTitle = taskModal.querySelector('#task-modal-module-title');
-        const matchedMod = projectModules.find(m => String(m.id) === String(e.target.value));
-        if (modalModuleTitle && matchedMod) {
-          modalModuleTitle.textContent = `Assigning task to module: ${matchedMod.module_name || matchedMod.name}`;
-        }
-      });
-    }
+  if (btnCancelTaskInline) {
+    btnCancelTaskInline.addEventListener('click', hideInlineTaskForm);
+  }
 
-    const form = taskModal.querySelector('#form-create-task');
-    if (form && !form._bound) {
-      form._bound = true;
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const moduleId = taskModal.querySelector('#task-modal-module-select')?.value || taskModal.querySelector('#task-modal-module-id')?.value;
-        const title = taskModal.querySelector('#task-input-title')?.value.trim();
-        const description = taskModal.querySelector('#task-input-desc')?.value.trim();
-        const weightVal = taskModal.querySelector('#task-input-weight')?.value.trim();
-        const weight = weightVal ? parseInt(weightVal, 10) : 1;
+  if (formTaskInline) {
+    formTaskInline.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const moduleId = inlineTaskModuleSelect?.value;
+      const title = inlineTaskTitle?.value?.trim();
+      const description = inlineTaskDesc?.value?.trim();
+      const weightVal = inlineTaskWeight?.value?.trim();
+      const weight = weightVal ? parseInt(weightVal, 10) : 1;
 
-        if (!moduleId) {
-          alert('Please select a module to assign this task to.');
-          return;
-        }
+      if (!moduleId) {
+        alert('Please select a module to assign this task to.');
+        return;
+      }
 
-        if (!title) {
-          alert('Please enter a task title.');
-          return;
-        }
+      if (!title) {
+        alert('Please enter a task title.');
+        return;
+      }
 
-        const submitBtn = taskModal.querySelector('#btn-submit-task');
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Adding...';
-        }
+      const submitBtn = container.querySelector('#btn-submit-task-inline');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+      }
 
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`${API_BASE}/projects/modules/${moduleId}/tasks`, {
+      try {
+        const token = localStorage.getItem('token');
+        let response;
+        if (role === 'faculty') {
+          response = await fetch(`${API_BASE}/faculty/tasks`, {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              module_id: parseInt(moduleId, 10),
+              task_id: 'new',
+              new_title: title,
+              new_description: description,
+              weight: weight
+            })
+          });
+        } else {
+          response = await fetch(`${API_BASE}/projects/modules/${moduleId}/tasks`, {
             method: 'POST',
             headers: {
               'Authorization': 'Bearer ' + token,
@@ -477,30 +518,30 @@ export async function ProjectDetails(route, router) {
               weight
             })
           });
-
-          const resData = await response.json();
-          if (response.ok && (resData.status === 'success' || resData.data)) {
-            closeTaskModal();
-            showFacultySuccessPopup(
-              'Task Added',
-              `Task "${title}" created successfully with status To Do.`
-            );
-            await loadProject();
-          } else {
-            alert(resData.error || resData.message || 'Failed to add task.');
-          }
-        } catch (err) {
-          console.error('Error adding task:', err);
-          alert('Error connecting to server. Please try again.');
-        } finally {
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Add Task';
-          }
         }
-      });
-    }
-  };
+
+        const resData = await response.json();
+        if (response.ok && (resData.status === 'success' || resData.success || resData.data)) {
+          hideInlineTaskForm();
+          showFacultySuccessPopup(
+            'Task Added',
+            `Task "${title}" created successfully with status To Do.`
+          );
+          await loadProject();
+        } else {
+          alert(resData.error || resData.message || 'Failed to add task.');
+        }
+      } catch (err) {
+        console.error('Error adding task:', err);
+        alert('Error connecting to server. Please try again.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Save Task';
+        }
+      }
+    });
+  }
 
   // Global click delegation for all Add Task buttons in the container
   container.addEventListener('click', (e) => {
@@ -509,7 +550,7 @@ export async function ProjectDetails(route, router) {
       e.preventDefault();
       e.stopPropagation();
       const mId = btn.getAttribute('data-module-id') || selectedModuleId || (projectModules[0] ? projectModules[0].id : null);
-      openTaskModal(mId);
+      showInlineTaskForm(mId);
     }
   });
 
@@ -549,7 +590,7 @@ export async function ProjectDetails(route, router) {
         e.stopPropagation();
         const buttonEl = e.target.closest('button');
         const moduleId = buttonEl.getAttribute('data-module-id') || selectedModuleId || (projectModules[0] ? projectModules[0].id : null);
-        openTaskModal(moduleId);
+        showInlineTaskForm(moduleId);
       });
     });
 
@@ -629,10 +670,21 @@ export async function ProjectDetails(route, router) {
           facultyEl.textContent = (p.faculty && p.faculty.length > 0) ? p.faculty.map(f => f.name).join(', ') : 'Unassigned';
         }
 
-        const projReqEl = container.querySelector('#val-project-requirements');
-        if (projReqEl) {
-          projReqEl.textContent = p.requirements || 'No requirements documented in project table.';
-        }
+        loadOverviewRequirements(p);
+
+        // Populate Client Details Tab
+        currentProjectData = p;
+        const cNameEl = container.querySelector('#client-tab-name');
+        if (cNameEl) cNameEl.textContent = p.client_name || 'N/A';
+        const cEmailEl = container.querySelector('#client-tab-email');
+        if (cEmailEl) cEmailEl.textContent = p.client_email || 'N/A';
+        const cPhoneEl = container.querySelector('#client-tab-phone');
+        if (cPhoneEl) cPhoneEl.textContent = p.client_phone || 'N/A';
+        const cTypeEl = container.querySelector('#client-tab-type');
+        if (cTypeEl) cTypeEl.textContent = p.project_type || 'N/A';
+        const cDelivEl = container.querySelector('#client-tab-deliverables');
+        if (cDelivEl) cDelivEl.textContent = p.deliverables || p.description || 'No deliverables recorded.';
+        loadClientRequirements(p);
 
         // Render Students Working in Project in Overview Tab
         const overviewStudentsContainer = container.querySelector('#overview-students-list');
@@ -1156,26 +1208,52 @@ export async function ProjectDetails(route, router) {
       try {
         const token = localStorage.getItem('token');
         const formData = new FormData(formModule);
-        const response = await fetch(`${API_BASE}/projects/${projectId}/modules`, {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(Object.fromEntries(formData.entries()))
-        });
+        const modName = (formData.get('name') || '').trim();
+        const modDesc = (formData.get('description') || '').trim();
+
+        if (!modName) {
+          alert('Please enter a module name.');
+          return;
+        }
+
+        let response;
+        if (role === 'faculty') {
+          response = await fetch(`${API_BASE}/faculty/projects/${projectId}/modules`, {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              module_id: 'new',
+              new_module_name: modName,
+              new_description: modDesc,
+              student_ids: []
+            })
+          });
+        } else {
+          response = await fetch(`${API_BASE}/projects/${projectId}/modules`, {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Object.fromEntries(formData.entries()))
+          });
+        }
+
         if (response.ok) {
           modFormContainer.style.display = 'none';
           btnAddModule.style.display = 'inline-block';
-          const modName = formData.get('name') || 'Module';
           formModule.reset();
           showFacultySuccessPopup(
             'Module Created',
-            `Module "${modName}" was created successfully.`
+            `Module "${modName}" was created successfully with status Not Started.`
           );
           loadProject();
         } else {
-          alert('Failed to save module');
+          const errData = await response.json().catch(() => ({}));
+          alert(errData.error || errData.message || 'Failed to save module');
         }
       } catch (err) {
         console.error(err);
@@ -1238,6 +1316,227 @@ export async function ProjectDetails(route, router) {
   if (tabFinBtn) {
     tabFinBtn.addEventListener('click', () => {
       loadFinance();
+    });
+  }
+
+  // Overview Requirements & Changes Logic
+  const loadOverviewRequirements = async (p) => {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+
+    // 1. Fetch initial client requirements for Card 1
+    const clientReqListEl = container.querySelector('#overview-client-requirements-list');
+    try {
+      let requirements = [];
+      const res = await fetch(`${API_BASE}/faculty/projects/${projectId}/client-requirements`, { headers });
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData && resData.success && Array.isArray(resData.data)) {
+          requirements = resData.data;
+        }
+      }
+      if (requirements.length === 0) {
+        const fallbackRes = await fetch(`${API_BASE}/projects/${projectId}/requirements`, { headers });
+        if (fallbackRes.ok) {
+          const fbData = await fallbackRes.json();
+          if (fbData && fbData.status === 'success' && Array.isArray(fbData.data)) {
+            requirements = fbData.data;
+          }
+        }
+      }
+
+      if (clientReqListEl) {
+        if (requirements.length > 0) {
+          clientReqListEl.innerHTML = requirements.map((r, i) => `
+            <div style="padding: 0.85rem 1.1rem; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; background: #ffffff; text-align: left;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; text-align: left;">
+                  <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #eff6ff; color: #2563eb; font-size: 0.75rem; font-weight: 700;">${i + 1}</span>
+                  <strong style="font-size: 0.92rem; color: var(--text-main, #0f172a); text-align: left;">${r.title || `Requirement #${i + 1}`}</strong>
+                </div>
+                ${r.status ? `<span class="status-badge ${(r.status || '').toLowerCase()}" style="font-size: 0.72rem; padding: 0.15rem 0.55rem; text-transform: uppercase;">${r.status}</span>` : ''}
+              </div>
+              <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted, #475569); line-height: 1.5; white-space: pre-wrap; text-align: left;">${r.description || 'No detailed description provided.'}</p>
+            </div>
+          `).join('');
+        } else if (p && p.requirements) {
+          clientReqListEl.innerHTML = `
+            <div style="padding: 0.85rem 1.1rem; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; background: #ffffff; text-align: left;">
+              <p style="margin: 0; font-size: 0.88rem; color: var(--text-main, #334155); line-height: 1.5; white-space: pre-wrap; text-align: left;">${p.requirements}</p>
+            </div>
+          `;
+        } else {
+          clientReqListEl.innerHTML = '<p style="color: var(--text-muted, #64748b); font-size: 0.9rem; margin: 0; font-style: italic; text-align: left;">No client requirements documented for this project.</p>';
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching client requirements:', err);
+      if (clientReqListEl) {
+        if (p && p.requirements) {
+          clientReqListEl.innerHTML = `
+            <div style="padding: 0.85rem 1.1rem; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; background: #ffffff; text-align: left;">
+              <p style="margin: 0; font-size: 0.88rem; color: var(--text-main, #334155); line-height: 1.5; white-space: pre-wrap; text-align: left;">${p.requirements}</p>
+            </div>
+          `;
+        } else {
+          clientReqListEl.innerHTML = '<p style="color: var(--text-muted, #64748b); font-size: 0.9rem; margin: 0; font-style: italic; text-align: left;">No client requirements documented for this project.</p>';
+        }
+      }
+    }
+
+    // 2. Fetch requirement changes for Card 2
+    const changesListEl = container.querySelector('#overview-requirement-changes-list');
+    const badgeWrapperEl = container.querySelector('#req-changes-badge-wrapper');
+    const countTextEl = container.querySelector('#req-changes-count-text');
+
+    try {
+      let changes = [];
+      const resChanges = await fetch(`${API_BASE}/faculty/projects/${projectId}/requirement-changes`, { headers });
+      if (resChanges.ok) {
+        const changesData = await resChanges.json();
+        if (changesData && changesData.success && Array.isArray(changesData.data)) {
+          changes = changesData.data;
+        }
+      }
+
+      if (countTextEl) {
+        countTextEl.textContent = `${changes.length} ${changes.length === 1 ? 'Update' : 'Updates'}`;
+      }
+      if (badgeWrapperEl) {
+        if (changes.length > 0) {
+          badgeWrapperEl.style.display = 'inline-flex';
+          badgeWrapperEl.style.background = '#fff1f2';
+          badgeWrapperEl.style.color = '#e11d48';
+          badgeWrapperEl.style.borderColor = '#fecdd3';
+        } else {
+          badgeWrapperEl.style.background = '#f1f5f9';
+          badgeWrapperEl.style.color = '#64748b';
+          badgeWrapperEl.style.borderColor = '#e2e8f0';
+        }
+      }
+
+      if (changesListEl) {
+        if (changes.length > 0) {
+          changesListEl.innerHTML = changes.map((c, i) => {
+            const reqTitle = c.requirement_title || `Requirement Change #${i + 1}`;
+            const changeDesc = c.change_description || c.new_description || 'Requirement update requested.';
+            const prevDesc = c.previous_description;
+            const reason = c.reason;
+            const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString() : '';
+            const status = (c.status || 'pending').toLowerCase();
+            const statusColor = status === 'approved' ? '#059669' : (status === 'rejected' ? '#dc2626' : '#d97706');
+            const statusBg = status === 'approved' ? '#ecfdf5' : (status === 'rejected' ? '#fef2f2' : '#fef3c7');
+
+            return `
+              <div style="padding: 0.95rem 1.15rem; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; background: #ffffff; text-align: left; position: relative;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.45rem; flex-wrap: wrap;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; text-align: left;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: #fff7ed; color: #ea580c; font-size: 0.75rem; font-weight: 700;">🔔</span>
+                    <strong style="font-size: 0.92rem; color: var(--text-main, #0f172a); text-align: left;">${reqTitle}</strong>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 9999px; font-weight: 700; background: ${statusBg}; color: ${statusColor}; text-transform: uppercase;">
+                      ${status}
+                    </span>
+                    ${dateStr ? `<span style="font-size: 0.75rem; color: var(--text-muted, #64748b);">${dateStr}</span>` : ''}
+                  </div>
+                </div>
+                <div style="margin-top: 0.4rem; font-size: 0.86rem; color: var(--text-main, #1e293b); line-height: 1.5; white-space: pre-wrap; background: #f8fafc; padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px solid #f1f5f9; text-align: left;">
+                  <strong>Change Description:</strong> ${changeDesc}
+                </div>
+                ${prevDesc ? `
+                  <div style="margin-top: 0.35rem; font-size: 0.8rem; color: var(--text-muted, #64748b); line-height: 1.4; padding-left: 0.5rem; border-left: 2px solid #cbd5e1; text-align: left;">
+                    <em>Previous:</em> ${prevDesc}
+                  </div>
+                ` : ''}
+                ${reason ? `
+                  <div style="margin-top: 0.35rem; font-size: 0.8rem; color: #b45309; text-align: left;">
+                    <strong>Reason:</strong> ${reason}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('');
+        } else {
+          changesListEl.innerHTML = '<p style="color: var(--text-muted, #64748b); font-size: 0.9rem; margin: 0; font-style: italic; text-align: left;">No requirement changes or updates recorded for this project.</p>';
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching requirement changes:', err);
+      if (changesListEl) {
+        changesListEl.innerHTML = '<p style="color: var(--text-muted, #64748b); font-size: 0.9rem; margin: 0; font-style: italic; text-align: left;">No requirement changes or updates recorded for this project.</p>';
+      }
+    }
+  };
+
+  // Client Details Logic
+  const loadClientRequirements = async (projectData) => {
+    const pData = projectData || currentProjectData;
+    const reqListEl = container.querySelector('#client-requirements-list');
+    if (!reqListEl) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/projects/${projectId}/requirements`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await response.json();
+      const requirements = (data && data.status === 'success' && Array.isArray(data.data)) ? data.data : [];
+
+      if (requirements.length === 0 && (!pData || !pData.requirements)) {
+        reqListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; margin: 0; padding: 0.5rem 0;">No client requirements documented for this project.</p>';
+        return;
+      }
+
+      let reqHtml = '';
+      if (pData && pData.requirements) {
+        reqHtml += `
+          <div style="padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); margin-bottom: 0.75rem;">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.35rem;">Project Overview Requirements</div>
+            <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; white-space: pre-wrap;">${pData.requirements}</p>
+          </div>
+        `;
+      }
+
+      if (requirements.length > 0) {
+        reqHtml += requirements.map((r, i) => `
+          <div style="padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+                <span style="font-weight: 700; font-size: 0.92rem; color: var(--text-main);">${r.title || `Requirement #${i + 1}`}</span>
+                ${r.status ? `<span class="status-badge ${r.status.toLowerCase()}" style="font-size: 0.72rem; padding: 0.15rem 0.5rem;">${r.status}</span>` : ''}
+              </div>
+              <p style="margin: 0; font-size: 0.86rem; color: var(--text-muted); line-height: 1.5; white-space: pre-wrap;">${r.description || 'No description provided.'}</p>
+            </div>
+            ${r.created_at ? `<span style="font-size: 0.76rem; color: var(--text-muted); white-space: nowrap;">${new Date(r.created_at).toLocaleDateString()}</span>` : ''}
+          </div>
+        `).join('');
+      }
+
+      reqListEl.innerHTML = reqHtml;
+    } catch (err) {
+      console.error('Error loading client requirements:', err);
+      if (pData && pData.requirements) {
+        reqListEl.innerHTML = `
+          <div style="padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface);">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 0.35rem;">Project Overview Requirements</div>
+            <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; white-space: pre-wrap;">${pData.requirements}</p>
+          </div>
+        `;
+      } else {
+        reqListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; padding: 0.5rem 0;">No client requirements documented for this project.</p>';
+      }
+    }
+  };
+
+  // Load Client Details on tab switch
+  const tabClientBtn = container.querySelector('[data-tab="client"]');
+  if (tabClientBtn) {
+    tabClientBtn.addEventListener('click', () => {
+      loadClientRequirements(currentProjectData);
     });
   }
 

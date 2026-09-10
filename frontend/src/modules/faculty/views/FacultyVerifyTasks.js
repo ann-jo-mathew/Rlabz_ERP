@@ -266,61 +266,84 @@ export function FacultyVerifyTasks() {
             </div>
 
             <!-- WORK LOGS SECTION -->
-            <div style="margin-bottom: 1.5rem;">
-                    <!-- Metrics Strip -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
-                        <div style="background: #ffffff; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 0.76rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Total Logs</span>
-                            <div style="font-size: 1.3rem; font-weight: 700; color: #0f172a; margin-top: 2px;">${totalLogs}</div>
+            <div style="margin-bottom: 2rem;">
+                    <!-- Metrics Cards (Polished Modern ERP Cards) -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                        <div class="faculty-stat-card-interactive" style="background: #ffffff; padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0); box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.35rem;">Total Logs</span>
+                                <div style="font-size: 1.6rem; font-weight: 700; color: #0f172a; line-height: 1.1;">${totalLogs}</div>
+                            </div>
+                            <div style="width: 44px; height: 44px; border-radius: 10px; background: #f1f5f9; color: #475569; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                ${iconFile}
+                            </div>
                         </div>
-                        <div style="background: #ffffff; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 0.76rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Total Hours</span>
-                            <div style="font-size: 1.3rem; font-weight: 700; color: #059669; margin-top: 2px;">${totalHours} hrs</div>
+
+                        <div class="faculty-stat-card-interactive" style="background: #ffffff; padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0); box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.35rem;">Total Hours</span>
+                                <div style="font-size: 1.6rem; font-weight: 700; color: #059669; line-height: 1.1;">${totalHours} <span style="font-size: 0.95rem; font-weight: 600; color: #64748b;">hrs</span></div>
+                            </div>
+                            <div style="width: 44px; height: 44px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                ${iconClock}
+                            </div>
                         </div>
-                        <div style="background: #ffffff; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 0.76rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Approved</span>
-                            <div style="font-size: 1.3rem; font-weight: 700; color: #16a34a; margin-top: 2px;">${approvedLogsCount}</div>
+
+                        <div class="faculty-stat-card-interactive" style="background: #ffffff; padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0); box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.35rem;">Approved</span>
+                                <div style="font-size: 1.6rem; font-weight: 700; color: #16a34a; line-height: 1.1;">${approvedLogsCount}</div>
+                            </div>
+                            <div style="width: 44px; height: 44px; border-radius: 10px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                ${iconCheckCircle}
+                            </div>
                         </div>
-                        <div style="background: #ffffff; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 0.76rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Pending</span>
-                            <div style="font-size: 1.3rem; font-weight: 700; color: #d97706; margin-top: 2px;">${pendingLogsCount}</div>
+
+                        <div class="faculty-stat-card-interactive" style="background: #ffffff; padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0); box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.35rem;">Pending Approval</span>
+                                <div style="font-size: 1.6rem; font-weight: 700; color: #d97706; line-height: 1.1;">${pendingLogsCount}</div>
+                            </div>
+                            <div style="width: 44px; height: 44px; border-radius: 10px; background: #fffbeb; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                ${iconAlert}
+                            </div>
                         </div>
                     </div>
 
                     <!-- Filter Tabs -->
-                    <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; flex-wrap: wrap;">
-                        <button class="log-tab-btn ${logFilter === 'all' ? 'active-tab' : ''}" data-filter="all" style="background: none; border: none; padding: 0.5rem 0.85rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; color: ${logFilter === 'all' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: ${logFilter === 'all' ? '2px solid var(--primary, #059669)' : 'none'};">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0; flex-wrap: wrap;">
+                        <button class="log-tab-btn ${logFilter === 'all' ? 'active-tab' : ''}" data-filter="all" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'all' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'all' ? 'var(--primary, #059669)' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
                             All Work Logs (${totalLogs})
                         </button>
-                        <button class="log-tab-btn ${logFilter === 'pending' ? 'active-tab' : ''}" data-filter="pending" style="background: none; border: none; padding: 0.5rem 0.85rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; color: ${logFilter === 'pending' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: ${logFilter === 'pending' ? '2px solid var(--primary, #059669)' : 'none'};">
+                        <button class="log-tab-btn ${logFilter === 'pending' ? 'active-tab' : ''}" data-filter="pending" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'pending' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'pending' ? 'var(--primary, #059669)' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
                             Pending Approval (${pendingLogsCount})
                         </button>
-                        <button class="log-tab-btn ${logFilter === 'approved' ? 'active-tab' : ''}" data-filter="approved" style="background: none; border: none; padding: 0.5rem 0.85rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; color: ${logFilter === 'approved' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: ${logFilter === 'approved' ? '2px solid var(--primary, #059669)' : 'none'};">
+                        <button class="log-tab-btn ${logFilter === 'approved' ? 'active-tab' : ''}" data-filter="approved" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'approved' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'approved' ? 'var(--primary, #059669)' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
                             Approved Logs (${approvedLogsCount})
                         </button>
                         ${rejectedLogsCount > 0 ? `
-                            <button class="log-tab-btn ${logFilter === 'rejected' ? 'active-tab' : ''}" data-filter="rejected" style="background: none; border: none; padding: 0.5rem 0.85rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; color: ${logFilter === 'rejected' ? '#dc2626' : '#64748b'}; border-bottom: ${logFilter === 'rejected' ? '2px solid #dc2626' : 'none'};">
+                            <button class="log-tab-btn ${logFilter === 'rejected' ? 'active-tab' : ''}" data-filter="rejected" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'rejected' ? '#dc2626' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'rejected' ? '#dc2626' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
                                 Rejected Logs (${rejectedLogsCount})
                             </button>
                         ` : ''}
                     </div>
 
-                    <!-- Work Logs Table -->
+                    <!-- Work Logs Table Panel -->
                     <div class="faculty-card-panel" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         ${filteredLogs.length === 0 ? `
                             <div style="padding: 3.5rem 2rem; text-align: center; color: var(--text-muted, #64748b);">
                                 <p style="margin: 0; font-size: 0.95rem;">No student work logs found for this filter.</p>
                             </div>
                         ` : `
-                            <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed;">
                                 <thead>
                                     <tr style="background: var(--bg-main, #f8fafc); border-bottom: 2px solid var(--border-color, #e2e8f0);">
-                                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 18%;">Student</th>
-                                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 14%;">Date & Hours</th>
-                                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 22%;">Task & Module</th>
-                                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 22%;">Work Description</th>
-                                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 12%;">Approval</th>
-                                        <th style="padding: 1rem 1.25rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 12%; text-align: right;">Action</th>
+                                        <th style="padding: 1rem 1.25rem; font-size: 0.8rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 17%;">Student</th>
+                                        <th style="padding: 1rem 1.25rem; font-size: 0.8rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 14%;">Date & Hours</th>
+                                        <th style="padding: 1rem 1.25rem; font-size: 0.8rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 23%;">Task & Module</th>
+                                        <th style="padding: 1rem 1.25rem; font-size: 0.8rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 18%;">Work Description</th>
+                                        <th style="padding: 1rem 1.25rem; font-size: 0.8rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 13%;">Rating</th>
+                                        <th style="padding: 1rem 1.25rem; font-size: 0.8rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; width: 15%; text-align: right;">Status & Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -332,88 +355,134 @@ export function FacultyVerifyTasks() {
                                         const taskTitle = l.task_title || 'General Task';
                                         const moduleName = l.module_name || 'General';
 
+                                        // Deadline Compliance Calculation
+                                        const dueDate = l.task_due_date || null;
+                                        let isLate = l.is_late || false;
+                                        let daysLate = l.days_late || 0;
+                                        if (dueDate) {
+                                            const subDateStr = l.created_at ? l.created_at.substring(0, 10) : l.work_date;
+                                            if (subDateStr && subDateStr > dueDate) {
+                                                isLate = true;
+                                                const diffMs = new Date(subDateStr).getTime() - new Date(dueDate).getTime();
+                                                daysLate = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+                                            }
+                                        }
+
+                                        // Star Rating
+                                        const currentRating = parseInt(l.ratings, 10) || 0;
+
                                         return `
                                             <tr style="border-bottom: 1px solid var(--border-color, #e2e8f0); transition: background 0.15s ease;">
                                                 <!-- Student -->
-                                                <td style="padding: 1.1rem 1.25rem; vertical-align: top;">
-                                                    <div style="font-weight: 600; color: var(--text-main, #0f172a); font-size: 0.92rem; display: flex; align-items: center; gap: 0.35rem;">
-                                                        ${iconUser} ${studentName}
+                                                <td style="padding: 1.15rem 1.25rem; vertical-align: top;">
+                                                    <div style="font-weight: 700; color: var(--text-main, #0f172a); font-size: 0.92rem; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        ${iconUser} <span>${studentName}</span>
                                                     </div>
-                                                    <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); margin-top: 2px;">
+                                                    <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                         ${l.student_email || ''}
                                                     </div>
                                                 </td>
 
                                                 <!-- Date & Hours -->
-                                                <td style="padding: 1.1rem 1.25rem; vertical-align: top;">
-                                                    <div style="font-weight: 600; color: var(--text-main, #1e293b); font-size: 0.88rem; display: flex; align-items: center; gap: 0.35rem;">
-                                                        ${iconCalendar} ${l.work_date}
+                                                <td style="padding: 1.15rem 1.25rem; vertical-align: top;">
+                                                    <div style="font-weight: 600; color: var(--text-main, #1e293b); font-size: 0.88rem; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;">
+                                                        ${iconCalendar} <span>${l.work_date}</span>
                                                     </div>
-                                                    <div style="display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 4px; padding: 2px 7px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; background: #f1f5f9; color: var(--primary, #059669); border: 1px solid #e2e8f0;">
-                                                        ${iconClock} ${parseFloat(l.hours_worked || 0).toFixed(1)} hrs
+                                                    <div style="margin-top: 6px;">
+                                                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 2px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; white-space: nowrap;">
+                                                            ${iconClock} ${parseFloat(l.hours_worked || 0).toFixed(1)} hrs
+                                                        </span>
                                                     </div>
                                                 </td>
 
-                                                <!-- Task & Module -->
-                                                <td style="padding: 1.1rem 1.25rem; vertical-align: top;">
-                                                    <div style="font-weight: 600; color: var(--text-main, #0f172a); font-size: 0.9rem; margin-bottom: 0.2rem;">
+                                                <!-- Task, Module & Deadline -->
+                                                <td style="padding: 1.15rem 1.25rem; vertical-align: top;">
+                                                    <div style="font-weight: 700; color: var(--text-main, #0f172a); font-size: 0.92rem; margin-bottom: 0.25rem; line-height: 1.35; word-break: break-word;">
                                                         ${taskTitle}
                                                     </div>
-                                                    <div style="font-size: 0.8rem; color: var(--text-muted, #64748b); display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.35rem;">
-                                                        ${iconFolder} ${moduleName}
+                                                    <div style="font-size: 0.8rem; color: var(--text-muted, #64748b); display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.45rem; word-break: break-word;">
+                                                        ${iconFolder} <span>${moduleName}</span>
                                                     </div>
-                                                    <div>
-                                                        <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${taskStatus === 'completed' ? '#ecfdf5' : '#f1f5f9'}; color: ${taskStatus === 'completed' ? '#059669' : '#475569'}; border: 1px solid ${taskStatus === 'completed' ? '#a7f3d0' : '#e2e8f0'};">
-                                                            TASK: ${taskStatus.replace('_', ' ').toUpperCase()}
+                                                    <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
+                                                        <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${taskStatus === 'completed' ? '#ecfdf5' : '#f1f5f9'}; color: ${taskStatus === 'completed' ? '#059669' : '#475569'}; border: 1px solid ${taskStatus === 'completed' ? '#a7f3d0' : '#e2e8f0'}; text-transform: uppercase;">
+                                                            TASK: ${taskStatus.replace('_', ' ')}
                                                         </span>
+                                                        ${isLate ? `
+                                                            <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;" title="Submitted after task deadline of ${dueDate}">
+                                                                ⚠ Late (${daysLate}d &bull; Due: ${dueDate})
+                                                            </span>
+                                                        ` : dueDate ? `
+                                                            <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;" title="Submitted on time">
+                                                                ✓ On Time (${dueDate})
+                                                            </span>
+                                                        ` : ''}
                                                     </div>
                                                 </td>
 
                                                 <!-- Work Description -->
-                                                <td style="padding: 1.1rem 1.25rem; vertical-align: top;">
-                                                    <div style="font-size: 0.84rem; color: var(--text-main, #334155); line-height: 1.45; background: #f8fafc; padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid #f1f5f9;">
-                                                        ${l.description || 'No work description provided.'}
+                                                <td style="padding: 1.15rem 1.25rem; vertical-align: top;">
+                                                    <div style="font-size: 0.85rem; color: var(--text-main, #334155); line-height: 1.5; background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1px solid #e2e8f0; max-height: 110px; overflow-y: auto; word-break: break-word;">
+                                                        ${l.description || '<span style="color: #94a3b8; font-style: italic;">No description provided.</span>'}
                                                     </div>
                                                 </td>
 
-                                                <!-- Approval Status -->
-                                                <td style="padding: 1.1rem 1.25rem; vertical-align: top;">
-                                                    ${isApproved ? `
-                                                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 4px 9px; border-radius: 9999px; font-size: 0.76rem; font-weight: 600; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;">
-                                                            ${iconCheckCircle} Approved
-                                                        </span>
-                                                    ` : isRejected ? `
-                                                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 4px 9px; border-radius: 9999px; font-size: 0.76rem; font-weight: 600; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5;">
-                                                            ${iconAlert} Rejected
-                                                        </span>
-                                                    ` : `
-                                                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 4px 9px; border-radius: 9999px; font-size: 0.76rem; font-weight: 600; background: #fef3c7; color: #d97706; border: 1px solid #fde68a;">
-                                                            Pending Approval
-                                                        </span>
-                                                    `}
+                                                <!-- Star Rating -->
+                                                <td style="padding: 1.15rem 1.25rem; vertical-align: top;">
+                                                    <div class="star-rating-cell" data-log-id="${l.id}" data-current-rating="${currentRating}">
+                                                        <div class="stars-row" style="display: flex; align-items: center; gap: 2px;">
+                                                            ${[1, 2, 3, 4, 5].map(starNum => {
+                                                                const isFilled = starNum <= currentRating;
+                                                                return `
+                                                                    <button type="button" class="btn-star-rate" data-log-id="${l.id}" data-star="${starNum}" title="Give ${starNum} Star${starNum > 1 ? 's' : ''}" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 1.25rem; line-height: 1; color: ${isFilled ? '#f59e0b' : '#cbd5e1'}; transition: color 0.15s, transform 0.1s;">
+                                                                        ★
+                                                                    </button>
+                                                                `;
+                                                            }).join('')}
+                                                        </div>
+                                                        <div class="star-rating-feedback" style="font-size: 0.75rem; font-weight: 600; color: ${currentRating > 0 ? '#b45309' : '#94a3b8'}; margin-top: 4px;">
+                                                            ${currentRating > 0 ? `${currentRating}/5 Stars` : 'Click to Rate'}
+                                                        </div>
+                                                    </div>
                                                 </td>
 
-                                                <!-- Action Buttons -->
-                                                <td style="padding: 1.1rem 1.25rem; vertical-align: top; text-align: right;">
-                                                    <div style="display: flex; justify-content: flex-end; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
-                                                        ${isApproved ? `
-                                                            <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: #059669; font-weight: 600; padding: 0.25rem 0.5rem; background: #ecfdf5; border-radius: 6px; border: 1px solid #a7f3d0;">
-                                                                ${iconCheckCircle} Verified
-                                                            </span>
-                                                            <button class="btn btn-sm btn-outline btn-open-feedback-modal" data-task-id="${l.task_id || ''}" data-task-title="${(taskTitle || '').replace(/"/g, '&quot;')}" data-student-id="${l.student_id || ''}" data-student-name="${(studentName || '').replace(/"/g, '&quot;')}" title="Add Feedback for Student" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.7rem; font-size: 0.8rem; color: #2563eb; border-color: #93c5fd;">
-                                                                Feedback
-                                                            </button>
-                                                        ` : `
-                                                            <button class="btn btn-sm btn-primary shadow-hover btn-approve-log" data-id="${l.id}" data-status="approved" title="Approve Work Log & Complete Task" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.8rem; font-size: 0.82rem;">
-                                                                ${iconCheck} Approve
-                                                            </button>
-                                                            <button class="btn btn-sm btn-outline btn-approve-log" data-id="${l.id}" data-status="rejected" title="Reject Log" style="padding: 0.4rem 0.65rem; font-size: 0.8rem; color: #dc2626; border-color: #fca5a5;">
-                                                                Reject
-                                                            </button>
-                                                            <button class="btn btn-sm btn-outline btn-open-feedback-modal" data-task-id="${l.task_id || ''}" data-task-title="${(taskTitle || '').replace(/"/g, '&quot;')}" data-student-id="${l.student_id || ''}" data-student-name="${(studentName || '').replace(/"/g, '&quot;')}" title="Add Feedback for Student" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.7rem; font-size: 0.8rem; color: #2563eb; border-color: #93c5fd;">
-                                                                Feedback
-                                                            </button>
-                                                        `}
+                                                <!-- Status & Action (Grouped cleanly) -->
+                                                <td style="padding: 1.15rem 1.25rem; vertical-align: top; text-align: right;">
+                                                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                                                        <!-- Status Badge -->
+                                                        <div>
+                                                            ${isApproved ? `
+                                                                <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 3px 9px; border-radius: 9999px; font-size: 0.76rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;">
+                                                                    ${iconCheckCircle} Approved
+                                                                </span>
+                                                            ` : isRejected ? `
+                                                                <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 3px 9px; border-radius: 9999px; font-size: 0.76rem; font-weight: 700; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5;">
+                                                                    ${iconAlert} Rejected
+                                                                </span>
+                                                            ` : `
+                                                                <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 3px 9px; border-radius: 9999px; font-size: 0.76rem; font-weight: 700; background: #fef3c7; color: #d97706; border: 1px solid #fde68a;">
+                                                                    Pending
+                                                                </span>
+                                                            `}
+                                                        </div>
+
+                                                        <!-- Action Buttons -->
+                                                        <div style="display: flex; gap: 0.35rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+                                                            ${isApproved ? `
+                                                                <button class="btn btn-sm btn-outline btn-open-feedback-modal" data-task-id="${l.task_id || ''}" data-task-title="${(taskTitle || '').replace(/"/g, '&quot;')}" data-student-id="${l.student_id || ''}" data-student-name="${(studentName || '').replace(/"/g, '&quot;')}" title="Add Feedback for Student" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.32rem 0.75rem; font-size: 0.78rem; color: #2563eb; border-color: #bfdbfe; background: #eff6ff; border-radius: 6px; font-weight: 600;">
+                                                                    Feedback
+                                                                </button>
+                                                            ` : `
+                                                                <button class="btn btn-sm btn-primary shadow-hover btn-approve-log" data-id="${l.id}" data-status="approved" title="Approve Work Log & Complete Task" style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; border-radius: 6px;">
+                                                                    ${iconCheck} Approve
+                                                                </button>
+                                                                <button class="btn btn-sm btn-outline btn-approve-log" data-id="${l.id}" data-status="rejected" title="Reject Log" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; color: #dc2626; border-color: #fca5a5; background: #fff; border-radius: 6px; font-weight: 600;">
+                                                                    Reject
+                                                                </button>
+                                                                <button class="btn btn-sm btn-outline btn-open-feedback-modal" data-task-id="${l.task_id || ''}" data-task-title="${(taskTitle || '').replace(/"/g, '&quot;')}" data-student-id="${l.student_id || ''}" data-student-name="${(studentName || '').replace(/"/g, '&quot;')}" title="Add Feedback for Student" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; color: #2563eb; border-color: #bfdbfe; background: #fff; border-radius: 6px; font-weight: 600;">
+                                                                    Feedback
+                                                                </button>
+                                                            `}
+                                                        </div>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -474,6 +543,97 @@ export function FacultyVerifyTasks() {
                 openFeedbackModal(sId, sName, tId, tTitle);
             });
         });
+
+        // Star rating hover and click handlers
+        container.querySelectorAll('.star-rating-cell').forEach(cell => {
+            const logId = cell.getAttribute('data-log-id');
+            const starButtons = cell.querySelectorAll('.btn-star-rate');
+
+            starButtons.forEach(btn => {
+                const starVal = parseInt(btn.getAttribute('data-star'), 10);
+
+                btn.addEventListener('mouseenter', () => {
+                    starButtons.forEach(b => {
+                        const bVal = parseInt(b.getAttribute('data-star'), 10);
+                        b.style.color = bVal <= starVal ? '#f59e0b' : '#cbd5e1';
+                        b.style.transform = bVal <= starVal ? 'scale(1.2)' : 'scale(1)';
+                    });
+                });
+
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await handleRateWorkLog(logId, starVal, cell);
+                });
+            });
+
+            cell.addEventListener('mouseleave', () => {
+                const currentRating = parseInt(cell.getAttribute('data-current-rating'), 10) || 0;
+                starButtons.forEach(b => {
+                    const bVal = parseInt(b.getAttribute('data-star'), 10);
+                    b.style.color = bVal <= currentRating ? '#f59e0b' : '#cbd5e1';
+                    b.style.transform = 'scale(1)';
+                });
+            });
+        });
+    }
+
+    // ==========================================
+    // STAR RATING ACTION (PERSISTS TO student_work_logs)
+    // ==========================================
+    async function handleRateWorkLog(logId, starVal, cell) {
+        const feedbackEl = cell.querySelector('.star-rating-feedback');
+        const starButtons = cell.querySelectorAll('.btn-star-rate');
+
+        if (feedbackEl) {
+            feedbackEl.textContent = 'Saving...';
+            feedbackEl.style.color = '#2563eb';
+        }
+
+        try {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            };
+
+            const res = await fetch(`${apiBase}/faculty/work-logs/${logId}/rate`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ rating: starVal })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                cell.setAttribute('data-current-rating', starVal);
+                starButtons.forEach(b => {
+                    const bVal = parseInt(b.getAttribute('data-star'), 10);
+                    b.style.color = bVal <= starVal ? '#f59e0b' : '#cbd5e1';
+                    b.style.transform = 'scale(1)';
+                });
+                if (feedbackEl) {
+                    feedbackEl.textContent = `★ ${starVal}/5 Stars Saved`;
+                    feedbackEl.style.color = '#15803d';
+                }
+
+                // Update in-memory log
+                if (projectDetail && projectDetail.work_logs) {
+                    const logObj = projectDetail.work_logs.find(l => String(l.id) === String(logId));
+                    if (logObj) {
+                        logObj.ratings = String(starVal);
+                    }
+                }
+            } else {
+                if (feedbackEl) {
+                    feedbackEl.textContent = (data && data.error) ? data.error : 'Failed to save';
+                    feedbackEl.style.color = '#dc2626';
+                }
+            }
+        } catch (err) {
+            console.error('Error saving star rating:', err);
+            if (feedbackEl) {
+                feedbackEl.textContent = 'Error saving rating';
+                feedbackEl.style.color = '#dc2626';
+            }
+        }
     }
 
     // ==========================================
