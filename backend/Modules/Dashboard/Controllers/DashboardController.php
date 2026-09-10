@@ -19,6 +19,29 @@ class DashboardController extends Controller
         return $request->input('auth_user')['sub'] ?? null;
     }
 
+    private function calculateProjectProgress($projectId, $status, $priority = 'normal'): int
+    {
+        if (in_array($status, ['closed', 'completed'], true)) {
+            return 100;
+        }
+
+        if (Schema::hasTable('modules') && Schema::hasTable('tasks')) {
+            $moduleIds = DB::table('modules')->where('project_id', $projectId)->pluck('id');
+            if ($moduleIds->isNotEmpty()) {
+                $totalTasks = DB::table('tasks')->whereIn('module_id', $moduleIds)->count();
+                if ($totalTasks > 0) {
+                    $completedTasks = DB::table('tasks')
+                        ->whereIn('module_id', $moduleIds)
+                        ->whereIn(DB::raw('LOWER(status)'), ['completed', 'done'])
+                        ->count();
+                    return (int) round(($completedTasks / $totalTasks) * 100);
+                }
+            }
+        }
+
+        return 0;
+    }
+
     /**
      * Best-effort audit log insert — never lets a logging failure turn an otherwise
      * successful request into a 500 (e.g. no resolvable current-user id), and never
@@ -108,10 +131,7 @@ class DashboardController extends Controller
                     $facultyName = DB::table('users')->where('id', $facultyId)->value('name') ?: 'Faculty Member';
                 }
                 
-                $progress = 65;
-                if ($p->status === 'accepted') $progress = 25;
-                elseif ($p->status === 'closed' || $p->status === 'completed') $progress = 100;
-                elseif ($p->priority === 'urgent') $progress = 85;
+                $progress = $this->calculateProjectProgress($p->id, $p->status, $p->priority ?? 'normal');
 
                 $activeProjectHealth[] = [
                     'id' => 'PROJ-' . str_pad($p->id, 3, '0', STR_PAD_LEFT),
@@ -210,10 +230,7 @@ class DashboardController extends Controller
                         ->toArray();
                 }
 
-                $progress = 65;
-                if ($p->status === 'accepted') $progress = 25;
-                elseif ($p->status === 'closed' || $p->status === 'completed') $progress = 100;
-                elseif ($p->priority === 'urgent') $progress = 85;
+                $progress = $this->calculateProjectProgress($p->id, $p->status, $p->priority ?? 'normal');
 
                 $deliverablesArray = array_filter(array_map('trim', explode(',', $p->deliverables ?: '')));
                 if (empty($deliverablesArray)) {

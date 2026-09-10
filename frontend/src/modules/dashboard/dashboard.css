@@ -311,6 +311,15 @@
   background: #f9fafb;
 }
 
+.director-clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.director-clickable-row:hover {
+  background-color: #ecfdf5 !important;
+}
+
 /* Progress bar */
 .director-progress-bar-bg {
   width: 100px;
