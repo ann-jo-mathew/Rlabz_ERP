@@ -12,17 +12,54 @@ export async function FinancialReports(route, router) {
   let data = {};
 
   const buildPDFHTML = (type, typeLabel, projectLabel, reportHTML) => `
-    <div style="font-family: Arial, sans-serif; color: #1a1a1a; padding: 40px; max-width: 950px; margin: 0 auto;">
-      <div style="border-bottom:3px solid #059669; padding-bottom:14px; margin-bottom:24px;">
-        <div style="font-size:22px; font-weight:900; color:#059669; margin-bottom:4px;">RLabZ — Financial Report</div>
-        <div style="font-size:13px; font-weight:700; color:#333;">${typeLabel}</div>
-        <div style="font-size:12px; color:#888; margin-top:4px;">
-          Filter: ${projectLabel}&nbsp;&nbsp;|&nbsp;&nbsp;Generated: ${new Date().toLocaleDateString('en-IN', { year:'numeric', month:'long', day:'numeric' })}
+    <div style="position:relative; font-family: Arial, sans-serif; color: #1a1a1a; padding: 40px; max-width: 950px; margin: 0 auto; overflow:hidden;">
+      
+      <!-- BACKGROUND WATERMARK LAYER (z-index: 0) -->
+      <img
+        src="/assets/RlabZ_Watermark.png"
+        alt="RLabZ Watermark"
+        style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 504px;
+          height: auto;
+          opacity: 0.096;
+          pointer-events: none;
+          z-index: 0;
+          mix-blend-mode: multiply;
+        "
+        onerror="this.style.display='none'"
+      />
+
+      <!-- ALL PDF REPORT CONTENT (z-index: 1) -->
+      <div style="position: relative; z-index: 1;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:3px solid #059669; padding-bottom:14px; margin-bottom:24px;">
+          <tr>
+            <td style="vertical-align:bottom;">
+              <div style="font-size:20px; font-weight:900; color:#059669; margin-bottom:4px;">Financial Report</div>
+              <div style="font-size:13px; font-weight:700; color:#333;">${typeLabel}</div>
+              <div style="font-size:12px; color:#888; margin-top:4px;">
+                Filter: ${projectLabel}&nbsp;&nbsp;|&nbsp;&nbsp;Generated: ${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </div>
+            </td>
+            <td style="vertical-align:top; text-align:right;">
+              <img
+                src="/assets/RlabZ_Logo.png"
+                alt="RLabZ Logo"
+                style="height: 56px; width: auto; display: inline-block; object-fit: contain;"
+                onerror="this.style.display='none'"
+              />
+            </td>
+          </tr>
+        </table>
+
+        ${reportHTML}
+
+        <div style="margin-top:30px; text-align:center; font-size:10px; color:#bbb; border-top:1px solid #e2e8f0; padding-top:12px;">
+          This is a system-generated report from RLabZ ERP. Data is indicative and subject to final verification.
         </div>
-      </div>
-      ${reportHTML}
-      <div style="margin-top:30px; text-align:center; font-size:10px; color:#bbb; border-top:1px solid #e2e8f0; padding-top:12px;">
-        This is a system-generated report from RLabZ ERP. Data is indicative and subject to final verification.
       </div>
     </div>
   `;
@@ -76,14 +113,12 @@ export async function FinancialReports(route, router) {
       }
     }
     else if (type === 'Payroll') {
-      // Filter uses project_id (not projectId) - this is the correct field from backend
       const filtered = projectFilter === 'All'
         ? data.payroll
         : data.payroll.filter(p => (p.project_id || '').toString() === projectFilter);
 
       if (!filtered.length) {
         hasData = false;
-        // Use project-specific empty state message
         const noResults = container.querySelector('#no-report-results');
         if (noResults) {
           noResults.querySelector('p').textContent = projectFilter !== 'All'
@@ -170,13 +205,11 @@ export async function FinancialReports(route, router) {
     if (!reportHTML.trim()) { alert('Please generate a report first.'); return; }
 
     const fullHTML = buildPDFHTML(type, typeLabel, projectLabel, reportHTML
-      // Adapt inline theme vars to static values for PDF
       .replace(/var\(--primary\)/g, '#059669')
       .replace(/var\(--text-muted\)/g, '#64748b')
       .replace(/var\(--text-main\)/g, '#1a1a1a')
     );
 
-    // Override badge colors for PDF rendering (no CSS vars in html2canvas)
     const wrapper = document.createElement('div');
     wrapper.innerHTML = fullHTML;
     wrapper.querySelectorAll('.fin-badge').forEach(el => {
