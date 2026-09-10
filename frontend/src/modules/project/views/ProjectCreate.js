@@ -1,3 +1,5 @@
+import { API_BASE } from '@/core/config/api.js';
+
 export async function ProjectCreate(route, router) {
   const container = document.createElement('div');
   container.className = 'project-create animate-fade-in';
@@ -102,7 +104,7 @@ export async function ProjectCreate(route, router) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/projects', {
+      const response = await fetch(`${API_BASE}/projects`, {
         method: 'POST',
         headers: { 
           'Authorization': 'Bearer ' + token,

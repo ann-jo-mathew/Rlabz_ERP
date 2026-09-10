@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Modules\Auth\Models\User;
 use Modules\Coordinator\Models\ClientRequirement;
 use Modules\Coordinator\Models\ProjectClosure;
@@ -135,8 +136,11 @@ class CoordinatorController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'project_type' => 'nullable|string|max:100',
-            'source_type' => 'required|in:faculty,student,alumni,institution,external',
-            'brought_by' => 'nullable|string|max:150',
+            'source_type' => 'required|in:faculty,student,alumni,institution,external,other',
+            // brought_by doubles as the "please specify source" text when source_type is
+            // 'other' (reusing the existing free-text column rather than adding a new one)
+            // and is required in that case.
+            'brought_by' => 'required_if:source_type,other|nullable|string|max:150',
             'client_name' => 'nullable|string|max:150',
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => ['nullable', 'regex:/^[0-9+\-\s()]{7,20}$/'],
@@ -194,6 +198,18 @@ class CoordinatorController extends Controller
             'role' => $validated['role'],
             'assigned_date' => $validated['assigned_date'] ?? now()->toDateString(),
         ]);
+
+        if (Schema::hasTable('notifications')) {
+            $roleLabel = ucfirst(str_replace('_', ' ', $validated['role']));
+            DB::table('notifications')->insert([
+                'user_id' => $validated['student_id'],
+                'type' => 'project_assigned',
+                'message' => "Coordinator assigned you to project '{$project->title}' as {$roleLabel}.",
+                'is_read' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         $record = $project->students()->where('student_id', $validated['student_id'])->first();
 
@@ -279,6 +295,17 @@ class CoordinatorController extends Controller
         $module->students()->attach($validated['student_id'], [
             'assigned_date' => $validated['assigned_date'] ?? now()->toDateString(),
         ]);
+
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                'user_id' => $validated['student_id'],
+                'type' => 'module_assigned',
+                'message' => "Coordinator assigned you to module '{$module->module_name}' in project '{$project->title}'.",
+                'is_read' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         $record = $module->students()->where('users.id', $validated['student_id'])->first();
 
@@ -373,6 +400,17 @@ class CoordinatorController extends Controller
             'due_date' => $validated['due_date'] ?? null,
             'created_by' => $this->currentUserId($request) ?? $request->user()?->id,
         ]);
+
+        if (Schema::hasTable('notifications')) {
+            DB::table('notifications')->insert([
+                'user_id' => $validated['assigned_to'],
+                'type' => 'task_assigned',
+                'message' => "Coordinator assigned you task '{$validated['title']}' under module '{$module->module_name}'.",
+                'is_read' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         return response()->json([
             'message' => 'Task created successfully',
@@ -651,6 +689,15 @@ class CoordinatorController extends Controller
             ->get()
             ->map(function ($m) {
                 $dt = new \DateTime($m->scheduled_at);
+
+                $notes = null;
+                if (strtolower($m->status) === 'completed' && Schema::hasTable('meeting_notes')) {
+                    $notes = DB::table('meeting_notes')
+                        ->where('meeting_id', $m->id)
+                        ->latest('id')
+                        ->first();
+                }
+
                 return [
                     'id' => $m->id,
                     'date' => $dt->format('d M Y'),
@@ -662,6 +709,10 @@ class CoordinatorController extends Controller
                     'agenda' => $m->agenda,
                     'participants' => 'Coordinator, Students',
                     'status' => ucfirst($m->status),
+                    'minutes' => $notes->minutes ?? null,
+                    'important_decisions' => $notes->important_decisions ?? null,
+                    'uploaded_by' => $notes->uploaded_by ?? null,
+                    'uploaded_on' => $notes->uploaded_on ?? null,
                 ];
             });
 
@@ -680,6 +731,7 @@ class CoordinatorController extends Controller
             'date' => 'required|date',
             'time' => 'required|string',
             'participants' => 'nullable|string',
+            'location' => 'nullable|string|max:255',
             'agenda' => 'nullable|string',
             'meeting_link' => 'nullable|string|max:500',
         ]);
@@ -695,6 +747,7 @@ class CoordinatorController extends Controller
             'project_id' => $proj->id,
             'title' => $validated['title'],
             'scheduled_at' => $scheduledAt,
+            'location' => $validated['location'] ?? null,
             'agenda' => $validated['agenda'] ?? null,
             'meeting_link' => $validated['meeting_link'] ?? null,
             'status' => 'scheduled',
@@ -702,6 +755,37 @@ class CoordinatorController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Automatically invite and notify students of the project
+        $studentIds = DB::table('project_student')
+            ->where('project_id', $proj->id)
+            ->pluck('student_id');
+
+        if (Schema::hasTable('meeting_participants')) {
+            foreach ($studentIds as $sId) {
+                DB::table('meeting_participants')->insert([
+                    'meeting_id' => $meetingId,
+                    'user_id' => $sId,
+                    'attendance_status' => 'invited',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        if (Schema::hasTable('notifications')) {
+            $formattedTime = date('M j, Y g:i A', strtotime($scheduledAt));
+            foreach ($studentIds as $sId) {
+                DB::table('notifications')->insert([
+                    'user_id' => $sId,
+                    'type' => 'meeting_scheduled',
+                    'message' => "New meeting scheduled by Coordinator for project '{$proj->title}': '{$validated['title']}' on {$formattedTime}.",
+                    'is_read' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
 
         $dt = new \DateTime($scheduledAt);
 
@@ -713,10 +797,80 @@ class CoordinatorController extends Controller
                 'time' => $dt->format('h:i A'),
                 'title' => $validated['title'],
                 'project' => $proj->title,
+                'location' => $validated['location'] ?? null,
                 'meeting_link' => $validated['meeting_link'] ?? null,
                 'participants' => $validated['participants'] ?? 'Coordinator, Students',
                 'status' => 'Scheduled',
             ],
         ], 201);
+    }
+
+    /**
+     * Update meeting status when meeting date is over:
+     * - 'completed': enters minutes and important_decisions into meeting_notes table.
+     * - 'cancelled': just updates status, no meeting_notes entry.
+     */
+    public function updateMeetingStatus($id, Request $request)
+    {
+        if (!$this->isAuthorized($request, ['view-coordinator', 'view-communication'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|string|in:completed,cancelled',
+            'minutes' => 'nullable|string',
+            'important_decisions' => 'nullable|string',
+        ]);
+
+        $meeting = DB::table('meetings')->where('id', $id)->first();
+        if (!$meeting) {
+            return response()->json(['error' => 'Meeting not found.'], 404);
+        }
+
+        $newStatus = $validated['status'];
+
+        if ($newStatus === 'completed') {
+            $minutes = trim($validated['minutes'] ?? '');
+            $decisions = trim($validated['important_decisions'] ?? '');
+            if (empty($minutes) || empty($decisions)) {
+                return response()->json([
+                    'error' => 'Please provide both minutes of meeting and important decisions to mark as completed.'
+                ], 422);
+            }
+
+            DB::table('meetings')->where('id', $id)->update([
+                'status' => 'completed',
+                'updated_at' => now(),
+            ]);
+
+            if (Schema::hasTable('meeting_notes')) {
+                DB::table('meeting_notes')->insert([
+                    'meeting_id' => $id,
+                    'minutes' => $minutes,
+                    'important_decisions' => $decisions,
+                    'uploaded_by' => $this->currentUserId($request) ?? $request->user()?->id,
+                    'uploaded_on' => now(),
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Meeting status updated to completed and notes saved.',
+                'status' => 'completed',
+                'minutes' => $minutes,
+                'important_decisions' => $decisions,
+            ]);
+        }
+
+        DB::table('meetings')->where('id', $id)->update([
+            'status' => 'cancelled',
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Meeting status updated to cancelled.',
+            'status' => 'cancelled',
+        ]);
     }
 }

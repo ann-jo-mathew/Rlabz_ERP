@@ -1,4 +1,5 @@
 import '../faculty.css';
+import { API_BASE } from '@/core/config/api.js';
 
 export function FacultyStudents() {
     const container = document.createElement('div');
@@ -107,7 +108,7 @@ export function FacultyStudents() {
 
     async function loadStudents() {
         try {
-            const apiBase = window.location.port === '8000' ? '/api' : 'http://127.0.0.1:8000/api';
+            const apiBase = API_BASE;
             const headers = {
                 'Content-Type': 'application/json',
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})

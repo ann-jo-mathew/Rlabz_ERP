@@ -1,5 +1,6 @@
 import '../faculty.css';
 import { showFacultySuccessPopup, showFacultyErrorPopup, showCustomConfirmModal } from '../facultyPopup.js';
+import { API_BASE } from '@/core/config/api.js';
 
 export function FacultySprints() {
     const container = document.createElement('div');
@@ -13,7 +14,7 @@ export function FacultySprints() {
     }
 
     const token = localStorage.getItem('token');
-    const apiBase = window.location.port === '8000' ? '/api' : 'http://127.0.0.1:8000/api';
+    const apiBase = API_BASE;
 
     // State management
     let currentView = 'project-list'; // 'project-list' | 'project-detail'

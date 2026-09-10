@@ -3,6 +3,8 @@
  * Central Data & State Management for Module 2: Director Dashboard & Oversight
  */
 
+import { API_BASE as ROOT_API_BASE } from '@/core/config/api.js';
+
 const STORAGE_KEY = 'rlabz_director_data';
 
 const initialData = {
@@ -29,22 +31,26 @@ function loadState() {
   }
   try {
     const data = JSON.parse(stored);
-    if (data.projects && data.projects.some(p => p.id === 'PROJ-101' || p.title === 'Department Website Portal')) {
-      data.projects = initialData.projects;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    data.projects = Array.isArray(data.projects) ? data.projects : [];
+    data.proposals = Array.isArray(data.proposals) ? data.proposals : [];
+    data.faculties = Array.isArray(data.faculties) ? data.faculties : [];
+    data.students = Array.isArray(data.students) ? data.students : [];
+    data.auditLogs = Array.isArray(data.auditLogs) ? data.auditLogs : [];
+    data.financeSummary = data.financeSummary || initialData.financeSummary;
+
+    if (data.projects.some(p => p.id === 'PROJ-101' || p.title === 'Department Website Portal' || p.progress === 65 || p.progress === 25)) {
+      data.projects = [];
     }
-    if (data.faculties && data.faculties.some(f => f.id === 'FAC-01')) {
-      data.faculties = initialData.faculties;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (data.faculties.some(f => f.id === 'FAC-01')) {
+      data.faculties = [];
     }
-    if (data.students && data.students.length > 3) {
-      data.students = initialData.students;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (data.students.length > 3) {
+      data.students = [];
     }
-    if (data.auditLogs && data.auditLogs.some(l => l.details && (l.details.includes('192.168.1.45') || l.id === 'LOG-001'))) {
+    if (data.auditLogs.some(l => l.details && (l.details.includes('192.168.1.45') || l.id === 'LOG-001'))) {
       data.auditLogs = [];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     return data;
   } catch (e) {
     console.error('Failed to parse director stored data, resetting:', e);
@@ -57,13 +63,13 @@ function saveState(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-const API_BASE = 'http://127.0.0.1:8000/api/dashboard';
+const API_BASE = `${ROOT_API_BASE}/dashboard`;
 
 async function getAuthHeadersAsync(forceRefresh = false) {
   let token = localStorage.getItem('token');
   if (!token || forceRefresh) {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/login', {
+      const res = await fetch(`${ROOT_API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'director@rajagiri.edu', password: 'director123' })
@@ -108,25 +114,30 @@ export class DirectorService {
       return cacheOverview;
     }
     const data = loadState();
-    const activeProjects = data.projects.filter(p => p.status === 'in_progress').length;
-    const pendingProposals = data.proposals.filter(p => p.status === 'pending').length;
-    const novaCount = data.students.filter(s => s.track === 'Nova').length;
-    const orbitCount = data.students.filter(s => s.track === 'Orbit').length;
-    const sparkCount = data.students.filter(s => s.track === 'Spark').length;
+    const projects = Array.isArray(data.projects) ? data.projects : [];
+    const proposals = Array.isArray(data.proposals) ? data.proposals : [];
+    const students = Array.isArray(data.students) ? data.students : [];
+    const faculties = Array.isArray(data.faculties) ? data.faculties : [];
+
+    const activeProjects = projects.filter(p => p.status === 'in_progress' || p.status === 'accepted' || p.status === 'active').length;
+    const pendingProposals = proposals.filter(p => p.status === 'pending' || p.status === 'proposed').length;
+    const novaCount = students.filter(s => s.track === 'Nova').length;
+    const orbitCount = students.filter(s => s.track === 'Orbit').length;
+    const sparkCount = students.filter(s => s.track === 'Spark').length;
 
     return {
-      totalProjects: data.projects.length,
+      totalProjects: projects.length,
       activeProjects,
       pendingProposals,
-      studentCounts: { nova: novaCount, orbit: orbitCount, spark: sparkCount, total: data.students.length },
-      facultyCount: data.faculties.length,
-      finance: data.financeSummary,
-      activeProjectHealth: (data.projects || []).slice(0, 5).map(p => ({
+      studentCounts: { nova: novaCount, orbit: orbitCount, spark: sparkCount, total: students.length },
+      facultyCount: faculties.length,
+      finance: data.financeSummary || initialData.financeSummary,
+      activeProjectHealth: projects.slice(0, 5).map(p => ({
         id: p.id,
         title: p.title,
         facultyName: p.facultyName || 'Faculty Member',
         status: p.status,
-        progress: p.progress || 65
+        progress: p.progress ?? 0
       }))
     };
   }
@@ -305,9 +316,13 @@ export class DirectorService {
               status: p.status,
               priority: p.priority
             })),
-            studentCounts: d.student_counts,
-            facultyCount: d.faculty_count,
-            finance: d.finance_summary,
+            studentCounts: d.student_counts || { nova: 0, orbit: 0, spark: 0, total: 0 },
+            facultyCount: d.faculty_count || 0,
+            finance: {
+              totalBudget: Number(d.finance_summary?.total_budget ?? d.finance_summary?.totalBudget ?? 0),
+              totalSpent: Number(d.finance_summary?.total_spent ?? d.finance_summary?.totalSpent ?? 0),
+              stipendsDisbursed: Number(d.finance_summary?.stipends_disbursed ?? d.finance_summary?.stipendsDisbursed ?? 0)
+            },
             activeProjectHealth: (d.active_project_health || []).map(p => ({
               id: p.id,
               title: p.title,

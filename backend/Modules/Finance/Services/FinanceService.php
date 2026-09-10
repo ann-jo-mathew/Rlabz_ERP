@@ -33,6 +33,9 @@ class FinanceService
         $totalOtherExpenses = $hostingCharges + $sslRenewals + $maintenanceCharges;
         $totalExpenses = $studentPayments + $facultyPayments + $totalOtherExpenses;
 
+        // Total Profit = Total Revenue/Billing - Total Costs.
+        $totalProfit = $totalInvoiced - $totalExpenses;
+
         return [
             'totalBilling' => round($totalInvoiced, 2),
             'totalCollected' => round($totalCollected, 2),
@@ -43,8 +46,43 @@ class FinanceService
             'totalOtherExpenses' => round($hostingCharges + $sslRenewals, 2),
             'totalMaintenance' => round($maintenanceCharges, 2),
             'totalExpenses' => round($totalExpenses, 2),
-            'projectProfit' => round($totalCollected - $totalExpenses, 2)
+            'totalProfit' => round($totalProfit, 2),
+            'projectProfit' => round($totalCollected - $totalExpenses, 2),
+            'sslExpiring' => $this->getSslExpiryWarnings(),
         ];
+    }
+
+    /**
+     * SSL certificates (hosting_charges.charge_type = 'ssl') that are expiring within the
+     * next 30 days or have already expired. Reuses the existing hosting_charges data —
+     * no separate SSL certificate table/model. Distinct from ssl_renewal_history, which
+     * tracks renewal payments rather than upcoming/overdue expiry.
+     */
+    public function getSslExpiryWarnings()
+    {
+        return HostingCharge::with('projectFinance.project')
+            ->where('charge_type', 'ssl')
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '<=', Carbon::now()->addDays(30))
+            ->orderBy('expiry_date')
+            ->get()
+            ->map(function ($charge) {
+                $expiry = Carbon::parse($charge->expiry_date)->startOfDay();
+                $project = $charge->projectFinance->project ?? null;
+                // Compare whole days (not time-of-day) so a cert expiring "today" reads as
+                // 0 days remaining rather than already expired.
+                $daysUntilExpiry = Carbon::now()->startOfDay()->diffInDays($expiry, false);
+
+                return [
+                    'hosting_charge_id' => $charge->id,
+                    'project_id' => $project->id ?? null,
+                    'project_title' => $project->title ?? 'Unknown project',
+                    'expiry_date' => $expiry->toDateString(),
+                    'days_until_expiry' => $daysUntilExpiry,
+                    'expired' => $daysUntilExpiry < 0,
+                ];
+            })
+            ->values();
     }
 
     public function getAllStudentPayments($projectId = null)

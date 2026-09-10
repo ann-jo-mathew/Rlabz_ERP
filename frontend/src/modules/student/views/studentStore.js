@@ -3,6 +3,8 @@
  * Fetches and submits student records to/from the Laravel REST backend.
  */
 
+import { API_BASE } from '@/core/config/api.js';
+
 let cachedProjects = [];
 let cachedSprints = [];
 let cachedReports = [];
@@ -12,6 +14,7 @@ let cachedGithub = [];
 let cachedChatMessages = [];
 let cachedNotifications = [];
 let cachedProfile = null;
+let cachedDashboard = null;
 
 let dataLoaded = false;
 let lastToken = null;
@@ -29,7 +32,7 @@ async function apiFetch(path, options = {}) {
     headers['Content-Type'] = 'application/json';
   }
   
-  const response = await fetch(`http://127.0.0.1:8000/api${path}`, {
+  const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers
   });
@@ -56,6 +59,7 @@ export async function ensureDataLoaded(force = false) {
     cachedChatMessages = [];
     cachedNotifications = [];
     cachedProfile = null;
+    cachedDashboard = null;
     dataLoaded = false;
     lastToken = currentToken;
   }
@@ -106,18 +110,63 @@ export async function ensureDataLoaded(force = false) {
       cachedNotifications = [];
     }
 
-    // 9. Fetch student profile from DB
+    // 10. Fetch unified dashboard (contains assigned tasks, projects, modules, meetings, stats)
     try {
-      cachedProfile = await apiFetch('/student/profile');
+      cachedDashboard = await apiFetch('/student/dashboard');
+      if (cachedDashboard) {
+        if (cachedDashboard.projects && cachedDashboard.projects.length > 0) {
+          cachedProjects = cachedDashboard.projects;
+        }
+        if (cachedDashboard.meetings && cachedDashboard.meetings.length > 0) {
+          cachedMeetings = cachedDashboard.meetings;
+        }
+        if (cachedDashboard.notifications && cachedDashboard.notifications.length > 0) {
+          cachedNotifications = cachedDashboard.notifications;
+        }
+      }
     } catch (err) {
-      console.warn('Could not load profile:', err);
-      cachedProfile = null;
+      console.warn('Could not load unified dashboard:', err);
     }
     
     dataLoaded = true;
   } catch (error) {
     console.error('Error loading backend student data:', error);
   }
+}
+
+export function getDashboardData() {
+  return cachedDashboard;
+}
+
+export async function fetchLiveDashboard(force = true) {
+  if (force || !cachedDashboard) {
+    try {
+      cachedDashboard = await apiFetch('/student/dashboard');
+      if (cachedDashboard) {
+        if (cachedDashboard.projects && cachedDashboard.projects.length > 0) {
+          cachedProjects = cachedDashboard.projects;
+        }
+        if (cachedDashboard.meetings && cachedDashboard.meetings.length > 0) {
+          cachedMeetings = cachedDashboard.meetings;
+        }
+        if (cachedDashboard.notifications && cachedDashboard.notifications.length > 0) {
+          cachedNotifications = cachedDashboard.notifications;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch live dashboard:', e);
+    }
+  }
+  return cachedDashboard;
+}
+
+export async function updateStudentTaskStatus(taskId, status, type = 'task') {
+  const result = await apiFetch(`/student/tasks/${taskId}/status`, {
+    method: 'POST',
+    body: JSON.stringify({ status, type })
+  });
+  await fetchLiveDashboard(true);
+  return result;
 }
 
 export function getProjects() {

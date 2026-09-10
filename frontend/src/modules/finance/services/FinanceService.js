@@ -1,3 +1,5 @@
+import { API_BASE } from '@/core/config/api.js';
+
 class FinanceService {
   async _fetch(endpoint, options = {}) {
     const token = localStorage.getItem('token');
@@ -6,7 +8,7 @@ class FinanceService {
       'Accept': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
-    const response = await fetch(`http://127.0.0.1:8000/api${endpoint}`, { ...options, headers });
+    const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
     if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');

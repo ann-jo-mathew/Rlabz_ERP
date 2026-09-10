@@ -21,11 +21,13 @@ export function DirectorHome(route, router) {
   }
 
   function render(stats = DirectorService.getOverview()) {
-    const proposals = DirectorService.getProposals();
-    const pendingProposals = proposals.filter(p => p.status === 'pending');
-    const projects = DirectorService.getProjects();
-    const auditLogs = DirectorService.getAuditLogs().slice(0, 4);
-    const faculties = DirectorService.getFaculties();
+    stats = stats || DirectorService.getOverview() || {};
+    const studentCounts = stats.studentCounts || { nova: 0, orbit: 0, spark: 0, total: 0 };
+    const proposals = Array.isArray(DirectorService.getProposals()) ? DirectorService.getProposals() : [];
+    const pendingProposals = proposals.filter(p => p.status === 'pending' || p.status === 'proposed');
+    const projects = Array.isArray(DirectorService.getProjects()) ? DirectorService.getProjects() : [];
+    const auditLogs = (Array.isArray(DirectorService.getAuditLogs()) ? DirectorService.getAuditLogs() : []).slice(0, 4);
+    const faculties = Array.isArray(DirectorService.getFaculties()) ? DirectorService.getFaculties() : [];
 
     container.innerHTML = `
       <!-- Header -->
@@ -70,11 +72,11 @@ export function DirectorHome(route, router) {
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             </div>
           </div>
-          <div class="director-kpi-value">${stats.studentCounts.total}</div>
+          <div class="director-kpi-value">${studentCounts.total || 0}</div>
           <div class="director-kpi-subtext">
-            <span class="track-badge nova" style="padding:1px 5px; font-size:0.65rem;">Nova: ${stats.studentCounts.nova}</span>
-            <span class="track-badge orbit" style="padding:1px 5px; font-size:0.65rem;">Orbit: ${stats.studentCounts.orbit}</span>
-            <span class="track-badge spark" style="padding:1px 5px; font-size:0.65rem;">Spark: ${stats.studentCounts.spark}</span>
+            <span class="track-badge nova" style="padding:1px 5px; font-size:0.65rem;">Nova: ${studentCounts.nova || 0}</span>
+            <span class="track-badge orbit" style="padding:1px 5px; font-size:0.65rem;">Orbit: ${studentCounts.orbit || 0}</span>
+            <span class="track-badge spark" style="padding:1px 5px; font-size:0.65rem;">Spark: ${studentCounts.spark || 0}</span>
           </div>
         </div>
 
@@ -83,8 +85,16 @@ export function DirectorHome(route, router) {
             <span class="director-kpi-title">Financial Budget</span>
             <div class="director-kpi-icon emerald">₹</div>
           </div>
-          <div class="director-kpi-value">₹${(stats.finance.totalBudget / 1000).toFixed(0)}k</div>
-          <div class="director-kpi-subtext">Spent: ₹${(stats.finance.totalSpent / 1000).toFixed(0)}k | Disbursed: ₹${(stats.finance.stipendsDisbursed / 1000).toFixed(0)}k</div>
+          ${(() => {
+            const fin = stats.finance || {};
+            const budget = Number(fin.totalBudget ?? fin.total_budget ?? 0);
+            const spent = Number(fin.totalSpent ?? fin.total_spent ?? 0);
+            const disbursed = Number(fin.stipendsDisbursed ?? fin.stipends_disbursed ?? 0);
+            return `
+              <div class="director-kpi-value">₹${(budget / 1000).toFixed(0)}k</div>
+              <div class="director-kpi-subtext">Spent: ₹${(spent / 1000).toFixed(0)}k | Disbursed: ₹${(disbursed / 1000).toFixed(0)}k</div>
+            `;
+          })()}
         </div>
       </div>
 
@@ -139,9 +149,9 @@ export function DirectorHome(route, router) {
                     <td>${p.facultyName || p.faculty_name || 'Faculty Member'}</td>
                     <td>
                       <div class="director-progress-bar-bg">
-                        <div class="director-progress-bar-fill" style="width: ${p.progress || 65}%"></div>
+                        <div class="director-progress-bar-fill" style="width: ${p.progress ?? 0}%"></div>
                       </div>
-                      <strong>${p.progress || 65}%</strong>
+                      <strong>${p.progress ?? 0}%</strong>
                     </td>
                   </tr>
                 `).join('')}

@@ -1,5 +1,6 @@
 import { useAuthStore } from '../stores/auth.js';
 import { modules } from '../../module-manifest.js';
+import { API_BASE } from '../config/api.js';
 
 function populateSidebarNav(sidebarNav, currentPath, authStore) {
   if (!sidebarNav) return;
@@ -277,7 +278,7 @@ export async function DashboardLayout(contentChild, route, router) {
     // Sync live profile from database
     const token = localStorage.getItem('token');
     if (token) {
-      fetch('http://127.0.0.1:8000/api/student/profile', {
+      fetch(`${API_BASE}/student/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

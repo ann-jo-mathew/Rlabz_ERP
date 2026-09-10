@@ -1,6 +1,7 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
 import { getProjects, getReports, getWorkLogs, saveReport, saveWorkLog, ensureDataLoaded } from './studentStore.js';
 import { StudentSwal, showStudentSuccess, showStudentError, showStudentWarning } from '../studentAlerts.js';
+import { STORAGE_BASE } from '@/core/config/api.js';
 import '../student.css';
 
 export async function StudentReports(route, router) {
@@ -77,7 +78,7 @@ export async function StudentReports(route, router) {
       const statusClass = status === 'approved' ? 'student-badge-success' : status === 'rejected' ? 'student-badge-danger' : 'student-badge-warning';
       const isWeekly = (r.type || '').toLowerCase() === 'weekly';
       const hasAttachment = Boolean(r.reportFile);
-      const downloadLink = r.downloadUrl || (r.reportFile ? `http://127.0.0.1:8000/storage/${r.reportFile}` : null);
+      const downloadLink = r.downloadUrl || (r.reportFile ? `${STORAGE_BASE}/${r.reportFile}` : null);
       const token = localStorage.getItem('token');
       const authenticatedDownloadUrl = downloadLink ? (downloadLink.includes('?') ? `${downloadLink}&token=${token}` : `${downloadLink}?token=${token}`) : '#';
 

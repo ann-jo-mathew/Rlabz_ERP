@@ -94,29 +94,41 @@ class ProjectTaskController extends Controller
         }
 
         $userId = $this->getUserId($request);
+
         if (!$userId) {
             $userId = auth()->id();
         }
+
         if (!$userId && isset($request->input('auth_user')['email'])) {
-            $foundUser = DB::table('users')->where('email', $request->input('auth_user')['email'])->first();
+            $foundUser = DB::table('users')
+                ->where('email', $request->input('auth_user')['email'])
+                ->first();
+
             if ($foundUser) {
                 $userId = $foundUser->id;
             }
         }
+
         if (!$userId) {
-            $userId = DB::table('users')->where('role', 'faculty')->value('id') ?? 1;
+            $userId = DB::table('users')
+                ->where('role', 'faculty')
+                ->value('id') ?? 1;
         }
 
-        $task = Task::create([
-            'module_id' => $moduleId,
-            'title' => $request->title,
-            'description' => $request->description,
-            'weight' => $request->weight ? round((float) $request->weight) : 1,
-            'status' => 'todo',
-            'created_by' => $userId
-        ]);
+        try {
+            $task = Task::create([
+                'module_id' => $moduleId,
+                'title' => $request->title,
+                'description' => $request->description,
+                'weight' => $request->weight ? round((float) $request->weight) : 1,
+                'status' => 'todo',
+                'created_by' => $userId
+            ]);
 
-        return response()->json(['status' => 'success', 'data' => $task], 201);
+            return response()->json(['status' => 'success', 'data' => $task], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create task: ' . $e->getMessage()], 500);
+        }
     }
 
     public function updateTaskStatus(Request $request, $taskId)

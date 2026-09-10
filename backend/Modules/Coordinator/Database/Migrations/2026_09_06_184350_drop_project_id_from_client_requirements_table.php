@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -13,10 +11,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('client_requirements', function (Blueprint $table) {
-            $table->dropForeign(['project_id']);
-            $table->dropColumn('project_id');
-        });
+        // project_id is required by the Coordinator requirements workflow.
+        // This migration intentionally does not remove it.
     }
 
     /**
@@ -26,8 +22,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('client_requirements', function (Blueprint $table) {
-            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
-        });
+        // Nothing to reverse because the up() method makes no changes.
     }
 };

@@ -1,4 +1,5 @@
 import { authStore } from '@/core/stores/auth.js';
+import { API_BASE } from '@/core/config/api.js';
 
 function getAuthToken() {
   return authStore?.token || localStorage.getItem('token') || localStorage.getItem('access_token') || null;
@@ -8,7 +9,7 @@ async function fetchStudents() {
   const token = getAuthToken();
   if (!token) throw new Error('Authentication required. Please log in again.');
 
-  const resp = await fetch('http://127.0.0.1:8000/api/coordinator/students', {
+  const resp = await fetch(`${API_BASE}/coordinator/students`, {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -327,7 +328,7 @@ export async function CoordinatorStudents(route, router) {
       }
 
       try {
-        const resp = await fetch('http://127.0.0.1:8000/api/coordinator/students', {
+        const resp = await fetch(`${API_BASE}/coordinator/students`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

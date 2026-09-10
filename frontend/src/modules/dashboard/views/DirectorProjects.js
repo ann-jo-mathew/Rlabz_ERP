@@ -165,9 +165,9 @@ export function DirectorProjects(route, router) {
                   </td>
                   <td>
                     <div class="director-progress-bar-bg">
-                      <div class="director-progress-bar-fill" style="width: ${p.progress || 0}%"></div>
+                      <div class="director-progress-bar-fill" style="width: ${p.progress ?? 0}%"></div>
                     </div>
-                    <strong>${p.progress || 0}%</strong>
+                    <strong>${p.progress ?? 0}%</strong>
                   </td>
                   <td>
                     ₹${formatMoney(p.spent)} / ₹${formatMoney(p.budget)}
@@ -216,7 +216,7 @@ export function DirectorProjects(route, router) {
                   <td><span class="status-badge ${p.status || 'pending'}">${(p.status || 'pending').replace('_', ' ')}</span></td>
                   <td>${p.clientName || 'N/A'}</td>
                   <td>${p.facultyName || 'Unassigned'}</td>
-                  <td>${p.progress || 0}%</td>
+                  <td>${p.progress ?? 0}%</td>
                   <td>₹${formatMoney(p.budget)}</td>
                 </tr>
               `).join('')}

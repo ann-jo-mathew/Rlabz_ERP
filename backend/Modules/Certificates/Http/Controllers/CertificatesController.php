@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Auth\Models\User;
 use Modules\Certificates\Models\Certificate;
+use Modules\Certificates\Models\FinalProjectDocument;
 use Modules\Project\Models\Module;
 use Modules\Project\Models\Project;
 
@@ -14,6 +15,26 @@ class CertificatesController extends Controller
     protected function currentUserId(Request $request): ?int
     {
         return $request->auth_user['sub'] ?? null;
+    }
+
+    /**
+     * Stricter check for endpoints that manage final project documents — only the
+     * Coordinator role (or the view-coordinator permission) may create/update them,
+     * mirroring CoordinatorController::isAuthorized()'s default role/permission check.
+     */
+    protected function isCoordinatorAuthorized(Request $request): bool
+    {
+        $role = $request->auth_user['role'] ?? null;
+        if ($role === 'coordinator') {
+            return true;
+        }
+
+        $permissions = $request->auth_user['permissions'] ?? [];
+        if (!is_array($permissions)) {
+            return false;
+        }
+
+        return in_array('view-coordinator', $permissions, true);
     }
 
     protected function generateCertificateNumber(): string
@@ -195,5 +216,103 @@ class CertificatesController extends Controller
             'message' => 'Certificate issued successfully',
             'data' => $certificate->load(['project', 'module', 'student', 'issuer']),
         ], 201);
+    }
+
+    /**
+     * Final project reports + code handover documentation (final_project_documents),
+     * scoped to closed projects only — a final report is only meaningful once a
+     * project has gone through the existing closure workflow (ProjectClosure /
+     * Project::close()). One row per project (final_project_documents.project_id is
+     * unique), so "status" is derived rather than stored: pending (no document row,
+     * or neither field filled in), partial (one of the two files present), or
+     * completed (both present).
+     */
+    public function finalDocuments(Request $request)
+    {
+        if (!$this->isAuthorized($request)) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        $projects = Project::where('status', 'closed')
+            ->with('closure')
+            ->orderBy('title')
+            ->get(['id', 'title', 'client_name', 'status']);
+
+        $documents = FinalProjectDocument::whereIn('project_id', $projects->pluck('id'))
+            ->get()
+            ->keyBy('project_id');
+
+        $data = $projects->map(function ($project) use ($documents) {
+            $doc = $documents->get($project->id);
+            $hasFinalReport = !empty($doc?->final_report);
+            $hasCodeHandover = !empty($doc?->code_handover);
+
+            if ($hasFinalReport && $hasCodeHandover) {
+                $status = 'completed';
+            } elseif ($hasFinalReport || $hasCodeHandover) {
+                $status = 'partial';
+            } else {
+                $status = 'pending';
+            }
+
+            return [
+                'project_id' => $project->id,
+                'project_title' => $project->title,
+                'client_name' => $project->client_name,
+                'final_report' => $doc->final_report ?? null,
+                'code_handover' => $doc->code_handover ?? null,
+                'closure_notes' => $doc->closure_notes ?? null,
+                'uploaded_on' => $doc->uploaded_on ?? null,
+                'final_status' => $project->closure->final_status ?? null,
+                'closure_date' => $project->closure->closure_date ?? null,
+                'status' => $status,
+            ];
+        });
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Create or update the final report / code handover / closure notes for a closed
+     * project. Fields omitted from the request preserve their previously saved value
+     * (partial submissions are expected — a coordinator may add the final report first
+     * and the code handover later).
+     */
+    public function saveFinalDocument(Request $request, Project $project)
+    {
+        if (!$this->isCoordinatorAuthorized($request)) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
+        if ($project->status !== 'closed') {
+            return response()->json(['error' => 'Final project reports can only be submitted for closed projects.'], 422);
+        }
+
+        $validated = $request->validate([
+            'final_report' => 'nullable|string|max:500',
+            'code_handover' => 'nullable|string|max:500',
+            'closure_notes' => 'nullable|string',
+        ]);
+
+        if (empty($validated['final_report']) && empty($validated['code_handover']) && empty($validated['closure_notes'])) {
+            return response()->json(['error' => 'Please provide at least one of final report, code handover, or closure notes.'], 422);
+        }
+
+        $existing = FinalProjectDocument::where('project_id', $project->id)->first();
+
+        $document = FinalProjectDocument::updateOrCreate(
+            ['project_id' => $project->id],
+            [
+                'final_report' => $validated['final_report'] ?? $existing->final_report ?? null,
+                'code_handover' => $validated['code_handover'] ?? $existing->code_handover ?? null,
+                'closure_notes' => $validated['closure_notes'] ?? $existing->closure_notes ?? null,
+                'uploaded_on' => now(),
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Final project document saved successfully',
+            'data' => $document,
+        ]);
     }
 }
