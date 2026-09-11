@@ -33,8 +33,8 @@ export async function FinanceDashboard(route, router) {
     return isNaN(dt) ? d : dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  const recvPct = summary.totalBilling > 0
-    ? Math.round((summary.totalCollected / summary.totalBilling) * 100)
+  const recvPct = summary.totalBilling > 0 
+    ? Math.round((summary.totalCollected / summary.totalBilling) * 100) 
     : 0;
 
   // Build project rows (Top 3 for dashboard)
@@ -44,7 +44,7 @@ export async function FinanceDashboard(route, router) {
     const totalBilling = pf.total_invoiced || 0;
     const collected = pf.total_collected || 0;
     const pct = totalBilling > 0 ? Math.round((collected / totalBilling) * 100) : 0;
-
+    
     return `
       <tr>
         <td>
@@ -142,7 +142,7 @@ export async function FinanceDashboard(route, router) {
             <div class="fin-panel-subtitle">Distribution of project costs</div>
           </div>
         </div>
-        <div class="fin-chart-wrap" style="max-width:220px;margin:0 auto;height:220px;position:relative">
+        <div class="fin-chart-wrap" style="max-width:220px; height:220px; margin:0 auto; position:relative;">
           <canvas id="donut-chart"></canvas>
         </div>
         <div class="fin-legend" style="margin-top:1.25rem">
@@ -232,13 +232,13 @@ export async function FinanceDashboard(route, router) {
   const Chart = await loadChartJs();
 
   const COLORS = {
-    primary: '#059669',
-    teal: '#0891b2',
-    indigo: '#6366f1',
-    warning: '#f59e0b',
-    danger: '#ef4444',
-    grid: '#e2e8f0',
-    text: '#64748b',
+    primary:  '#059669',
+    teal:     '#0891b2',
+    indigo:   '#6366f1',
+    warning:  '#f59e0b',
+    danger:   '#ef4444',
+    grid:     '#e2e8f0',
+    text:     '#64748b',
   };
 
   const tooltipDefaults = {
@@ -276,7 +276,7 @@ export async function FinanceDashboard(route, router) {
               const v = ctx.raw;
               const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
               const pct = total > 0 ? ((v / total) * 100).toFixed(1) : 0;
-              return `  ${ctx.label}: ₹${v.toLocaleString('en-IN')} (${pct}%)`;
+              return `  ${ctx.label}: â‚¹${v.toLocaleString('en-IN')} (${pct}%)`;
             },
           },
         },
@@ -286,20 +286,20 @@ export async function FinanceDashboard(route, router) {
   });
 
   // Bar chart (Collections)
-  const projLabels = (projects || []).map(p => {
-    const name = p.title || p.name || 'Project';
-    return name.length > 18 ? name.slice(0, 18) + 'â€¦' : name;
+  const projLabels   = (projects || []).map(p => {
+      const name = p.title || p.name || 'Project';
+      return name.length > 18 ? name.slice(0, 18) + 'â€¦' : name;
   });
   const projReceived = (projects || []).map(p => (p.project_finance?.total_collected || 0));
-  const projPending = (projects || []).map(p => (p.project_finance?.pending_amount || p.budget || 0));
+  const projPending  = (projects || []).map(p => (p.project_finance?.pending_amount || p.budget || 0));
 
   new Chart(container.querySelector('#bar-chart'), {
     type: 'bar',
     data: {
       labels: projLabels,
       datasets: [
-        { label: 'Received', data: projReceived, backgroundColor: COLORS.primary, borderRadius: 6, borderSkipped: false },
-        { label: 'Outstanding', data: projPending, backgroundColor: COLORS.warning, borderRadius: 6, borderSkipped: false },
+        { label: 'Received', data: projReceived, backgroundColor: COLORS.primary,  borderRadius: 6, borderSkipped: false },
+        { label: 'Outstanding',  data: projPending,  backgroundColor: COLORS.warning,  borderRadius: 6, borderSkipped: false },
       ],
     },
     options: {
