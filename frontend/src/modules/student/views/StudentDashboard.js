@@ -1,11 +1,11 @@
 import { renderStudentSidebar } from './StudentSidebar.js';
-import { 
-  fetchLiveDashboard, 
-  getDashboardData, 
-  getProjects, 
-  getMeetings, 
-  getNotifications, 
-  updateStudentTaskStatus 
+import {
+  fetchLiveDashboard,
+  getDashboardData,
+  getProjects,
+  getMeetings,
+  getNotifications,
+  updateStudentTaskStatus
 } from './studentStore.js';
 import { useAuthStore } from '@/core/stores/auth.js';
 import { StudentSwal, showStudentSuccess, showStudentError } from '../studentAlerts.js';
@@ -47,15 +47,8 @@ export async function StudentDashboard(route, router) {
     const assignedModulesCount = stats.assignedModulesCount ?? modules.length;
     const upcomingMeetingsCount = stats.upcomingMeetingsCount ?? meetings.filter(m => m.status === 'Scheduled').length;
 
-    // Filter Tasks
-    const filteredTasks = tasks.filter(t => {
-      if (taskFilter === 'pending') return t.rawStatus !== 'completed';
-      if (taskFilter === 'completed') return t.rawStatus === 'completed';
-      return true;
-    });
-
     // Display only the latest 3 tasks in the dashboard
-    const displayedTasks = filteredTasks.slice(0, 3);
+    const displayedTasks = tasks.slice(0, 3);
 
     // Student Designation / Role Label
     const studentDesignation = currentUser?.designation || (projects.length > 0 ? projects[0].designation : 'Nova');
@@ -96,175 +89,51 @@ export async function StudentDashboard(route, router) {
               ${t.isOverdue ? `<span class="student-badge-overdue" style="width: fit-content;">Overdue</span>` : ''}
             </div>
           </td>
-          <td>
-            <select class="student-task-status-select ${t.rawStatus}" data-task-id="${t.id}" data-task-type="${t.type || 'task'}">
-              <option value="todo" ${t.rawStatus === 'todo' ? 'selected' : ''}>⏳ Todo</option>
-              <option value="in_progress" ${t.rawStatus === 'in_progress' ? 'selected' : ''}>🔄 In Progress</option>
-              <option value="completed" ${t.rawStatus === 'completed' ? 'selected' : ''}>✓ Completed</option>
-              <option value="blocked" ${t.rawStatus === 'blocked' ? 'selected' : ''}>⛔ Blocked</option>
-            </select>
-          </td>
         </tr>
       `;
     }).join('');
 
-    // 2. Build Project Cards
-    const projectCardsHtml = projects.map(p => {
-      const teamList = p.membersList || p.team || [];
-      const teamChipsHtml = teamList.map(m => {
-        const isMe = m.isCurrentUser || (m.name && m.name.toLowerCase() === (currentUser?.name?.toLowerCase() || ''));
-        const initial = (m.name || 'U').charAt(0).toUpperCase();
-        let avatarClass = '';
-        if (m.isTeamLead) {
-          avatarClass = 'is-lead';
-        } else if (m.role?.toLowerCase()?.includes('designer')) {
-          avatarClass = 'is-designer';
-        }
 
-        return `
-          <div class="team-member-mini-card ${isMe ? 'is-me' : ''}" title="${m.name} - ${m.roleDisplay || m.role || 'Member'}">
-            <div class="member-mini-avatar ${avatarClass}">
-              ${initial}
-            </div>
-            <div class="member-mini-info">
-              <div class="member-mini-name-row">
-                <span class="member-mini-name">${m.name}</span>
-                ${isMe ? `<span class="member-tag-you">You</span>` : ''}
-                ${m.isTeamLead ? `<span class="member-tag-lead">Lead</span>` : ''}
-              </div>
-              <span class="member-mini-role ${m.isTeamLead ? 'role-lead' : ''}">
-                ${m.roleDisplay || m.role || 'Member'}
-              </span>
-            </div>
-          </div>
-        `;
-      }).join('');
 
-      // Modules & Tasks for this project
-      const modulesList = p.modulesList || p.modules || [];
-      const totalTasks = p.totalTasksCount ?? modulesList.reduce((acc, m) => acc + (m.tasks ? m.tasks.length : 0), 0);
-      const completedTasks = p.completedTasksCount ?? modulesList.reduce((acc, m) => acc + (m.tasks ? m.tasks.filter(t => t.status === 'Completed').length : 0), 0);
+    // 2.5. Identify Genuine Bug Fixes & Rework Assigned by Faculty or Coordinator (strictly no demo data or heuristics)
+    const completedProjects = projects.filter(p => (p.status || '').toLowerCase() === 'completed' || p.progress === 100);
+    const completedProjectsCount = completedProjects.length;
 
-      const modulesHtml = modulesList.length > 0 ? modulesList.map(mod => {
-        const mStatus = mod.status || 'Todo';
-        const mStatusClass = mStatus === 'Completed' ? 'student-badge-success' : (mStatus === 'In Progress' ? 'student-badge-warning' : 'student-badge-neutral');
-        const modTasks = mod.tasks || [];
-        const modDone = modTasks.filter(t => t.status === 'Completed').length;
+    const bugFixList = [];
+    const seenTaskIds = new Set();
 
-        const tasksHtml = modTasks.length > 0 ? modTasks.map(t => {
-          const isMyTask = t.isMyTask || (t.assignee && t.assignee.toLowerCase() === (currentUser?.name?.toLowerCase() || ''));
-          const tStatusClass = t.status === 'Completed' ? 'status-completed' : (t.status === 'In Progress' ? 'status-progress' : 'status-todo');
-          return `
-            <div class="project-card-task-row ${isMyTask ? 'is-my-task' : ''}">
-              <div class="task-row-left">
-                <span class="task-status-bullet ${tStatusClass}"></span>
-                <span class="task-row-title" title="${t.title}">${t.title}</span>
-              </div>
-              <div class="task-row-right">
-                <span class="task-row-assignee">
-                  ${t.assignee}
-                  ${isMyTask ? `<span class="member-tag-you" style="margin-left: 4px; font-size: 0.58rem; padding: 0 4px;">You</span>` : ''}
-                </span>
-                <span class="task-row-status-pill ${tStatusClass}">${t.status}</span>
-              </div>
-            </div>
-          `;
-        }).join('') : `<div class="project-module-tasks-empty">No individual tasks defined in this module</div>`;
+    // Collect all tasks assigned to student across projects and granular tasks
+    const allProjectTasks = projects.flatMap(p => {
+      const pModules = p.modulesList || p.modules || [];
+      return pModules.flatMap(m => (m.tasks || []).map(t => ({
+        ...t,
+        project: p.title,
+        projectId: p.id
+      })));
+    });
 
-        return `
-          <div class="project-module-card">
-            <div class="project-module-card-header">
-              <div class="project-module-name-box">
-                <span class="module-folder-icon">📦</span>
-                <span class="project-module-name" title="${mod.name}">${mod.name}</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="student-badge ${mStatusClass}" style="font-size: 0.65rem; padding: 2px 7px;">${mStatus}</span>
-                <span class="module-tasks-counter-pill">${modDone}/${modTasks.length} Tasks</span>
-              </div>
-            </div>
-            <div class="project-module-tasks-container">
-              ${tasksHtml}
-            </div>
-          </div>
-        `;
-      }).join('') : `<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic; padding: 4px 0;">No modules assigned yet</div>`;
+    const combinedStudentTasks = [...allProjectTasks, ...tasks];
 
-      return `
-        <div class="student-dash-project-card">
-          <div class="student-dash-project-header">
-            <div class="student-dash-project-title-box">
-              <div class="student-dash-project-title">${p.title}</div>
-              <div class="student-dash-project-meta-row">
-                <span class="student-dash-project-meta-item">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                  Supervisor: <strong style="color: #334155;">${p.faculty || 'Faculty Member'}</strong>
-                </span>
-                <span class="student-dash-project-meta-item">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  Timeline: ${p.timeline && p.timeline !== 'Not specified' ? p.timeline : 'Active'}
-                </span>
-              </div>
-            </div>
-            <span class="student-badge ${p.status === 'Completed' ? 'student-badge-success' : 'student-badge-warning'}" style="font-size: 0.75rem;">
-              ${p.status}
-            </span>
-          </div>
+    combinedStudentTasks.forEach(t => {
+      if (!t.id || seenTaskIds.has(String(t.id))) return;
+      
+      // In RLabz ERP, a task is ONLY a rework / bug fix if Faculty or Coordinator reviewed it and requested changes/rework (rejected)
+      const isReworkByFaculty = t.isRework === true || (t.reviewStatus && t.reviewStatus.toLowerCase() === 'rejected');
 
-          <!-- Development Team Section -->
-          <div class="project-team-section" style="margin-top: 2px; padding-top: 10px;">
-            <div class="project-team-header">
-              <span class="project-team-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                Development Team
-              </span>
-              <span class="project-team-count">${teamList.length} Member${teamList.length === 1 ? '' : 's'}</span>
-            </div>
+      if (isReworkByFaculty) {
+        seenTaskIds.add(String(t.id));
+        bugFixList.push({
+          id: String(t.id),
+          title: t.title,
+          project: t.project || 'Academic Project',
+          isRework: true,
+          status: 'Rework / Fix Required',
+          assignedBy: t.assignedBy || 'Faculty / Coordinator'
+        });
+      }
+    });
 
-            <div class="project-team-cards-grid">
-              ${teamChipsHtml || '<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No team members assigned yet</div>'}
-            </div>
-          </div>
-
-          <!-- Project Modules & Tasks Section -->
-          <div class="project-modules-section" style="margin-top: 4px; padding-top: 10px;">
-            <div class="project-modules-header">
-              <span class="project-modules-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #0284c7;">
-                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                  <polyline points="2 17 12 22 22 17"></polyline>
-                  <polyline points="2 12 12 17 22 12"></polyline>
-                </svg>
-                Modules & Tasks
-              </span>
-              <span class="project-modules-count">${modulesList.length} Modules • ${totalTasks} Tasks</span>
-            </div>
-
-            <div class="project-modules-list" style="max-height: 220px;">
-              ${modulesHtml}
-            </div>
-          </div>
-
-          <div class="student-dash-project-footer">
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #64748b;">
-              <span>Progress: <strong>${p.progress ?? 0}%</strong> (${completedTasks}/${totalTasks} Tasks)</span>
-              <div class="student-progress-bar-bg" style="width: 100px; height: 6px;">
-                <div class="student-progress-bar-fill" style="width: ${p.progress ?? 0}%; height: 6px;"></div>
-              </div>
-            </div>
-
-            <button type="button" class="student-btn student-btn-outline student-btn-sm view-projects-btn" data-id="${p.id}" style="font-size: 0.75rem; padding: 4px 12px;">
-              Open Workspace →
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
+    const bugFixesCount = bugFixList.length;
 
     // 3. Build Meeting Items (Latest 1 or 2)
     const meetingItems = displayedMeetings.map(m => {
@@ -358,10 +227,10 @@ export async function StudentDashboard(route, router) {
          
       </div>
 
-      <!-- KPI Strip (4 responsive cards) -->
-      <div class="student-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <!-- KPI Strip (Strict Single Row of 6 Cards) -->
+      <div class="student-kpi-grid">
         <!-- 1. Active Projects -->
-        <div class="student-kpi-card" id="kpi-projects" style="cursor: pointer;" title="Click to view projects">
+        <div class="student-kpi-card" id="kpi-projects" style="cursor: pointer;" title="Click to view active projects">
           <div class="student-kpi-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -376,9 +245,26 @@ export async function StudentDashboard(route, router) {
           </div>
         </div>
 
-        <!-- 2. Assigned Tasks -->
+        <!-- 2. Completed Projects -->
+        <div class="student-kpi-card" id="kpi-completed-projects" style="cursor: pointer;" title="Click to view completed projects">
+          <div class="student-kpi-icon" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); color: #16a34a; border: 1px solid #bbf7d0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div class="student-kpi-info">
+            <span class="student-kpi-value" style="color: #16a34a;">${completedProjectsCount}</span>
+            <span class="student-kpi-label">Completed Projects</span>
+          </div>
+          <div class="student-kpi-arrow">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+        </div>
+
+        <!-- 3. Pending Tasks -->
         <div class="student-kpi-card" id="kpi-tasks" style="cursor: pointer;" title="Click to view assigned tasks">
-          <div class="student-kpi-icon" style="background: #eff6ff; color: #2563eb;">
+          <div class="student-kpi-icon" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 11l3 3L22 4"></path>
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
@@ -386,16 +272,40 @@ export async function StudentDashboard(route, router) {
           </div>
           <div class="student-kpi-info">
             <span class="student-kpi-value" style="color: #2563eb;">${pendingTasksCount}</span>
-            <span class="student-kpi-label">Pending Tasks (${tasks.length} total)</span>
+            <span class="student-kpi-label">Pending Tasks</span>
           </div>
           <div class="student-kpi-arrow">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </div>
         </div>
 
-        <!-- 3. Assigned Modules -->
+        <!-- 4. Bug Fixes -->
+        <div class="student-kpi-card ${bugFixesCount > 0 ? 'kpi-card-alert' : ''}" id="kpi-bug-fixes" style="cursor: pointer;" title="${bugFixesCount > 0 ? 'Click to inspect ' + bugFixesCount + ' bug fixes / rework' : 'Click to view bug fixes status'}">
+          <div class="student-kpi-icon" style="${bugFixesCount > 0 ? 'background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); color: #dc2626; border: 1px solid #fca5a5; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);' : 'background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); color: #64748b; border: 1px solid #e2e8f0;'}">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="8" height="14" x="8" y="5" rx="4"></rect>
+              <path d="m19 7-3 2"></path>
+              <path d="m5 7 3 2"></path>
+              <path d="m19 19-3-2"></path>
+              <path d="m5 19 3-2"></path>
+              <path d="M20 13h-4"></path>
+              <path d="M4 13h4"></path>
+              <path d="m10 4 1 2"></path>
+              <path d="m14 4-1 2"></path>
+            </svg>
+          </div>
+          <div class="student-kpi-info">
+            <span class="student-kpi-value" style="color: ${bugFixesCount > 0 ? '#dc2626' : '#64748b'};">${bugFixesCount}</span>
+            <span class="student-kpi-label">Bug Fixes</span>
+          </div>
+          <div class="student-kpi-arrow" style="${bugFixesCount > 0 ? 'color: #dc2626;' : ''}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+        </div>
+
+        <!-- 5. Assigned Modules -->
         <div class="student-kpi-card" id="kpi-modules" style="cursor: pointer;" title="Click to view sprints & modules">
-          <div class="student-kpi-icon" style="background: #fdf4ff; color: #9333ea;">
+          <div class="student-kpi-icon" style="background: #fdf4ff; color: #9333ea; border: 1px solid #e9d5ff;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
               <polyline points="2 17 12 22 22 17"></polyline>
@@ -411,9 +321,9 @@ export async function StudentDashboard(route, router) {
           </div>
         </div>
 
-        <!-- 4. Upcoming Meetings -->
+        <!-- 6. Upcoming Meetings -->
         <div class="student-kpi-card" id="kpi-meetings" style="cursor: pointer;" title="Click to view scheduled meetings">
-          <div class="student-kpi-icon" style="background: #fffbeb; color: #d97706;">
+          <div class="student-kpi-icon" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -431,10 +341,10 @@ export async function StudentDashboard(route, router) {
         </div>
       </div>
 
-      <!-- Dashboard Main Grid (2 Columns: Tasks & Projects / Meetings & Notifications) -->
-      <div class="student-dashboard-grid" style="grid-template-columns: 1.8fr 1.2fr; gap: 24px; align-items: start;">
+      <!-- Dashboard Main Grid (2 Columns: Tasks / Meetings & Notifications) -->
+      <div class="student-dashboard-grid">
         
-        <!-- Left Column: Tasks & Projects -->
+        <!-- Left Column: Tasks -->
         <div style="display: flex; flex-direction: column; gap: 24px;">
 
           <!-- SECTION 1: My Assigned Tasks & Deliverables -->
@@ -447,24 +357,11 @@ export async function StudentDashboard(route, router) {
                 </svg>
                 <span>My Assigned Tasks & Deliverables</span>
                 <span class="student-badge student-badge-info" style="font-size: 0.75rem; margin-left: 6px;">
-                  ${pendingTasksCount} Pending
+                  ${tasks.length} Assigned
                 </span>
                 <span class="student-badge" style="background: #f1f5f9; color: #475569; font-size: 0.72rem; margin-left: 4px; font-weight: 600;">
                   Latest 3
                 </span>
-              </div>
-
-              <!-- Task Filter Pills -->
-              <div class="student-filter-pills" style="margin-bottom: 0;">
-                <button type="button" class="student-filter-pill ${taskFilter === 'all' ? 'active' : ''}" data-filter="all" style="font-size: 0.75rem; padding: 4px 10px;">
-                  All (${tasks.length})
-                </button>
-                <button type="button" class="student-filter-pill ${taskFilter === 'pending' ? 'active' : ''}" data-filter="pending" style="font-size: 0.75rem; padding: 4px 10px;">
-                  Pending (${pendingTasksCount})
-                </button>
-                <button type="button" class="student-filter-pill ${taskFilter === 'completed' ? 'active' : ''}" data-filter="completed" style="font-size: 0.75rem; padding: 4px 10px;">
-                  Done (${completedTasksCount})
-                </button>
               </div>
             </div>
 
@@ -473,16 +370,15 @@ export async function StudentDashboard(route, router) {
               <table class="student-table">
                 <thead>
                   <tr>
-                    <th style="width: 40%;">Task & Scope</th>
-                    <th style="width: 25%;">Assigned By</th>
-                    <th style="width: 17%;">Due Date</th>
-                    <th style="width: 18%;">Status</th>
+                    <th style="width: 48%;">Task & Scope</th>
+                    <th style="width: 30%;">Assigned By</th>
+                    <th style="width: 22%;">Due Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${taskRows || `
                     <tr>
-                      <td colspan="4" style="text-align: center; padding: 36px 20px; color: #64748b;">
+                      <td colspan="3" style="text-align: center; padding: 36px 20px; color: #64748b;">
                         <div style="font-size: 1.75rem; margin-bottom: 6px;">📋</div>
                         <div style="font-weight: 700; color: #334155; margin-bottom: 4px;">No tasks assigned</div>
     
@@ -492,10 +388,10 @@ export async function StudentDashboard(route, router) {
                 </tbody>
               </table>
 
-              ${filteredTasks.length > 0 ? `
+              ${tasks.length > 0 ? `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 0.8rem; color: #64748b;">
                   <span>
-                    Showing <strong>${displayedTasks.length}</strong> of <strong>${filteredTasks.length}</strong> ${taskFilter !== 'all' ? taskFilter : ''} tasks (Latest 3)
+                    Showing <strong>${displayedTasks.length}</strong> of <strong>${tasks.length}</strong> tasks (Latest 3)
                   </span>
                   <button type="button" class="student-btn student-btn-outline student-btn-sm btn-view-all-tasks" style="font-size: 0.75rem; padding: 4px 12px; font-weight: 600;">
                     View Projects & All Tasks (${tasks.length}) →
@@ -505,8 +401,7 @@ export async function StudentDashboard(route, router) {
             </div>
           </div>
 
-          <!-- SECTION 2: My Projects & Faculty Supervisors -->
-
+          <!-- End of Tasks Column -->
         </div>
 
         <!-- Right Column: Upcoming Meetings & Live Notifications -->
@@ -646,10 +541,62 @@ export async function StudentDashboard(route, router) {
       router.push('/student/projects');
     });
 
+    container.querySelector('#kpi-completed-projects')?.addEventListener('click', () => {
+      router.push('/student/projects');
+    });
+
     container.querySelector('#kpi-tasks')?.addEventListener('click', () => {
       taskFilter = 'pending';
       render();
       container.querySelector('#card-assigned-tasks')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    container.querySelector('#kpi-bug-fixes')?.addEventListener('click', () => {
+      if (bugFixList.length > 0) {
+        const listHtml = bugFixList.map(b => `
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; text-align: left;">
+            <div>
+              <div style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">${b.title}</div>
+              <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                <span>Project: <strong>${b.project}</strong></span>
+              </div>
+            </div>
+            <span class="student-badge ${b.isRework ? 'student-badge-danger' : 'student-badge-warning'}" style="font-size: 0.72rem; padding: 3px 8px; font-weight: 700;">
+              ${b.status}
+            </span>
+          </div>
+        `).join('');
+
+        StudentSwal.fire({
+          title: `<span style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.15rem; font-weight: 800; color: #0f172a;">
+            <span style="color: #dc2626;">🔧</span> Bug Fixes & Rework (${bugFixList.length})
+          </span>`,
+          html: `
+            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px; text-align: center;">
+              The following rework or bug fix tickets have been requested by Faculty or Coordinator:
+            </div>
+            <div style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+              ${listHtml}
+            </div>
+          `,
+          confirmButtonText: 'Go to Projects Workspace →',
+          confirmButtonColor: '#059669',
+          showCancelButton: true,
+          cancelButtonText: 'Close'
+        }).then((res) => {
+          if (res.isConfirmed) {
+            router.push('/student/projects');
+          }
+        });
+      } else {
+        StudentSwal.fire({
+          icon: 'success',
+          title: '0 Bug Fixes Pending',
+          text: 'No bug fixes or rework tickets have been assigned by Faculty or Coordinator. All your deliverables are in order.',
+          confirmButtonText: 'Great!',
+          confirmButtonColor: '#059669'
+        });
+      }
     });
 
     container.querySelector('#kpi-modules')?.addEventListener('click', () => {

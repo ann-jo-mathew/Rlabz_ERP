@@ -13,8 +13,12 @@ class StudentReport extends Model
     protected $fillable = [
         'student_id',
         'project_id',
+        'task_id',
         'report_type',
         'report_date',
+        'week_start',
+        'week_end',
+        'weekly_key',
         'work_done',
         'report_file',
         'approval_status',
@@ -24,6 +28,8 @@ class StudentReport extends Model
 
     protected $casts = [
         'report_date' => 'date',
+        'week_start' => 'date',
+        'week_end' => 'date',
         'submitted_at' => 'datetime',
     ];
 
@@ -35,5 +41,10 @@ class StudentReport extends Model
     public function project()
     {
         return $this->belongsTo(\Modules\Project\Models\Project::class, 'project_id');
+    }
+
+    public function task()
+    {
+        return $this->belongsTo(\Modules\Project\Models\Task::class, 'task_id');
     }
 }

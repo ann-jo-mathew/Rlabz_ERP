@@ -26,6 +26,11 @@ const routes = [
         component: () => import('./views/StudentReports.js')
       },
       {
+        path: 'work-logs',
+        name: 'student-work-logs',
+        component: () => import('./views/StudentWorkLogs.js')
+      },
+      {
         path: 'certificates',
         name: 'student-certificates',
         component: () => import('./views/StudentCertificates.js')

@@ -215,6 +215,16 @@ export async function fetchLiveStudentProfile() {
   }
 }
 
+export async function getProjectTasks(projectId) {
+  if (!projectId) return [];
+  try {
+    return await apiFetch(`/student/projects/${projectId}/tasks`);
+  } catch (e) {
+    console.error(`Failed to fetch tasks for project ${projectId}:`, e);
+    return [];
+  }
+}
+
 export async function saveReport(report) {
   const isFormData = report instanceof FormData;
   await apiFetch('/student/reports', {

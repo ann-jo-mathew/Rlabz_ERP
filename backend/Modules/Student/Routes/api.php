@@ -5,6 +5,7 @@ use Modules\Student\Controllers\StudentController;
 
 Route::group(['prefix' => 'student', 'middleware' => ['auth.jwt']], function () {
     Route::get('/projects', [StudentController::class, 'getProjects']);
+    Route::get('/projects/{projectId}/tasks', [StudentController::class, 'getProjectTasks']);
     Route::get('/sprints', [StudentController::class, 'getSprints']);
     Route::post('/sprints', [StudentController::class, 'saveSprint']);
     Route::get('/reports', [StudentController::class, 'getReports']);

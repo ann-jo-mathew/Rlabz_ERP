@@ -9,7 +9,7 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
   const isStudentPortal = currentPath.startsWith('/student');
   const targetPortal = (isStudent && isStudentPortal) ? 'student' : 'default';
 
-  if (sidebarNav.dataset.portal !== targetPortal) {
+  if (sidebarNav.dataset.portal !== targetPortal || (targetPortal === 'student' && !sidebarNav.querySelector('a[href="/student/work-logs"]'))) {
     sidebarNav.dataset.portal = targetPortal;
     if (targetPortal === 'student') {
       sidebarNav.innerHTML = `
@@ -40,7 +40,16 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
                 <line x1="10" y1="14" x2="14" y2="14"></line>
                 <path d="M21 16V8a2 2 0 0 0-1.95-2H20a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2h.05A2 2 0 0 0 2 8v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"></path>
               </svg>
-              <span>Reports & Work Logs</span>
+              <span>Progress Reports</span>
+            </a>
+          </li>
+          <li>
+            <a href="/student/work-logs">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Work Logs</span>
             </a>
           </li>
           <li>
