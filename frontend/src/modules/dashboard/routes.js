@@ -31,6 +31,11 @@ const routes = [
         component: () => import('./views/DirectorStudents.js')
       },
       {
+        path: 'students/:id',
+        name: 'director-dashboard-student-detail',
+        component: () => import('./views/DirectorStudentDetail.js')
+      },
+      {
         path: 'clients',
         name: 'director-dashboard-clients',
         component: () => import('./views/DirectorClients.js')

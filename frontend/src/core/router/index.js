@@ -11,7 +11,7 @@ class VanillaRouter {
 
     // Listen to browser navigation (back/forward)
     window.addEventListener('popstate', () => {
-      this.handleRoute(window.location.pathname);
+      this.handleRoute(window.location.pathname + window.location.search);
     });
 
     // Intercept clicks on links
@@ -20,7 +20,7 @@ class VanillaRouter {
       if (link && link.origin === window.location.origin && !link.hasAttribute('target') && !link.hasAttribute('download')) {
         e.preventDefault();
         const url = new URL(link.href);
-        this.push(url.pathname);
+        this.push(url.pathname + url.search);
       }
     });
   }
@@ -35,24 +35,34 @@ class VanillaRouter {
 
   async push(target) {
     let path = '';
+    let query = null;
     if (typeof target === 'string') {
       path = target;
     } else if (target && target.name) {
       const matched = this.routes.find(r => r.name === target.name);
       if (matched) path = matched.path;
+      if (target.query) query = target.query;
     } else if (target && target.path) {
       path = target.path;
+      if (target.query) query = target.query;
+    }
+
+    if (query && Object.keys(query).length > 0) {
+      const qs = new URLSearchParams(query).toString();
+      path = path.includes('?') ? `${path}&${qs}` : `${path}?${qs}`;
     }
 
     if (!path) path = '/';
 
-    if (window.location.pathname !== path) {
+    const currentFull = window.location.pathname + window.location.search;
+    if (currentFull !== path) {
       window.history.pushState({}, '', path);
     }
     await this.handleRoute(path);
   }
 
-  match(path) {
+  match(rawPath) {
+    const [path] = (rawPath || '').split('?');
     // 1. Direct exact match first
     const exactMatch = this.routes.find(r => r.path === path);
     if (exactMatch) return { route: exactMatch, params: {} };
@@ -85,20 +95,27 @@ class VanillaRouter {
     return null;
   }
 
-  async handleRoute(path) {
+  async handleRoute(rawPath) {
     const authStore = useAuthStore();
     const defaultRoute = authStore.user?.defaultRoute || '/dashboard';
 
-    if (path === '/') {
+    const [pathname, queryString] = (rawPath || '').split('?');
+
+    if (pathname === '/') {
       return this.push(authStore.isAuthenticated ? defaultRoute : '/login');
     }
 
-    const matchResult = this.match(path);
+    const matchResult = this.match(pathname);
     if (!matchResult) {
       return this.push(authStore.isAuthenticated ? defaultRoute : '/login');
     }
 
-    const targetRoute = { ...matchResult.route, params: matchResult.params || {} };
+    const query = {};
+    if (queryString) {
+      new URLSearchParams(queryString).forEach((val, key) => { query[key] = val; });
+    }
+
+    const targetRoute = { ...matchResult.route, params: matchResult.params || {}, query, fullPath: rawPath };
 
     // Run navigation guards
     for (const guard of this.guards) {
