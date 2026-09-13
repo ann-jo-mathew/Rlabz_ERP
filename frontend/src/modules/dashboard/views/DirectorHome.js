@@ -42,61 +42,182 @@ export function DirectorHome(route, router) {
       </div>
 
       <!-- Top KPI Cards Row -->
-      <div class="director-kpi-grid">
-        <div class="director-kpi-card">
-          <div class="director-kpi-top">
-            <span class="director-kpi-title">Active Projects</span>
-            <div class="director-kpi-icon blue">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+      ${(() => {
+        const activeProjects = stats.activeProjects || 0;
+        const totalProjects = stats.totalProjects || 0;
+        const remainingProjects = Math.max(0, totalProjects - activeProjects);
+        const projectPercent = totalProjects > 0 ? Math.min(100, Math.round((activeProjects / totalProjects) * 100)) : 0;
+
+        const pendingCount = stats.pendingProposals !== undefined ? stats.pendingProposals : 0;
+
+        const totalStudents = studentCounts.total || 0;
+        const nova = studentCounts.nova || 0;
+        const orbit = studentCounts.orbit || 0;
+        const spark = studentCounts.spark || 0;
+        const totalFallback = totalStudents || 1;
+        const novaPct = Math.round((nova / totalFallback) * 100);
+        const orbitPct = Math.round((orbit / totalFallback) * 100);
+        const sparkPct = Math.max(0, 100 - novaPct - orbitPct);
+
+        const fin = stats.finance || {};
+        const budget = Number(fin.totalBudget ?? fin.total_budget ?? 0);
+        const spent = Number(fin.totalSpent ?? fin.total_spent ?? 0);
+        const disbursed = Number(fin.stipendsDisbursed ?? fin.stipends_disbursed ?? 0);
+        const spentPct = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+        const remainingBudget = Math.max(0, budget - spent);
+
+        return `
+        <div class="director-kpi-grid">
+          <!-- 1. Active Projects (Light Olive) -->
+          <div class="director-kpi-card kpi-olive">
+            <div class="kpi-watermark">
+              <svg width="95" height="95" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <div class="director-kpi-top">
+              <div class="kpi-title-group">
+                <span class="director-kpi-title">Active Projects</span>
+                <span class="kpi-micro-pill">Live Cycle</span>
+              </div>
+              <div class="director-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="director-kpi-value">${activeProjects} <span class="kpi-value-denominator">/ ${totalProjects}</span></div>
+            
+            <div class="kpi-meter-container">
+              <div class="kpi-meter-bar">
+                <div class="kpi-meter-fill" style="width: ${projectPercent}%"></div>
+              </div>
+              <div class="kpi-meter-legend">
+                <span>${projectPercent}% Active Load</span>
+                <span>${remainingProjects} Inactive</span>
+              </div>
+            </div>
+
+            <div class="director-kpi-subtext">
+              <span>${remainingProjects} Completed or Pending</span>
             </div>
           </div>
-          <div class="director-kpi-value">${stats.activeProjects} / ${stats.totalProjects}</div>
-          <div class="director-kpi-subtext">${stats.totalProjects - stats.activeProjects} Completed or Pending</div>
-        </div>
 
-        <div class="director-kpi-card">
-          <div class="director-kpi-top">
-            <span class="director-kpi-title">Pending Proposals</span>
-            <div class="director-kpi-icon amber">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+          <!-- 2. Pending Proposals (Orange) -->
+          <div class="director-kpi-card kpi-orange">
+            <div class="kpi-watermark">
+              <svg width="95" height="95" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="director-kpi-top">
+              <div class="kpi-title-group">
+                <span class="director-kpi-title">Pending Proposals</span>
+                ${pendingCount > 0 
+                  ? `<span class="kpi-micro-pill kpi-pill-pulse">⚡ Action Needed</span>` 
+                  : `<span class="kpi-micro-pill">✓ Clear</span>`}
+              </div>
+              <div class="director-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 16 14"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div class="director-kpi-value">${pendingCount}</div>
+            
+            <div class="kpi-callout-box">
+              ${pendingCount > 0 
+                ? `<span>⚠️ ${pendingCount} Proposal${pendingCount === 1 ? '' : 's'} Awaiting Approval</span>` 
+                : `<span>✓ All proposals reviewed</span>`}
+            </div>
+
+            <div class="director-kpi-subtext">
+              <span>Requires Director Approval</span>
             </div>
           </div>
-          <div class="director-kpi-value">${stats.pendingProposals}</div>
-          <div class="director-kpi-subtext">Requires Director Approval</div>
-        </div>
 
-        <div class="director-kpi-card">
-          <div class="director-kpi-top">
-            <span class="director-kpi-title">Student Roster</span>
-            <div class="director-kpi-icon purple">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <!-- 3. Student Roster (Violet) -->
+          <div class="director-kpi-card kpi-violet">
+            <div class="kpi-watermark">
+              <svg width="95" height="95" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="director-kpi-top">
+              <div class="kpi-title-group">
+                <span class="director-kpi-title">Student Roster</span>
+                <span class="kpi-micro-pill">3 Tracks</span>
+              </div>
+              <div class="director-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="director-kpi-value">${totalStudents} <span class="kpi-value-denominator">Enrolled</span></div>
+            
+            <div class="kpi-meter-container">
+              <div class="kpi-segmented-bar" title="Track Breakdown: Nova ${nova}, Orbit ${orbit}, Spark ${spark}">
+                <div class="kpi-segment nova" style="width: ${novaPct}%;"></div>
+                <div class="kpi-segment orbit" style="width: ${orbitPct}%;"></div>
+                <div class="kpi-segment spark" style="width: ${sparkPct}%;"></div>
+              </div>
+              <div class="kpi-meter-legend">
+                <span>Distribution</span>
+                <span>Nova • Orbit • Spark</span>
+              </div>
+            </div>
+
+            <div class="director-kpi-subtext kpi-track-row">
+              <span class="track-badge-micro nova">Nova: ${nova}</span>
+              <span class="track-badge-micro orbit">Orbit: ${orbit}</span>
+              <span class="track-badge-micro spark">Spark: ${spark}</span>
             </div>
           </div>
-          <div class="director-kpi-value">${studentCounts.total || 0}</div>
-          <div class="director-kpi-subtext">
-            <span class="track-badge nova" style="padding:1px 5px; font-size:0.65rem;">Nova: ${studentCounts.nova || 0}</span>
-            <span class="track-badge orbit" style="padding:1px 5px; font-size:0.65rem;">Orbit: ${studentCounts.orbit || 0}</span>
-            <span class="track-badge spark" style="padding:1px 5px; font-size:0.65rem;">Spark: ${studentCounts.spark || 0}</span>
-          </div>
-        </div>
 
-        <div class="director-kpi-card">
-          <div class="director-kpi-top">
-            <span class="director-kpi-title">Financial Budget</span>
-            <div class="director-kpi-icon emerald">₹</div>
+          <!-- 4. Financial Budget (Blue) -->
+          <div class="director-kpi-card kpi-blue">
+            <div class="kpi-watermark">
+              <svg width="95" height="95" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <div class="director-kpi-top">
+              <div class="kpi-title-group">
+                <span class="director-kpi-title">Financial Budget</span>
+                <span class="kpi-micro-pill">FY 25-26</span>
+              </div>
+              <div class="director-kpi-icon">₹</div>
+            </div>
+            <div class="director-kpi-value">₹${(budget / 1000).toFixed(0)}k</div>
+            
+            <div class="kpi-meter-container">
+              <div class="kpi-meter-bar">
+                <div class="kpi-meter-fill" style="width: ${spentPct}%"></div>
+              </div>
+              <div class="kpi-meter-legend">
+                <span>${spentPct}% Utilized</span>
+                <span>Rem: ₹${(remainingBudget / 1000).toFixed(0)}k</span>
+              </div>
+            </div>
+
+            <div class="director-kpi-subtext kpi-dual-chips">
+              <span class="kpi-chip">Spent: <strong>₹${(spent / 1000).toFixed(0)}k</strong></span>
+              <span class="kpi-chip">Disbursed: <strong>₹${(disbursed / 1000).toFixed(0)}k</strong></span>
+            </div>
           </div>
-          ${(() => {
-            const fin = stats.finance || {};
-            const budget = Number(fin.totalBudget ?? fin.total_budget ?? 0);
-            const spent = Number(fin.totalSpent ?? fin.total_spent ?? 0);
-            const disbursed = Number(fin.stipendsDisbursed ?? fin.stipends_disbursed ?? 0);
-            return `
-              <div class="director-kpi-value">₹${(budget / 1000).toFixed(0)}k</div>
-              <div class="director-kpi-subtext">Spent: ₹${(spent / 1000).toFixed(0)}k | Disbursed: ₹${(disbursed / 1000).toFixed(0)}k</div>
-            `;
-          })()}
         </div>
-      </div>
+        `;
+      })()}
 
       <!-- Quick Action proposals & health -->
       ${(() => {

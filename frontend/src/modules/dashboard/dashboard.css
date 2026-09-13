@@ -107,51 +107,125 @@
 /* KPI Cards Row */
 .director-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.25rem;
+  align-items: stretch;
 }
 
 .director-kpi-card {
+  position: relative;
+  overflow: hidden;
   background: white;
-  padding: 1.15rem;
-  border-radius: 12px;
+  padding: 1.25rem;
+  border-radius: 14px;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-height: 200px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.director-kpi-card > *:not(.kpi-watermark) {
+  position: relative;
+  z-index: 1;
 }
 
 .director-kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  border-color: #a7f3d0;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
 }
 
+/* Watermark background motif */
+.kpi-watermark {
+  position: absolute;
+  right: -8px;
+  bottom: -12px;
+  width: 95px;
+  height: 95px;
+  opacity: 0.09;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+  z-index: 0;
+}
+
+.kpi-watermark svg {
+  width: 100%;
+  height: 100%;
+  fill: none !important;
+  display: block;
+}
+
+.kpi-watermark svg * {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+.director-kpi-card:hover .kpi-watermark {
+  transform: scale(1.12) rotate(-3deg);
+  opacity: 0.16;
+}
+
+/* Card Top & Titles */
 .director-kpi-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.kpi-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .director-kpi-title {
-  font-size: 0.825rem;
-  font-weight: 600;
-  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+}
+
+.kpi-micro-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: fit-content;
+}
+
+.kpi-pill-pulse {
+  animation: kpiPulse 2s infinite ease-in-out;
+}
+
+@keyframes kpiPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.88; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .director-kpi-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.director-kpi-card:hover .director-kpi-icon {
+  transform: scale(1.08) rotate(3deg);
 }
 
 .director-kpi-icon.purple { background: #f3e8ff; color: #9333ea; }
@@ -159,16 +233,329 @@
 .director-kpi-icon.amber { background: #fef3c7; color: #d97706; }
 .director-kpi-icon.emerald { background: #d1fae5; color: #059669; }
 
+/* Value Display */
 .director-kpi-value {
-  font-size: 1.75rem;
+  font-size: 1.95rem;
   font-weight: 800;
-  color: #111827;
-  margin: 0.65rem 0 0.2rem 0;
+  line-height: 1.15;
+  margin: 0.6rem 0 0.25rem 0;
+  letter-spacing: -0.02em;
+}
+
+.kpi-value-denominator {
+  font-size: 1.05rem;
+  font-weight: 600;
+  opacity: 0.6;
+  letter-spacing: 0;
+}
+
+/* Visual Design Elements Inside Containers */
+.kpi-meter-container {
+  margin: 0.5rem 0 0.4rem 0;
+}
+
+.kpi-meter-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.kpi-meter-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kpi-meter-legend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
+  opacity: 0.8;
+}
+
+.kpi-callout-box {
+  margin: 0.5rem 0 0.4rem 0;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.kpi-segmented-bar {
+  display: flex;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  overflow: hidden;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.kpi-segment {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
+
+.kpi-segment.nova { background: #9333ea; }
+.kpi-segment.orbit { background: #0284c7; }
+.kpi-segment.spark { background: #059669; }
+
+.track-badge-micro {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.48rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.track-badge-micro.nova {
+  background: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #d8b4fe;
+}
+.track-badge-micro.orbit {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+.track-badge-micro.spark {
+  background: #d1fae5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.kpi-track-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.kpi-dual-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.kpi-chip {
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
 }
 
 .director-kpi-subtext {
-  font-size: 0.775rem;
-  color: #6b7280;
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+}
+
+/* ==========================================
+   THEMED DIRECTORS KPI CONTAINERS:
+   Light Olive, Orange, Violet, Blue
+   ========================================== */
+
+/* 1. LIGHT OLIVE CONTAINER (Active Projects) */
+.director-kpi-card.kpi-olive {
+  background: linear-gradient(145deg, #fcfdf9 0%, #f1f6ea 100%);
+  border: 1px solid #d2dfbd;
+  border-top: 4px solid #788e32;
+}
+
+.director-kpi-card.kpi-olive:hover {
+  border-color: #9cb547;
+  box-shadow: 0 12px 24px -4px rgba(120, 142, 50, 0.22), 0 4px 8px -2px rgba(120, 142, 50, 0.08);
+}
+
+.director-kpi-card.kpi-olive .kpi-watermark {
+  color: #788e32;
+}
+
+.director-kpi-card.kpi-olive .director-kpi-title {
+  color: #556722;
+}
+
+.director-kpi-card.kpi-olive .kpi-micro-pill {
+  background: #e4eed3;
+  color: #46551b;
+  border: 1px solid #c8dcb0;
+}
+
+.director-kpi-card.kpi-olive .director-kpi-icon {
+  background: linear-gradient(135deg, #e4edd2, #d5e6ba);
+  color: #556722;
+  border: 1px solid #c2d6a5;
+  box-shadow: 0 2px 6px rgba(85, 103, 34, 0.12);
+}
+
+.director-kpi-card.kpi-olive .director-kpi-value {
+  color: #222d10;
+}
+
+.director-kpi-card.kpi-olive .kpi-meter-bar {
+  background: rgba(120, 142, 50, 0.18);
+}
+
+.director-kpi-card.kpi-olive .kpi-meter-fill {
+  background: linear-gradient(90deg, #788e32, #9bb545);
+}
+
+.director-kpi-card.kpi-olive .director-kpi-subtext {
+  color: #556722;
+}
+
+/* 2. ORANGE CONTAINER (Pending Proposals) */
+.director-kpi-card.kpi-orange {
+  background: linear-gradient(145deg, #fffcf8 0%, #fff1e0 100%);
+  border: 1px solid #fed7aa;
+  border-top: 4px solid #ea580c;
+}
+
+.director-kpi-card.kpi-orange:hover {
+  border-color: #fb923c;
+  box-shadow: 0 12px 24px -4px rgba(234, 88, 12, 0.22), 0 4px 8px -2px rgba(234, 88, 12, 0.08);
+}
+
+.director-kpi-card.kpi-orange .kpi-watermark {
+  color: #ea580c;
+}
+
+.director-kpi-card.kpi-orange .director-kpi-title {
+  color: #c2410c;
+}
+
+.director-kpi-card.kpi-orange .kpi-micro-pill {
+  background: #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+}
+
+.director-kpi-card.kpi-orange .director-kpi-icon {
+  background: linear-gradient(135deg, #ffedd5, #fed7aa);
+  color: #ea580c;
+  border: 1px solid #fdba74;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.15);
+}
+
+.director-kpi-card.kpi-orange .director-kpi-value {
+  color: #431407;
+}
+
+.director-kpi-card.kpi-orange .kpi-callout-box {
+  background: rgba(254, 215, 170, 0.45);
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.director-kpi-card.kpi-orange .director-kpi-subtext {
+  color: #9a3412;
+}
+
+/* 3. VIOLET CONTAINER (Student Roster) */
+.director-kpi-card.kpi-violet {
+  background: linear-gradient(145deg, #fcfaff 0%, #f3ebff 100%);
+  border: 1px solid #ddd6fe;
+  border-top: 4px solid #8b5cf6;
+}
+
+.director-kpi-card.kpi-violet:hover {
+  border-color: #a855f7;
+  box-shadow: 0 12px 24px -4px rgba(139, 92, 246, 0.22), 0 4px 8px -2px rgba(139, 92, 246, 0.08);
+}
+
+.director-kpi-card.kpi-violet .kpi-watermark {
+  color: #8b5cf6;
+}
+
+.director-kpi-card.kpi-violet .director-kpi-title {
+  color: #6d28d9;
+}
+
+.director-kpi-card.kpi-violet .kpi-micro-pill {
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #ddd6fe;
+}
+
+.director-kpi-card.kpi-violet .director-kpi-icon {
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  color: #7c3aed;
+  border: 1px solid #c4b5fd;
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15);
+}
+
+.director-kpi-card.kpi-violet .director-kpi-value {
+  color: #2e1065;
+}
+
+.director-kpi-card.kpi-violet .director-kpi-subtext {
+  color: #5b21b6;
+}
+
+/* 4. BLUE CONTAINER (Financial Budget) */
+.director-kpi-card.kpi-blue {
+  background: linear-gradient(145deg, #f8fbff 0%, #e7f1fe 100%);
+  border: 1px solid #bfdbfe;
+  border-top: 4px solid #2563eb;
+}
+
+.director-kpi-card.kpi-blue:hover {
+  border-color: #60a5fa;
+  box-shadow: 0 12px 24px -4px rgba(37, 99, 235, 0.22), 0 4px 8px -2px rgba(37, 99, 235, 0.08);
+}
+
+.director-kpi-card.kpi-blue .kpi-watermark {
+  color: #2563eb;
+}
+
+.director-kpi-card.kpi-blue .director-kpi-title {
+  color: #1d4ed8;
+}
+
+.director-kpi-card.kpi-blue .kpi-micro-pill {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.director-kpi-card.kpi-blue .director-kpi-icon {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+  box-shadow: 0 2px 6px rgba(29, 78, 216, 0.15);
+}
+
+.director-kpi-card.kpi-blue .director-kpi-value {
+  color: #0f172a;
+}
+
+.director-kpi-card.kpi-blue .kpi-meter-bar {
+  background: rgba(37, 99, 235, 0.15);
+}
+
+.director-kpi-card.kpi-blue .kpi-meter-fill {
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+}
+
+.director-kpi-card.kpi-blue .kpi-chip {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.director-kpi-card.kpi-blue .director-kpi-subtext {
+  color: #1e40af;
 }
 
 /* Panels */
