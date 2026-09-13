@@ -412,7 +412,21 @@ export async function InvoicesBills(route, router) {
                 <label>Project</label>
                 <select class="fin-input" id="ci-project">
                   <option value="">Select Project</option>
-                  ${validProjects.map(p => `<option value="${p.project_finance.id}" data-budget="${p.budget || 0}">${p.title} (Budget: ${fmt(p.budget || 0)})</option>`).join('')}
+                  ${(() => {
+                    const LOCKED_STATUSES_INV = ['closed', 'completed', 'cancelled'];
+                    return validProjects.map(p => {
+                      const isStatusLocked = LOCKED_STATUSES_INV.includes(p.status);
+                      const isNoBudget     = !p.budget || parseFloat(p.budget) <= 0;
+                      const isLocked       = isStatusLocked || isNoBudget;
+                      const budgetFmt      = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(p.budget || 0);
+                      const suffix = isLocked
+                        ? (isStatusLocked
+                            ? ` (${p.status.charAt(0).toUpperCase() + p.status.slice(1)} \u2013 Locked)`
+                            : ' (No Approved Budget)')
+                        : ` (Budget: ${budgetFmt})`;
+                      return `<option value="${p.project_finance.id}" data-budget="${p.budget || 0}" ${isLocked ? 'disabled' : ''}>${p.title}${suffix}</option>`;
+                    }).join('');
+                  })()}
                 </select>
               </div>
 
@@ -483,6 +497,9 @@ export async function InvoicesBills(route, router) {
                 <label>Remarks / Description</label>
                 <textarea class="fin-input" id="ci-desc" rows="2" placeholder="Optional notes for invoice"></textarea>
               </div>
+
+              <div id="ci-modal-error" style="display:none;background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;
+                border-radius:8px;padding:0.65rem 1rem;font-size:0.85rem;margin-top:0.5rem;"></div>
 
               <div class="fin-form-actions" style="margin-top:1rem">
                 <button class="fin-btn primary" id="confirm-ci">Create Invoice</button>
@@ -641,7 +658,13 @@ export async function InvoicesBills(route, router) {
             }
 
             try {
-              const res = await financeService.createInvoice({
+              const confirmCiBtn = modal.querySelector('#confirm-ci');
+              const ciErrorEl    = modal.querySelector('#ci-modal-error');
+              if (ciErrorEl) ciErrorEl.style.display = 'none';
+              confirmCiBtn.disabled  = true;
+              confirmCiBtn.innerHTML = 'Creating\u2026';
+
+              await financeService.createInvoice({
                 project_finance_id: pfId,
                 invoice_number: num,
                 invoice_date: date,
@@ -650,15 +673,19 @@ export async function InvoicesBills(route, router) {
                 description: modal.querySelector('#ci-desc').value || null,
                 items: items
               });
-
-              if (res && res.message && !res.invoice) {
-                alert('Error: ' + res.message);
-                return;
-              }
               modal.remove();
               await loadInvoices();
             } catch (err) {
-              alert('Creation failed: ' + err.message);
+              // Show inline error — includes Rule A / Rule B 422 messages from the server
+              const ciErrorEl = modal.querySelector('#ci-modal-error');
+              if (ciErrorEl) {
+                ciErrorEl.textContent = err.message || 'Invoice creation failed.';
+                ciErrorEl.style.display = 'block';
+              } else {
+                alert('Creation failed: ' + err.message);
+              }
+              const confirmCiBtn = modal.querySelector('#confirm-ci');
+              if (confirmCiBtn) { confirmCiBtn.disabled = false; confirmCiBtn.innerHTML = 'Create Invoice'; }
             }
           });
         });

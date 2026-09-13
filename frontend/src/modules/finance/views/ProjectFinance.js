@@ -8,6 +8,30 @@ export async function ProjectFinance(route, router) {
 
   const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
+  // ── Finance-lock helpers (Rule A + Rule B) ──────────────────────────────
+  const LOCKED_STATUSES = ['closed', 'completed', 'cancelled'];
+
+  const getFinanceLock = (project) => {
+    if (project.finance_lock) return project.finance_lock;
+    if (LOCKED_STATUSES.includes(project.status)) {
+      const label = project.status.charAt(0).toUpperCase() + project.status.slice(1);
+      return { locked: true, reason: 'status', label };
+    }
+    if (!project.budget || parseFloat(project.budget) <= 0) {
+      return { locked: true, reason: 'no_budget', label: 'No Approved Budget' };
+    }
+    return { locked: false, reason: null, label: null };
+  };
+
+  const statusBadgeClass = (status) => {
+    if (status === 'closed' || status === 'completed') return 'success';
+    if (status === 'cancelled') return 'danger';
+    if (status === 'in_progress') return 'info';
+    if (status === 'accepted') return 'primary';
+    return 'neutral';
+  };
+  // ────────────────────────────────────────────────────────────────────────
+
   if (route.params && route.params.id) {
     // ── PROJECT DETAIL VIEW ───────────────────────────────────────
     container.innerHTML = `
@@ -21,7 +45,8 @@ export async function ProjectFinance(route, router) {
         const projectData = await financeService.getProjectDetails(route.params.id);
         if (!projectData) throw new Error('Project finance details not found');
       
-      const project = projectData.project || {};
+      const project    = projectData.project || {};
+      const projectLock = getFinanceLock(project);
       const payments = (projectData.invoices || []).flatMap(inv => (inv.client_payments || []).map(cp => ({
         date: cp.payment_date,
         type: 'Bank Transfer',
@@ -31,7 +56,14 @@ export async function ProjectFinance(route, router) {
       const allResources = projectData.assigned_resources || [];
       const payroll = allResources.filter(r => r.type === 'Student');
       const faculty = allResources.filter(r => r.type === 'Faculty');
-      const recvPct = projectData.total_invoiced > 0 ? Math.round((projectData.total_collected / projectData.total_invoiced) * 100) : 0;
+      const estCost = parseFloat(project.budget || projectData.total_development_amount || 0);
+      const totalBilled = parseFloat(projectData.total_invoiced || 0);
+      const collected = parseFloat(projectData.total_collected || 0);
+      const billedPending = Math.max(0, totalBilled - collected);
+      const unbilledBalance = Math.max(0, estCost - totalBilled);
+      const totalRemaining = Math.max(0, estCost - collected);
+      const budgetPct = estCost > 0 ? Math.round((collected / estCost) * 100) : 0;
+      const billedPct = totalBilled > 0 ? Math.round((collected / totalBilled) * 100) : 0;
       const devTotal = projectData.development_allocations ? (projectData.development_allocations.reduce((sum, a) => sum + parseFloat(a.amount), 0)) : 0;
       const hostTotal = projectData.hosting_charges ? (projectData.hosting_charges.reduce((sum, h) => sum + parseFloat(h.amount), 0)) : 0;
 
@@ -39,7 +71,7 @@ export async function ProjectFinance(route, router) {
         <div class="fin-page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
           <div>
             <h1>${project.title || 'Unknown Project'}</h1>
-            <p>Client: ${project.client_name || '-'}&nbsp;&nbsp;|&nbsp;&nbsp;Status: <span class="fin-badge ${project.status === 'closed' ? 'success' : 'info'}">${project.status || 'Active'}</span></p>
+            <p>Client: ${project.client_name || '-'}&nbsp;&nbsp;|&nbsp;&nbsp;Status: <span class="fin-badge ${statusBadgeClass(project.status)}">${(project.status || 'active').replace('_', ' ')}</span>${projectLock.locked ? `&nbsp;<span style="font-size:0.75rem;font-weight:600;color:${projectLock.reason === 'status' ? '#b91c1c' : '#92400e'}">· ${projectLock.reason === 'status' ? '🔒 Locked' : '⚠ No Budget'}</span>` : ''}</p>
           </div>
           <div>
             <button class="btn-back-nav" id="back-btn" title="Return to Projects">
@@ -55,13 +87,18 @@ export async function ProjectFinance(route, router) {
         <div class="fin-kpi-strip">
           <div class="fin-kpi-card teal">
             <div class="kpi-label">Collected</div>
-            <div class="kpi-value">${fmt(projectData.total_collected || 0)}</div>
-            <div class="kpi-sub">${recvPct}% of billed revenue</div>
+            <div class="kpi-value">${fmt(collected)}</div>
+            <div class="kpi-sub">${budgetPct}% of total budget (${billedPct}% of billed)</div>
           </div>
-          <div class="fin-kpi-card ${projectData.pending_amount > 0 ? 'warning' : 'primary'}">
+          <div class="fin-kpi-card ${totalRemaining > 0 ? 'warning' : 'primary'}">
             <div class="kpi-label">Pending from Client</div>
-            <div class="kpi-value">${fmt(projectData.pending_amount || 0)}</div>
-            <div class="kpi-sub">${projectData.pending_amount > 0 ? 'Outstanding balance' : 'Fully collected ✓'}</div>
+            <div class="kpi-value">${fmt(totalRemaining)}</div>
+            <div class="kpi-sub" style="font-size:0.85rem; font-weight:500; line-height:1.45; margin-top:4px;">
+              ${totalRemaining === 0 
+                ? 'Fully collected ✓' 
+                : `<div style="font-size:0.92rem; font-weight:600; margin-top:2px">Invoiced Pending: <strong style="font-weight:700">${fmt(billedPending)}</strong></div>
+                   <div style="font-size:0.84rem; margin-top:2px">Unbilled Contract: <strong>${fmt(unbilledBalance)}</strong></div>`}
+            </div>
           </div>
           <div class="fin-kpi-card indigo">
             <div class="kpi-label">Total Expenses</div>
@@ -70,10 +107,22 @@ export async function ProjectFinance(route, router) {
           </div>
           <div class="fin-kpi-card primary">
             <div class="kpi-label">Project Profit</div>
-            <div class="kpi-value">${fmt((projectData.total_collected || 0) - (projectData.total_expenses || 0))}</div>
+            <div class="kpi-value">${fmt(collected - (projectData.total_expenses || 0))}</div>
             <div class="kpi-sub">Collected - Expenses</div>
           </div>
         </div>
+
+        ${projectLock.locked ? `
+        <div style="display:flex;align-items:center;gap:10px;background:${projectLock.reason === 'status' ? '#fee2e2' : '#fef3c7'};
+          color:${projectLock.reason === 'status' ? '#991b1b' : '#92400e'};border-radius:10px;
+          padding:0.75rem 1.25rem;margin-bottom:1.25rem;font-size:0.875rem;font-weight:500;
+          border:1px solid ${projectLock.reason === 'status' ? '#fca5a5' : '#fcd34d'}">
+          <span style="font-size:1.1rem">${projectLock.reason === 'status' ? '🔒' : '⚠'}</span>
+          <span><strong>Read-only:</strong> ${projectLock.reason === 'status'
+            ? `This project is <strong>${projectLock.label}</strong> — financial modifications are disabled.`
+            : 'This project has no approved budget. Financial modifications are disabled until a budget is set.'}
+          </span>
+        </div>` : ''}
 
         <div class="fin-grid-2">
           <!-- Cost Distribution -->
@@ -113,7 +162,14 @@ export async function ProjectFinance(route, router) {
           <div class="fin-panel">
             <div class="fin-panel-header">
               <div class="fin-panel-title">Client Payments</div>
-              <button class="fin-btn outline sm" id="add-payment-btn">+ Record Payment</button>
+              ${projectLock.locked
+                ? `<button class="fin-btn outline sm" id="add-payment-btn" disabled aria-disabled="true"
+                    title="${projectLock.reason === 'status'
+                      ? 'Payments disabled: project is ' + projectLock.label
+                      : 'Payments disabled: no approved budget set'}"
+                    style="opacity:0.45;cursor:not-allowed">🔒 Record Payment</button>`
+                : `<button class="fin-btn outline sm" id="add-payment-btn">+ Record Payment</button>`
+              }
             </div>
             <div class="fin-table-wrap">
               <table class="fin-table">
@@ -179,10 +235,13 @@ export async function ProjectFinance(route, router) {
       `;
 
       container.querySelector('#back-btn').addEventListener('click', () => router.push('/finance/projects'));
-      container.querySelector('#add-payment-btn').addEventListener('click', () => {
-        alert('Please record client payments via the Invoices Ledger.');
-        router.push('/finance/invoices');
-      });
+      const payBtn = container.querySelector('#add-payment-btn');
+      if (payBtn && !projectLock.locked) {
+        payBtn.addEventListener('click', () => {
+          alert('Please record client payments via the Invoices Ledger.');
+          router.push('/finance/invoices');
+        });
+      }
 
       } catch (e) {
         container.innerHTML = `<div class="alert-error" style="margin:2rem">Failed to load project details: ${e.message} <button class="fin-btn outline sm" onclick="window.location.reload()" style="margin-left:1rem">Retry</button></div>`;
@@ -218,9 +277,7 @@ export async function ProjectFinance(route, router) {
           <div class="fin-select-wrap">
             <select id="status-filter" class="fin-input">
               <option value="All">All Statuses</option>
-              <option value="proposed">Proposed</option>
               <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
               <option value="in_progress">In Progress</option>
               <option value="closed">Closed</option>
             </select>
@@ -286,6 +343,8 @@ export async function ProjectFinance(route, router) {
           </div>
         </div>
         <div class="fin-form-actions">
+          <div id="form-save-error" style="display:none;background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;
+            border-radius:8px;padding:0.6rem 1rem;font-size:0.85rem;width:100%;margin-bottom:0.75rem;"></div>
           <button class="fin-btn primary" id="save-new-project">Save Finance Record</button>
           <button class="fin-btn outline" id="cancel-new-project">Cancel</button>
         </div>
@@ -348,22 +407,29 @@ export async function ProjectFinance(route, router) {
       } else {
         noResults.style.display = 'none';
         tbody.innerHTML = filtered.map(p => {
-          const pf = p.project_finance || {};
-          const pName = p.title || 'Unknown Project';
-          const client = p.client_name || 'Unknown Client';
-          const status = p.status || 'proposed';
+          const pf      = p.project_finance || {};
+          const pName   = p.title || 'Unknown Project';
+          const client  = p.client_name || 'Unknown Client';
+          const status  = p.status || 'proposed';
+          const lock    = getFinanceLock(p);
           const billing = pf.total_invoiced || 0;
           const collected = pf.total_collected || 0;
-          const expenses = pf.total_expenses || 0;
-          const profit = collected - expenses;
+          const expenses  = pf.total_expenses || 0;
+          const profit    = collected - expenses;
+
+          const lockLabel = lock.locked
+            ? (lock.reason === 'status'
+                ? `<span style="font-size:0.68rem;font-weight:600;padding:2px 6px;border-radius:8px;background:#fee2e2;color:#b91c1c;margin-left:5px">🔒 ${lock.label}</span>`
+                : `<span style="font-size:0.68rem;font-weight:600;padding:2px 6px;border-radius:8px;background:#fef3c7;color:#92400e;margin-left:5px">⚠ No Budget</span>`)
+            : '';
           
           return `
-          <tr>
+          <tr style="${lock.locked ? 'background:rgba(0,0,0,0.014)' : ''}">
             <td>
-              <div style="font-weight:600">${pName}</div>
+              <div style="font-weight:600;display:flex;align-items:center;flex-wrap:wrap">${pName}${lockLabel}</div>
               <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${client}</div>
             </td>
-            <td><span class="fin-badge ${status === 'closed' ? 'success' : 'info'}">${status.replace('_', ' ')}</span></td>
+            <td><span class="fin-badge ${statusBadgeClass(status)}">${status.replace('_', ' ')}</span></td>
             <td>${fmt(p.budget || 0)}</td>
             <td style="font-weight:600">${fmt(billing)}</td>
             <td style="color:var(--primary);font-weight:700">${fmt(pf.total_collected || 0)}</td>
@@ -395,12 +461,24 @@ export async function ProjectFinance(route, router) {
         allProjects = await financeService.getProjectFinances();
         renderProjects();
         
+        // All projects without a finance record are available for selection,
+        // but locked ones (closed / cancelled / no budget) are shown as disabled.
         const availableProjects = allProjects.filter(p => !p.project_finance);
         const select = container.querySelector('#new-p-name');
-        select.innerHTML = '<option value="">Select Project</option>' + availableProjects.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+        select.innerHTML = '<option value="">Select Project</option>' +
+          availableProjects.map(p => {
+            const lock = getFinanceLock(p);
+            const suffix = lock.locked
+              ? (lock.reason === 'status' ? ` (${lock.label} – Locked)` : ' (No Approved Budget)')
+              : '';
+            return `<option value="${p.id}" ${lock.locked ? 'disabled' : ''}>${p.title}${suffix}</option>`;
+          }).join('');
 
         select.addEventListener('change', (e) => {
           const p = availableProjects.find(proj => proj.id == e.target.value);
+          // Clear any inline form error when selection changes
+          const formErr = container.querySelector('#form-save-error');
+          if (formErr) formErr.style.display = 'none';
           if (p) {
             container.querySelector('#new-p-client').value = p.client_name || '';
             container.querySelector('#new-p-est').value = p.budget || p.estimated_cost || 0;
@@ -428,26 +506,58 @@ export async function ProjectFinance(route, router) {
     container.querySelector('#cancel-new-project').addEventListener('click', () => addForm.classList.remove('visible'));
     container.querySelector('#save-new-project').addEventListener('click', async () => {
       const projSelect = container.querySelector('#new-p-name');
+      const formErr    = container.querySelector('#form-save-error');
+      if (formErr) formErr.style.display = 'none';
+
       if (!projSelect.value) {
-        alert("Please select a project.");
+        if (formErr) { formErr.textContent = 'Please select a project.'; formErr.style.display = 'block'; }
+        else alert('Please select a project.');
         return;
       }
+
+      // Client-side lock guard (belt-and-suspenders before API call)
+      const selectedProject = allProjects.find(p => p.id == projSelect.value);
+      if (selectedProject) {
+        const lock = getFinanceLock(selectedProject);
+        if (lock.locked) {
+          const msg = lock.reason === 'status'
+            ? `Cannot create finance record: this project is ${lock.label} and locked.`
+            : 'Cannot create finance record: this project has no approved budget set.';
+          if (formErr) { formErr.textContent = msg; formErr.style.display = 'block'; }
+          else alert(msg);
+          return;
+        }
+      }
+
+      const saveBtn = container.querySelector('#save-new-project');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+
       const data = {
-        project_id: projSelect.value,
-        name: projSelect.options[projSelect.selectedIndex].text,
-        client: container.querySelector('#new-p-client').value.trim() || 'Unknown',
-        estimated_cost: parseFloat(container.querySelector('#new-p-est').value) || 0,
-        dev_student: parseFloat(container.querySelector('#new-p-dev-stu').value) || 0,
-        dev_faculty: parseFloat(container.querySelector('#new-p-dev-fac').value) || 0,
-        dev_rlabz: parseFloat(container.querySelector('#new-p-dev-rlabz').value) || 0,
-        host_ssl: parseFloat(container.querySelector('#new-p-host-ssl').value) || 0,
-        host_domain: parseFloat(container.querySelector('#new-p-host-dom').value) || 0,
-        host_api: parseFloat(container.querySelector('#new-p-host-api').value) || 0,
+        project_id:          projSelect.value,
+        name:                projSelect.options[projSelect.selectedIndex].text,
+        client:              container.querySelector('#new-p-client').value.trim() || 'Unknown',
+        estimated_cost:      parseFloat(container.querySelector('#new-p-est').value) || 0,
+        dev_student:         parseFloat(container.querySelector('#new-p-dev-stu').value) || 0,
+        dev_faculty:         parseFloat(container.querySelector('#new-p-dev-fac').value) || 0,
+        dev_rlabz:           parseFloat(container.querySelector('#new-p-dev-rlabz').value) || 0,
+        host_ssl:            parseFloat(container.querySelector('#new-p-host-ssl').value) || 0,
+        host_domain:         parseFloat(container.querySelector('#new-p-host-dom').value) || 0,
+        host_api:            parseFloat(container.querySelector('#new-p-host-api').value) || 0,
         maintenance_support: parseFloat(container.querySelector('#new-p-maint').value) || 0,
       };
-      await financeService.addProjectFinance(data);
-      addForm.classList.remove('visible');
-      loadProjects();
+
+      try {
+        await financeService.addProjectFinance(data);
+        addForm.classList.remove('visible');
+        loadProjects();
+      } catch (e) {
+        if (formErr) { formErr.textContent = e.message || 'Failed to save finance record.'; formErr.style.display = 'block'; }
+        else alert(e.message || 'Failed to save finance record.');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Finance Record';
+      }
     });
 
     loadProjects();

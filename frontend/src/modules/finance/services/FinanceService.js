@@ -16,6 +16,16 @@ class FinanceService {
       return null;
     }
     const data = await response.json();
+    // Surface backend validation errors (Rule A / Rule B) as proper JS Errors
+    // so view catch-blocks can display the exact server message to the user.
+    if (response.status === 422) {
+      const msg = data?.message || data?.error || 'Validation error.';
+      throw new Error(msg);
+    }
+    if (!response.ok) {
+      const msg = data?.message || data?.error || `Request failed (${response.status}).`;
+      throw new Error(msg);
+    }
     return data;
   }
 

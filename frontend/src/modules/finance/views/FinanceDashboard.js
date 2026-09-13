@@ -33,8 +33,8 @@ export async function FinanceDashboard(route, router) {
     return isNaN(dt) ? d : dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  const recvPct = summary.totalBilling > 0 
-    ? Math.round((summary.totalCollected / summary.totalBilling) * 100) 
+  const recvPct = summary.totalBilling > 0
+    ? Math.round((summary.totalCollected / summary.totalBilling) * 100)
     : 0;
 
   // Build project rows (Top 3 for dashboard)
@@ -43,8 +43,9 @@ export async function FinanceDashboard(route, router) {
     // Total Billing = SUM of invoice grand totals (the single source of truth)
     const totalBilling = pf.total_invoiced || 0;
     const collected = pf.total_collected || 0;
-    const pct = totalBilling > 0 ? Math.round((collected / totalBilling) * 100) : 0;
-    
+    const estCost = p.budget || pf.total_development_amount || 0;
+    const pct = estCost > 0 ? Math.min(100, Math.round((collected / estCost) * 100)) : 0;
+
     return `
       <tr>
         <td>
@@ -153,7 +154,7 @@ export async function FinanceDashboard(route, router) {
           </div>
           <div class="fin-legend-item">
             <span class="fin-legend-dot" style="background:#0891b2"></span>
-            <span class="leg-label">Faculty Payments</span>
+            <span class="leg-label">Faculty Honorarium</span>
             <span class="leg-pct">${fmt(summary.totalFaculty)}</span>
           </div>
           <div class="fin-legend-item">
@@ -174,7 +175,7 @@ export async function FinanceDashboard(route, router) {
         <div class="fin-panel-header">
           <div>
             <div class="fin-panel-title">Financial Summary by Project</div>
-            <div class="fin-panel-subtitle">Received vs Pending from Client</div>
+            <div class="fin-panel-subtitle">Received vs Outstanding vs Unbilled</div>
           </div>
         </div>
         <div class="fin-chart-wrap" style="flex: 1;">
@@ -232,13 +233,13 @@ export async function FinanceDashboard(route, router) {
   const Chart = await loadChartJs();
 
   const COLORS = {
-    primary:  '#059669',
-    teal:     '#0891b2',
-    indigo:   '#6366f1',
-    warning:  '#f59e0b',
-    danger:   '#ef4444',
-    grid:     '#e2e8f0',
-    text:     '#64748b',
+    primary: '#059669',
+    teal: '#0891b2',
+    indigo: '#6366f1',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+    grid: '#e2e8f0',
+    text: '#64748b',
   };
 
   const tooltipDefaults = {
@@ -276,7 +277,7 @@ export async function FinanceDashboard(route, router) {
               const v = ctx.raw;
               const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
               const pct = total > 0 ? ((v / total) * 100).toFixed(1) : 0;
-              return `  ${ctx.label}: â‚¹${v.toLocaleString('en-IN')} (${pct}%)`;
+              return `  ${ctx.label}: \u20B9${Number(v).toLocaleString('en-IN')} (${pct}%)`;
             },
           },
         },
@@ -285,21 +286,40 @@ export async function FinanceDashboard(route, router) {
     },
   });
 
-  // Bar chart (Collections)
-  const projLabels   = (projects || []).map(p => {
-      const name = p.title || p.name || 'Project';
-      return name.length > 18 ? name.slice(0, 18) + 'â€¦' : name;
+  // Bar chart (Financial Summary by Project: Received vs Outstanding vs Unbilled)
+  const projFullTitles = (projects || []).map(p => p.title || p.name || 'Project');
+  const projLabels = (projects || []).map(p => {
+    const name = p.title || p.name || 'Project';
+    return name.length > 18 ? name.slice(0, 18) + '\u2026' : name;
   });
-  const projReceived = (projects || []).map(p => (p.project_finance?.total_collected || 0));
-  const projPending  = (projects || []).map(p => (p.project_finance?.pending_amount || p.budget || 0));
+
+  const projReceived = (projects || []).map(p => {
+    const pf = p.project_finance || {};
+    return pf.total_collected || 0;
+  });
+
+  const projOutstanding = (projects || []).map(p => {
+    const pf = p.project_finance || {};
+    const invoiced = pf.total_invoiced || 0;
+    const collected = pf.total_collected || 0;
+    return Math.max(0, invoiced - collected);
+  });
+
+  const projUnbilled = (projects || []).map(p => {
+    const pf = p.project_finance || {};
+    const budget = p.budget || pf.total_development_amount || 0;
+    const invoiced = pf.total_invoiced || 0;
+    return Math.max(0, budget - invoiced);
+  });
 
   new Chart(container.querySelector('#bar-chart'), {
     type: 'bar',
     data: {
       labels: projLabels,
       datasets: [
-        { label: 'Received', data: projReceived, backgroundColor: COLORS.primary,  borderRadius: 6, borderSkipped: false },
-        { label: 'Outstanding',  data: projPending,  backgroundColor: COLORS.warning,  borderRadius: 6, borderSkipped: false },
+        { label: 'Received', data: projReceived, backgroundColor: COLORS.primary, borderRadius: 4, borderSkipped: false },
+        { label: 'Outstanding', data: projOutstanding, backgroundColor: COLORS.warning, borderRadius: 4, borderSkipped: false },
+        { label: 'Unbilled', data: projUnbilled, backgroundColor: '#1197D6', borderRadius: 4, borderSkipped: false },
       ],
     },
     options: {
@@ -309,7 +329,13 @@ export async function FinanceDashboard(route, router) {
         legend: { position: 'top', labels: { color: COLORS.text, font: { family: 'Plus Jakarta Sans', size: 12 } } },
         tooltip: {
           ...tooltipDefaults,
-          callbacks: { label: ctx => `  ${ctx.dataset.label}: â‚¹${ctx.raw.toLocaleString('en-IN')}` },
+          callbacks: {
+            title: items => {
+              const idx = items[0]?.dataIndex;
+              return idx !== undefined ? projFullTitles[idx] : items[0]?.label;
+            },
+            label: ctx => `  ${ctx.dataset.label}: \u20B9${Number(ctx.raw).toLocaleString('en-IN')}`
+          },
         },
       },
       scales: {
@@ -317,7 +343,7 @@ export async function FinanceDashboard(route, router) {
         y: {
           stacked: true,
           grid: { color: COLORS.grid },
-          ticks: { color: COLORS.text, callback: v => 'â‚¹' + (v / 1000) + 'K' },
+          ticks: { color: COLORS.text, callback: v => '\u20B9' + (v / 1000) + 'K' },
         },
       },
       animation: { duration: 900 },
