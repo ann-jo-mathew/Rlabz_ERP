@@ -17,7 +17,7 @@ function loadChartJs() {
 
 export async function FinanceDashboard(route, router) {
   const container = document.createElement('div');
-  container.className = 'finance-module animate-fade-in';
+  container.className = 'finance-module';
 
   // Highlight active sidebar link
   setTimeout(updateFinanceSidebar, 0);
@@ -25,13 +25,199 @@ export async function FinanceDashboard(route, router) {
   // Fetch from our centralized mock service
   const summary = await financeService.getDashboardSummary();
   const projects = await financeService.getProjectFinances();
+  const invoices = await financeService.getInvoices();
 
   const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
   const fmtDate = (d) => {
     if (!d) return '-';
     const dt = new Date(d);
-    return isNaN(dt) ? d : dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+    return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
   };
+
+  // ── DYNAMIC ALERT CALCULATION LOGIC ─────────────────────────────
+  const alerts = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // a & b) SSL Expiries and Domain Expiries (hosting_charges)
+  (projects || []).forEach(p => {
+    const pf = p.project_finance;
+    if (!pf || !pf.hosting_charges) return;
+    const projName = p.title || p.name || 'Unknown Project';
+
+    pf.hosting_charges.forEach(hc => {
+      if (!hc.expiry_date || !hc.charge_type) return;
+      const type = hc.charge_type.toLowerCase();
+      if (type !== 'ssl' && type !== 'domain') return;
+
+      const targetDate = new Date(hc.expiry_date);
+      targetDate.setHours(0, 0, 0, 0);
+      const daysLeft = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+
+      // Trigger if daysLeft <= 15 or overdue
+      if (daysLeft <= 15) {
+        const isOverdue = daysLeft < 0;
+        const absDays = Math.abs(daysLeft);
+        const dateStr = fmtDate(hc.expiry_date);
+
+        if (type === 'ssl') {
+          const message = isOverdue
+            ? `SSL Certificate for project ${projName} expired ${absDays} ${absDays === 1 ? 'day' : 'days'} ago (${dateStr})`
+            : `SSL Certificate for project ${projName} is expiring in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} (${dateStr})`;
+
+          alerts.push({
+            id: `ssl-${hc.id}`,
+            category: 'SSL',
+            type: 'ssl',
+            projectId: p.id,
+            projectName: projName,
+            daysLeft,
+            isOverdue,
+            message,
+            dateStr
+          });
+        } else if (type === 'domain') {
+          const message = isOverdue
+            ? `Domain Registration for project ${projName} expired ${absDays} ${absDays === 1 ? 'day' : 'days'} ago (${dateStr})`
+            : `Domain Registration for project ${projName} is expiring in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} (${dateStr})`;
+
+          alerts.push({
+            id: `domain-${hc.id}`,
+            category: 'DOMAIN',
+            type: 'domain',
+            projectId: p.id,
+            projectName: projName,
+            daysLeft,
+            isOverdue,
+            message,
+            dateStr
+          });
+        }
+      }
+    });
+  });
+
+  // c) Incomplete Billing Alerts (invoices + client_payments)
+  const invoiceList = (invoices && invoices.length > 0)
+    ? invoices
+    : (projects || []).flatMap(p => p.project_finance?.invoices || []);
+
+  const processedInvIds = new Set();
+
+  (invoiceList || []).forEach(inv => {
+    if (!inv || !inv.id || processedInvIds.has(inv.id)) return;
+    processedInvIds.add(inv.id);
+
+    const amountBeforeGst = Number(inv.amount_before_gst || 0);
+    const gstPct = Number(inv.gst_percentage || 0);
+    const totalBilled = inv.grand_total !== undefined 
+      ? Number(inv.grand_total) 
+      : amountBeforeGst * (1 + gstPct / 100);
+
+    const clientPayments = inv.client_payments || inv.clientPayments || [];
+    const totalPaid = inv.total_paid !== undefined 
+      ? Number(inv.total_paid) 
+      : clientPayments.reduce((sum, cp) => sum + Number(cp.amount || 0), 0);
+
+    const balanceDue = totalBilled - totalPaid;
+
+    // EXCLUDE fully paid invoices where Balance Due <= 0
+    if (Math.round(balanceDue) <= 0) return;
+
+    if (!inv.due_date) return;
+
+    const targetDate = new Date(inv.due_date);
+    targetDate.setHours(0, 0, 0, 0);
+    const daysLeft = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+
+    // Trigger if daysLeft <= 7 or overdue
+    if (daysLeft <= 7) {
+      const isOverdue = daysLeft < 0;
+      const absDays = Math.abs(daysLeft);
+      const dateStr = fmtDate(inv.due_date);
+      const formattedBalance = Number(balanceDue.toFixed(2)).toLocaleString('en-IN');
+
+      let projName = 'Unknown Project';
+      if (inv.project_finance?.project?.title) {
+        projName = inv.project_finance.project.title;
+      } else if (inv.project_finance?.project?.name) {
+        projName = inv.project_finance.project.name;
+      } else {
+        const matchProj = (projects || []).find(p => p.project_finance?.id === inv.project_finance_id || p.id === inv.project_id);
+        if (matchProj) projName = matchProj.title || matchProj.name;
+      }
+
+      const message = isOverdue
+        ? `Incomplete bill of \u20B9${formattedBalance} Overdue by ${absDays} ${absDays === 1 ? 'day' : 'days'} for project ${projName} (Due: ${dateStr})`
+        : `Incomplete bill of \u20B9${formattedBalance} due in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} for project ${projName} (Due: ${dateStr})`;
+
+      alerts.push({
+        id: `invoice-${inv.id}`,
+        category: 'BILLING',
+        type: 'billing',
+        projectId: inv.project_finance?.project_id || inv.project_id,
+        projectName: projName,
+        daysLeft,
+        isOverdue,
+        message,
+        balanceDue,
+        dateStr
+      });
+    }
+  });
+
+  // Sort alerts by urgency: lowest daysLeft first (most urgent / overdue items first)
+  alerts.sort((a, b) => a.daysLeft - b.daysLeft);
+
+  // Build Native Notification Drawer HTML
+  let drawerHtml = `
+    <!-- Floating Bell -->
+    <button class="fin-bell-trigger ${alerts.length > 0 ? 'fin-bell-shake' : ''}" id="fin-bell-btn" title="View Action Items">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      ${alerts.length > 0 ? `<span class="fin-bell-badge">${alerts.length}</span>` : ''}
+    </button>
+
+    <!-- Drawer Backdrop -->
+    <div class="fin-drawer-backdrop" id="fin-drawer-backdrop"></div>
+
+    <!-- Notification Drawer -->
+    <div class="fin-notification-drawer" id="fin-notification-drawer">
+      <div class="fin-drawer-header">
+        <div class="fin-drawer-title-wrap">
+          <span class="fin-drawer-title">Action Items</span>
+          ${alerts.length > 0 ? `<span class="fin-drawer-count">${alerts.length}</span>` : ''}
+        </div>
+        <button class="fin-drawer-close" id="fin-drawer-close" title="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="fin-drawer-body">
+        ${alerts.length > 0 
+          ? alerts.map(a => `
+            <div class="fin-action-card ${a.daysLeft <= 0 ? 'card-overdue' : 'card-upcoming'}">
+              <div class="fin-card-header-row">
+                <span class="fin-cat-badge fin-cat-${a.type}">${a.category}</span>
+                <span class="fin-countdown-tag ${a.daysLeft <= 0 ? 'tag-red' : 'tag-amber'}">
+                  ${a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}d Overdue` : (a.daysLeft === 0 ? 'Due Today' : `${a.daysLeft}d Remaining`)}
+                </span>
+              </div>
+              <div class="fin-card-msg">${a.message}</div>
+              <div class="fin-card-meta">
+                <span class="fin-project-name">Project: ${a.projectName}</span>
+              </div>
+            </div>
+          `).join('')
+          : `<div style="text-align:center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem;">No pending action items.</div>`
+        }
+      </div>
+    </div>
+  `;
 
   const recvPct = summary.totalBilling > 0
     ? Math.round((summary.totalCollected / summary.totalBilling) * 100)
@@ -40,7 +226,6 @@ export async function FinanceDashboard(route, router) {
   // Build project rows (Top 3 for dashboard)
   const projectRows = (projects || []).slice(0, 3).map(p => {
     const pf = p.project_finance || {};
-    // Total Billing = SUM of invoice grand totals (the single source of truth)
     const totalBilling = pf.total_invoiced || 0;
     const collected = pf.total_collected || 0;
     const estCost = p.budget || pf.total_development_amount || 0;
@@ -68,46 +253,27 @@ export async function FinanceDashboard(route, router) {
   }).join('');
 
   container.innerHTML = `
-    <div class="fin-page-header">
-      <div>
-        <h1>Finance Overview</h1>
-        <p>Enterprise Financial Overview & Project Billings</p>
-      </div>
-      <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-        <a href="/finance/invoices" class="fin-btn outline" data-link>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-          Client Invoices
-        </a>
-        <a href="/finance/reports" class="fin-btn primary" data-link>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
-          Financial Reports
-        </a>
-      </div>
-    </div>
+    <!-- Native Notification Drawer & Bell -->
+    ${drawerHtml}
+    
+    <div class="animate-fade-in">
+      <div class="fin-page-header">
+        <div>
+          <h1>Finance Overview</h1>
 
-    <!-- SSL Expiry Warnings -->
-    ${(() => {
-      let sslWarnings = '';
-      if (projects) {
-        projects.forEach(p => {
-          if (p.project_finance && p.project_finance.hosting_charges) {
-            p.project_finance.hosting_charges.forEach(hc => {
-              if (hc.charge_type.toLowerCase() === 'ssl' && hc.expiry_date) {
-                const exp = new Date(hc.expiry_date);
-                const now = new Date();
-                const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
-                if (diffDays <= 7 && diffDays >= 0) {
-                  sslWarnings += `<div class="alert-error" style="margin-bottom:1rem; border: 1px solid var(--error); border-left: 4px solid var(--error);"><strong>URGENT:</strong> SSL Certificate for project <strong>${p.title || p.name}</strong> is expiring in ${diffDays} days! (${fmtDate(hc.expiry_date)})</div>`;
-                } else if (diffDays < 0) {
-                  sslWarnings += `<div class="alert-error" style="margin-bottom:1rem; border: 1px solid var(--error); border-left: 4px solid var(--error);"><strong>URGENT:</strong> SSL Certificate for project <strong>${p.title || p.name}</strong> has EXPIRED! (${fmtDate(hc.expiry_date)})</div>`;
-                }
-              }
-            });
-          }
-        });
-      }
-      return sslWarnings;
-    })()}
+          <p>Enterprise Financial Overview & Project Billings</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+          <a href="/finance/invoices" class="fin-btn outline" data-link>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            Client Invoices
+          </a>
+          <a href="/finance/reports" class="fin-btn primary" data-link>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+            Financial Reports
+          </a>
+        </div>
+      </div>
 
     <!-- KPI Strip -->
     <div class="fin-kpi-strip">
@@ -218,6 +384,7 @@ export async function FinanceDashboard(route, router) {
         </table>
       </div>
     </div>
+    </div>
   `;
 
   // â”€â”€ Event Listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -228,6 +395,27 @@ export async function FinanceDashboard(route, router) {
   container.querySelectorAll('.view-proj-btn').forEach(btn => {
     btn.addEventListener('click', () => router.push(`/finance/projects/${btn.dataset.id}`));
   });
+
+  // ── Action Items Drawer Interactive Controls ──────────────
+  const bellBtn = container.querySelector('#fin-bell-btn');
+  const drawer = container.querySelector('#fin-notification-drawer');
+  const backdrop = container.querySelector('#fin-drawer-backdrop');
+  const closeBtn = container.querySelector('#fin-drawer-close');
+
+  const openDrawer = () => {
+    if (drawer) drawer.classList.add('open');
+    if (backdrop) backdrop.classList.add('open');
+    if (bellBtn) bellBtn.classList.add('drawer-open');
+  };
+
+  const closeDrawer = () => {
+    if (drawer) drawer.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    if (bellBtn) bellBtn.classList.remove('drawer-open');
+  };
+
+  if (bellBtn) bellBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
 
   // â”€â”€ Charts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const Chart = await loadChartJs();
@@ -319,7 +507,7 @@ export async function FinanceDashboard(route, router) {
       datasets: [
         { label: 'Received', data: projReceived, backgroundColor: COLORS.primary, borderRadius: 4, borderSkipped: false },
         { label: 'Outstanding', data: projOutstanding, backgroundColor: COLORS.warning, borderRadius: 4, borderSkipped: false },
-        { label: 'Unbilled', data: projUnbilled, backgroundColor: '#1197D6', borderRadius: 4, borderSkipped: false },
+        { label: 'Unbilled', data: projUnbilled, backgroundColor: '#c30707', borderRadius: 4, borderSkipped: false },
       ],
     },
     options: {

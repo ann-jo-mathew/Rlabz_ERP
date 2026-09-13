@@ -300,7 +300,7 @@ class FinanceService
         // and MUST NOT be viewed or listed in Finance until accepted / in_progress.
         // Closed, cancelled, and zero-budget projects remain visible in tables and dropdowns with status tags.
         $projects = Project::whereNotIn('status', ['proposed', 'rejected'])->get();
-        $finances = ProjectFinance::with(['developmentAllocations', 'invoices'])->get()->keyBy('project_id');
+        $finances = ProjectFinance::with(['developmentAllocations', 'invoices.clientPayments', 'hostingCharges', 'maintenanceSupportCharges'])->get()->keyBy('project_id');
         
         $projects->each(function($project) use ($finances) {
             $pf = $finances->get($project->id);
