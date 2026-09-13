@@ -82,7 +82,16 @@ body {
 
 .login-brand {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+}
+
+.login-brand .login-logo {
+  height: 120px;
+  width: auto;
+  max-width: 580px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 18px auto;
 }
 
 .login-brand .logo-badge {
@@ -248,7 +257,15 @@ body {
   letter-spacing: 0.05em;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.sidebar-watermark {
+  height: 38px;
+  width: auto;
+  max-height: 42px;
+  object-fit: contain;
+  display: block;
 }
 
 .sidebar-logo .badge {

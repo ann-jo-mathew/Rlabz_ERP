@@ -218,8 +218,8 @@ export async function DashboardLayout(contentChild, route, router) {
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
+          <img src="/assets/RlabZ_Watermark.png" alt="RLabZ" class="sidebar-watermark" />
           <span>RLABZ ERP</span>
-          <span class="badge">${roleName}</span>
         </div>
       </div>
       <nav class="sidebar-nav">

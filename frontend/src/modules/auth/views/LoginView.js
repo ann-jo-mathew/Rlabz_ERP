@@ -16,8 +16,7 @@ export function LoginView(route, router) {
   container.innerHTML = `
     <div class="login-box animate-fade-in" style="max-width: 480px;">
       <div class="login-brand">
-        <div class="logo-badge">R</div>
-        <h2>RLABZ ERP</h2>
+        <img src="/assets/RlabZ_Logo.png" alt="RLabZ ERP" class="login-logo" />
         <p class="hint">Please sign in to continue</p>
       </div>
 
