@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Coordinator\Models\StudentRole;
 use Modules\Project\Models\Project;
 
 class ProjectAssignmentController extends Controller
@@ -96,14 +97,36 @@ class ProjectAssignmentController extends Controller
 
         if (Schema::hasTable('project_student')) {
             $allowedRoles = ['project_lead', 'developer', 'designer', 'tester', 'other'];
-            $role = in_array(strtolower($request->designation), $allowedRoles) ? strtolower($request->designation) : 'other';
-            
+            $submittedDesignation = strtolower((string) $request->designation);
+            $submittedRole = in_array($submittedDesignation, $allowedRoles, true) ? $submittedDesignation : null;
+
+            // A student's project role is global (set once, reused everywhere) — see
+            // StudentRole. If they already have one, it's used regardless of what was
+            // submitted; an explicit, differing submission is rejected rather than
+            // silently overwritten.
+            $existingRole = StudentRole::where('student_id', $request->student_id)->first();
+            if ($existingRole && $submittedRole && $existingRole->role !== $submittedRole) {
+                $label = ucwords(str_replace('_', ' ', $existingRole->role));
+                return response()->json([
+                    'error' => "This student's role is already set to \"{$label}\" and cannot be changed by assigning them to a new project.",
+                ], 422);
+            }
+
+            $role = $existingRole->role ?? $submittedRole ?? 'other';
+
+            if (!$existingRole) {
+                StudentRole::create([
+                    'student_id' => $request->student_id,
+                    'role' => $role,
+                ]);
+            }
+
             DB::table('project_student')->updateOrInsert(
                 ['project_id' => $projectId, 'student_id' => $request->student_id],
                 [
                     'role' => $role,
                     'assigned_date' => now()->toDateString(),
-                    'created_at' => now(), 
+                    'created_at' => now(),
                     'updated_at' => now()
                 ]
             );

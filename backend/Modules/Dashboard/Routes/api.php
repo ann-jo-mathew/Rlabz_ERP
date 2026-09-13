@@ -2,7 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Dashboard\Controllers\DashboardController;
+use Modules\Dashboard\Controllers\NotificationController;
 use Modules\Auth\Middleware\JwtMiddleware;
+
+Route::group(['prefix' => 'notifications', 'middleware' => [JwtMiddleware::class]], function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::post('/{notification}/read', [NotificationController::class, 'markRead']);
+});
 
 Route::group(['prefix' => 'dashboard', 'middleware' => [JwtMiddleware::class]], function () {
     Route::get('/overview', [DashboardController::class, 'getOverview']);

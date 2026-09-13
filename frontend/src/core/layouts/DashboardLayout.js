@@ -2,6 +2,49 @@ import { useAuthStore } from '../stores/auth.js';
 import { modules } from '../../module-manifest.js';
 import { API_BASE } from '../config/api.js';
 
+const BELL_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`;
+
+function formatNotificationTime(value) {
+  if (!value) return 'Recently';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+}
+
+async function fetchNotifications() {
+  const token = localStorage.getItem('token');
+  if (!token) return [];
+  try {
+    const resp = await fetch(`${API_BASE}/notifications`, {
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) return [];
+    const body = await resp.json().catch(() => ({}));
+    return Array.isArray(body?.data) ? body.data : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function renderNotificationList(notifications) {
+  if (!notifications.length) {
+    return `<p class="noti-empty">No notifications.</p>`;
+  }
+
+  return notifications.map((n) => {
+    const unread = !n.is_read;
+    return `
+      <div class="noti-item" data-id="${n.id}" data-unread="${unread ? '1' : '0'}" data-urgency="${n.urgency || ''}">
+        <span class="noti-item-dot"></span>
+        <span>
+          <span class="noti-item-message">${n.message}</span>
+          <span class="noti-item-meta">${n.project?.title ? `${n.project.title} &bull; ` : ''}${formatNotificationTime(n.created_at)}</span>
+        </span>
+      </div>
+    `;
+  }).join('');
+}
+
 function populateSidebarNav(sidebarNav, currentPath, authStore) {
   if (!sidebarNav) return;
 
@@ -175,8 +218,8 @@ export async function DashboardLayout(contentChild, route, router) {
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
+          <img src="/assets/RlabZ_Watermark.png" alt="RLabZ" class="sidebar-watermark" />
           <span>RLABZ ERP</span>
-          <span class="badge">${roleName}</span>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -196,6 +239,21 @@ export async function DashboardLayout(contentChild, route, router) {
     <div class="main-wrapper">
       <header class="topbar">
         <div class="topbar-title">${route.title || (route.name === 'faculty-sprints' ? 'PROJECT MODULES & TASKS' : (route.name ? route.name.toUpperCase().replace(/-/g, ' ') : 'RLABZ ERP'))}</div>
+        <div style="display:flex; align-items:center; gap:0.85rem;">
+          <div class="notification-container">
+            <button id="noti-bell-btn" class="noti-bell-btn" title="Notifications" aria-label="Notifications">
+              ${BELL_ICON}
+              <span id="noti-badge" class="noti-badge"></span>
+            </button>
+
+            <div id="noti-dropdown" class="noti-dropdown">
+              <div class="noti-dropdown-header">
+                <h4>Notifications</h4>
+              </div>
+              <div id="noti-list-container" class="noti-list-container"><p class="noti-empty">Loading...</p></div>
+            </div>
+          </div>
+
         <div class="user-profile" id="user-profile-header">
           <div class="avatar">${initial}</div>
           <div class="user-details">
@@ -236,8 +294,9 @@ export async function DashboardLayout(contentChild, route, router) {
             </div>
           </div>
         </div>
+        </div>
       </header>
-      
+
       <main class="content-outlet" id="layout-outlet"></main>
     </div>
   `;
@@ -245,6 +304,91 @@ export async function DashboardLayout(contentChild, route, router) {
   // Populate sidebar navigation
   const sidebarNav = wrapper.querySelector('.sidebar-nav');
   populateSidebarNav(sidebarNav, currentPath, authStore);
+
+  // Notification bell — role-agnostic, reused across every dashboard layout.
+  const bellBtn = wrapper.querySelector('#noti-bell-btn');
+  const notiDropdown = wrapper.querySelector('#noti-dropdown');
+  const notiListContainer = wrapper.querySelector('#noti-list-container');
+  const notiBadge = wrapper.querySelector('#noti-badge');
+
+  function updateBadge(notifications) {
+    const unreadCount = notifications.filter((n) => !n.is_read).length;
+    if (unreadCount > 0) {
+      notiBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+      notiBadge.style.display = 'flex';
+    } else {
+      notiBadge.style.display = 'none';
+    }
+  }
+
+  function positionDropdown() {
+    const rect = bellBtn.getBoundingClientRect();
+    const dropdownWidth = notiDropdown.offsetWidth || 360;
+    // Anchor under the bell, right-aligned to it, clamped so it never runs off
+    // either edge of the viewport (important on narrow screens).
+    let left = rect.right - dropdownWidth;
+    left = Math.max(12, Math.min(left, window.innerWidth - dropdownWidth - 12));
+    notiDropdown.style.top = `${rect.bottom + 8}px`;
+    notiDropdown.style.left = `${left}px`;
+  }
+
+  function closeDropdown() {
+    notiDropdown.style.display = 'none';
+  }
+
+  function bindNotificationItems(notifications) {
+    notiListContainer.querySelectorAll('.noti-item[data-unread="1"]').forEach((item) => {
+      item.addEventListener('click', async () => {
+        const id = item.dataset.id;
+        const token = localStorage.getItem('token');
+        try {
+          await fetch(`${API_BASE}/notifications/${id}/read`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', Authorization: `Bearer ${token}` },
+          });
+        } catch (e) {
+          // ignore — visual state still updates locally below
+        }
+        const notification = notifications.find((n) => String(n.id) === String(id));
+        if (notification) notification.is_read = true;
+        notiListContainer.innerHTML = renderNotificationList(notifications);
+        bindNotificationItems(notifications);
+        updateBadge(notifications);
+      });
+    });
+  }
+
+  if (bellBtn && notiDropdown) {
+    fetchNotifications().then((notifications) => {
+      updateBadge(notifications);
+      notiListContainer.innerHTML = renderNotificationList(notifications);
+      bindNotificationItems(notifications);
+    });
+
+    bellBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isShown = notiDropdown.style.display === 'block';
+      if (isShown) {
+        closeDropdown();
+      } else {
+        notiDropdown.style.display = 'block';
+        positionDropdown();
+      }
+    });
+
+    notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+    // Bell position is static while the dropdown is open (the app shell doesn't
+    // scroll as a whole — only #layout-outlet does), so closing on resize avoids
+    // a stale, misplaced dropdown rather than needing continuous repositioning.
+    window.addEventListener('resize', closeDropdown);
+
+    document.addEventListener('click', (e) => {
+      if (notiDropdown.style.display === 'block' && !notiDropdown.contains(e.target) && e.target !== bellBtn) {
+        closeDropdown();
+      }
+    });
+  }
 
   // Attach Content Child
   const outlet = wrapper.querySelector('#layout-outlet');

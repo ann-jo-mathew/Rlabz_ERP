@@ -67,7 +67,7 @@ class CertificatesController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $certificates = Certificate::with(['project', 'module', 'student', 'issuer'])->latest('issue_date')->get();
+        $certificates = Certificate::with(['project.faculty', 'module', 'student', 'issuer'])->latest('issue_date')->get();
 
         return response()->json([
             'data' => $certificates,
@@ -82,7 +82,7 @@ class CertificatesController extends Controller
         }
 
         return response()->json([
-            'data' => $certificate->load(['project', 'module', 'student', 'issuer']),
+            'data' => $certificate->load(['project.faculty', 'module', 'student', 'issuer']),
         ]);
     }
 
@@ -214,7 +214,7 @@ class CertificatesController extends Controller
 
         return response()->json([
             'message' => 'Certificate issued successfully',
-            'data' => $certificate->load(['project', 'module', 'student', 'issuer']),
+            'data' => $certificate->load(['project.faculty', 'module', 'student', 'issuer']),
         ], 201);
     }
 

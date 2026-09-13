@@ -36,6 +36,7 @@ export function CertificatesHome(route, router) {
   }
 
   function normalizeCertificate(cert) {
+    const facultyList = Array.isArray(cert.project?.faculty) ? cert.project.faculty : [];
     return {
       id: cert.id,
       student: cert.student?.name || 'Unknown student',
@@ -46,8 +47,19 @@ export function CertificatesHome(route, router) {
       description: cert.description,
       date: cert.issue_date,
       issuer: cert.issuer?.name || '',
+      facultyNames: facultyList.map((f) => f.name).filter(Boolean).join(' and '),
       status: 'Issued',
     };
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[ch]));
   }
 
   function render() {
@@ -244,9 +256,17 @@ export function CertificatesHome(route, router) {
     const modalRoot =
       container.querySelector('#certificate-modal-root');
 
+    const supervisionClause = certificate.facultyNames
+      ? ` under the supervision of ${escapeHtml(certificate.facultyNames)} and Co-ordinators`
+      : ' under the supervision of the project Co-ordinators';
+
+    const sentence = certificate.module
+      ? `Proudly presented to <strong>${escapeHtml(certificate.student)}</strong> for successfully completing the <strong>${escapeHtml(certificate.module)}</strong> module and actively contributing to the project <strong>${escapeHtml(certificate.project)}</strong>${supervisionClause}.`
+      : `Proudly presented to <strong>${escapeHtml(certificate.student)}</strong> for actively contributing to the project <strong>${escapeHtml(certificate.project)}</strong>${supervisionClause}.`;
+
     modalRoot.innerHTML = `
     <div class="director-modal-overlay">
-      <div class="director-modal">
+      <div class="director-modal certificate-modal">
 
         <div class="director-modal-header">
           <h3>Certificate Preview</h3>
@@ -261,81 +281,37 @@ export function CertificatesHome(route, router) {
 
         <div class="director-modal-body">
 
-          <div
-            style="
-              background: white;
-              border: 6px solid #1e3a8a;
-              padding: 40px;
-              text-align: center;
-              margin: 10px;
-            "
-          >
+          <div id="certificate-printable" class="certificate-sheet">
+            <div class="certificate-sheet-inner">
 
-            <p
-              style="
-                letter-spacing: 4px;
-                font-weight: bold;
-              "
-            >
-              RLABZ
-            </p>
+              <div>
+                <div class="certificate-brand">RLABZ</div>
+                <div class="certificate-title">CERTIFICATE OF COMPLETION</div>
+                <div class="certificate-subtitle">This is to certify that</div>
+                <div class="certificate-student-name">${escapeHtml(certificate.student)}</div>
+                <div class="certificate-sentence">${sentence}</div>
+              </div>
 
-            <h1>
-              CERTIFICATE
-            </h1>
+              <div class="certificate-footer">
+                <div class="certificate-footer-col">
+                  <div class="certificate-footer-line"></div>
+                  <div class="certificate-footer-label">${escapeHtml(certificate.facultyNames || '—')}</div>
+                  <div class="certificate-footer-role">Faculty / Supervisor</div>
+                </div>
 
-            <h2>
-              OF PROJECT COMPLETION
-            </h2>
+                <div class="certificate-footer-center">
+                  <div><strong>Certificate No:</strong> ${escapeHtml(certificate.certificateNumber || '—')}</div>
+                  <div><strong>Issue Date:</strong> ${escapeHtml(certificate.date)}</div>
+                </div>
 
-            <p>
-              This is to certify that
-            </p>
+                <div class="certificate-footer-col">
+                  <div class="certificate-footer-line"></div>
+                  <div class="certificate-footer-label">${escapeHtml(certificate.issuer || 'Director')}</div>
+                  <div class="certificate-footer-role">Director / Issuing Authority</div>
+                </div>
+              </div>
 
-            <h2>
-              ${certificate.student}
-            </h2>
-
-            <p>
-              ${
-                certificate.description ||
-                'Successfully completed the assigned project module.'
-              }
-            </p>
-
-            <p>
-              <strong>Project:</strong>
-              ${certificate.project}
-            </p>
-
-            ${certificate.module ? `
-            <p>
-              <strong>Module:</strong>
-              ${certificate.module}
-            </p>
-            ` : ''}
-
-            <p>
-              <strong>Certificate No:</strong>
-              ${
-                certificate.certificateNumber ||
-                'CERT-2026-001'
-              }
-            </p>
-
-            <p>
-              <strong>Issue Date:</strong>
-              ${certificate.date}
-            </p>
-
-            <br>
-
-            <p>
-              <strong>Coordinator</strong>
-              <br>
-              Authorized Signatory
-            </p>
-
+            </div>
           </div>
 
         </div>
@@ -346,7 +322,7 @@ export function CertificatesHome(route, router) {
             class="cert-primary-btn"
             id="download-certificate"
           >
-            Download PDF
+            Download Certificate
           </button>
 
           <button
@@ -379,100 +355,24 @@ export function CertificatesHome(route, router) {
       ?.addEventListener('click', async (e) => {
         const btn = e.currentTarget;
         const originalText = btn.textContent;
-        btn.textContent = 'Generating PDF...';
         btn.disabled = true;
+        btn.textContent = 'Generating...';
 
-        const certNum = certificate.certificateNumber || 'CERT-2026-001';
-        const issueDate = certificate.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        const studentName = certificate.student || 'Recipient';
-        const projectTitle = certificate.project || 'Project';
-
-        const certElement = document.createElement('div');
-        certElement.style.cssText = 'width: 820px; padding: 12px; background: #ffffff; box-sizing: border-box; margin: 0 auto; font-family: "Times New Roman", Times, Georgia, serif; color: #1e293b;';
-        certElement.innerHTML = `
-          <div style="width: 100%; background: #fdfdfa; border: 1px solid #e2e8f0; padding: 8px; box-sizing: border-box;">
-            <div style="border: 6px solid #1e293b; padding: 4px; box-sizing: border-box;">
-              <div style="border: 2px solid #b45309; padding: 36px 24px; text-align: center; box-sizing: border-box; background: #fffdf9;">
-                
-                <div style="font-size: 14px; letter-spacing: 5px; font-weight: 700; color: #b45309; margin-bottom: 12px; text-transform: uppercase;">
-                  RLABZ ACADEMY
-                </div>
-
-                <div style="font-size: 28px; font-weight: 800; color: #1e293b; letter-spacing: 2px; margin-bottom: 6px; text-transform: uppercase;">
-                  CERTIFICATE OF COMPLETION
-                </div>
-
-                <div style="font-size: 11px; letter-spacing: 3px; color: #64748b; margin-bottom: 16px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                  PROUDLY PRESENTED TO
-                </div>
-
-                <div style="font-size: 30px; font-style: italic; font-weight: 700; color: #059669; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin: 0 auto 16px; display: inline-block; min-width: 260px;">
-                  ${studentName}
-                </div>
-
-                <div style="font-size: 14px; line-height: 1.6; color: #475569; max-width: 580px; margin: 0 auto 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                  ${certificate.description || 'for successfully completing all requirements and active project contributions in the project'}
-                </div>
-
-                <div style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">
-                  ${projectTitle}
-                </div>
-
-                ${certificate.module ? `
-                <div style="font-size: 13.5px; line-height: 1.5; color: #475569; margin-bottom: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                  Module: <strong style="color: #1e293b;">${certificate.module}</strong>
-                </div>
-                ` : '<div style="margin-bottom: 20px;"></div>'}
-
-                <div style="font-size: 11px; color: #64748b; margin-bottom: 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                  Certificate No: <strong style="color: #1e293b;">${certNum}</strong> &nbsp;|&nbsp; 
-                  Issued Date: <strong style="color: #1e293b;">${issueDate}</strong> &nbsp;|&nbsp; 
-                  Status: <strong style="color: #059669;">Issued &amp; Verified</strong>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; width: 100%; max-width: 540px; margin: 20px auto 0;">
-                  <div style="display: flex; flex-direction: column; align-items: center; width: 200px;">
-                    <div style="width: 100%; border-top: 1px solid #94a3b8; margin-bottom: 6px;"></div>
-                    <span style="font-size: 13px; font-weight: 700; color: #1e293b;">Academic Coordinator</span>
-                    <label style="font-size: 11px; color: #64748b; margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Authorized Signatory</label>
-                  </div>
-
-                  <div style="display: flex; flex-direction: column; align-items: center; width: 200px;">
-                    <div style="width: 100%; border-top: 1px solid #94a3b8; margin-bottom: 6px;"></div>
-                    <span style="font-size: 13px; font-weight: 700; color: #1e293b;">Director, RLabZ ERP</span>
-                    <label style="font-size: 11px; color: #64748b; margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Issuing Authority</label>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        `;
-
-        const sanitizedTitle = (projectTitle || 'Certificate').replace(/[^a-zA-Z0-9_-]/g, '_');
-
+        const printable = modalRoot.querySelector('#certificate-printable');
         try {
-          const blob = await html2pdf().set({
-            margin: [0.4, 0.4, 0.4, 0.4],
+          await html2pdf().set({
+            margin: 0.2,
+            filename: `Certificate_${String(certificate.student).replace(/\s+/g, '_')}_${String(certificate.module || certificate.project).replace(/\s+/g, '_')}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, logging: false },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
-            pagebreak: { mode: 'avoid-all' }
-          }).from(certElement).output('blob');
-
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = `Certificate_${sanitizedTitle}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+            pagebreak: { mode: ['avoid-all'] },
+          }).from(printable).save();
         } catch (err) {
-          alert('PDF generation failed: ' + err.message);
+          alert('Certificate download failed: ' + err.message);
         } finally {
-          btn.textContent = originalText;
           btn.disabled = false;
+          btn.textContent = originalText;
         }
       });
   }
