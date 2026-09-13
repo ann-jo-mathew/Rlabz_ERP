@@ -1,8 +1,26 @@
 import { DashboardLayout } from '@/core/layouts/DashboardLayout.js';
+import './faculty.css';
 
 export async function FacultyLayout(contentChild, route, router) {
     // Render the global layout first
     const layoutElement = await DashboardLayout(contentChild, route, router);
+    
+    // Sync profile photo to topbar avatar if uploaded
+    const savedPhoto = localStorage.getItem('faculty_profile_photo');
+    if (savedPhoto) {
+        const topbarAvatar = layoutElement.querySelector('.avatar');
+        if (topbarAvatar) {
+            topbarAvatar.innerHTML = `<img src="${savedPhoto}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" />`;
+            topbarAvatar.style.padding = '0';
+            topbarAvatar.style.overflow = 'hidden';
+        }
+        const popoverAvatar = layoutElement.querySelector('#popover-avatar');
+        if (popoverAvatar) {
+            popoverAvatar.innerHTML = `<img src="${savedPhoto}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" />`;
+            popoverAvatar.style.padding = '0';
+            popoverAvatar.style.overflow = 'hidden';
+        }
+    }
     
     const sidebarNav = layoutElement.querySelector('.sidebar-nav');
     if (!sidebarNav) return layoutElement;

@@ -1008,10 +1008,13 @@ class FacultyController extends Controller
         $facultyId = $this->getFacultyId($request);
 
         $validated = $request->validate([
-            'module_id' => 'required', // module ID from modules table or 'new'
+            'module_id' => 'nullable', // module ID from modules table or 'new'
             'new_module_name' => 'nullable|string|max:150',
+            'name' => 'nullable|string|max:150',
+            'module_name' => 'nullable|string|max:150',
             'new_description' => 'nullable|string',
-            'student_ids' => 'required|array',
+            'description' => 'nullable|string',
+            'student_ids' => 'nullable|array',
             'student_ids.*' => 'integer'
         ]);
 
@@ -1024,23 +1027,24 @@ class FacultyController extends Controller
             return response()->json(['error' => 'Cannot assign modules or tasks. This project is closed.'], 422);
         }
 
-        $moduleId = $validated['module_id'];
+        $moduleId = $validated['module_id'] ?? 'new';
+        $moduleName = $validated['new_module_name'] ?? $validated['name'] ?? $validated['module_name'] ?? null;
+        $moduleDesc = $validated['new_description'] ?? $validated['description'] ?? null;
 
         if ($moduleId === 'new' || !is_numeric($moduleId)) {
-            if (empty($validated['new_module_name'])) {
+            if (empty($moduleName)) {
                 return response()->json(['error' => 'Module name is required when adding a new module.'], 422);
             }
             $moduleId = DB::table('modules')->insertGetId([
                 'project_id' => $id,
-                'module_name' => $validated['new_module_name'],
-                'description' => $validated['new_description'] ?? null,
+                'module_name' => $moduleName,
+                'description' => $moduleDesc,
                 'weight_percentage' => 25.00,
-                'status' => 'todo',
+                'status' => 'not_started',
                 'created_by' => $facultyId,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            $moduleName = $validated['new_module_name'];
         } else {
             $module = DB::table('modules')->where('id', $moduleId)->where('project_id', $id)->first();
             if (!$module) {
@@ -1052,7 +1056,7 @@ class FacultyController extends Controller
         $assignedStudentIds = $validated['student_ids'] ?? [];
 
         // Sync module_student table when re-assigning an existing module
-        if ($moduleId !== 'new' && is_numeric($moduleId)) {
+        if ($moduleId !== 'new' && is_numeric($moduleId) && $request->has('student_ids')) {
             DB::table('module_student')
                 ->where('module_id', $moduleId)
                 ->whereNotIn('student_id', $assignedStudentIds)
@@ -1089,24 +1093,21 @@ class FacultyController extends Controller
             }
         }
 
-        // Insert selected student's id to modules table and update status as assigned
+        // When students are assigned to module, change status to 'assigned' (assignment details stored strictly in module_student)
         if (!empty($assignedStudentIds)) {
-            $firstStudentId = $assignedStudentIds[0];
-            $moduleUpdate = [
+            DB::table('modules')->where('id', $moduleId)->update([
                 'status' => 'assigned',
                 'updated_at' => now(),
-            ];
-            if (Schema::hasColumn('modules', 'student_id')) {
-                $moduleUpdate['student_id'] = $firstStudentId;
+            ]);
+        } else {
+            // If no students assigned, ensure status is 'not_started' if newly created or no students
+            $hasAnyStudents = DB::table('module_student')->where('module_id', $moduleId)->exists();
+            if (!$hasAnyStudents) {
+                DB::table('modules')->where('id', $moduleId)->update([
+                    'status' => 'not_started',
+                    'updated_at' => now(),
+                ]);
             }
-            if (Schema::hasColumn('modules', 'assigned_to')) {
-                // If assigned_to has a foreign key to student_profiles, find matching profile id
-                $profileId = DB::table('student_profiles')->where('student_id', $firstStudentId)->value('id');
-                if ($profileId) {
-                    $moduleUpdate['assigned_to'] = $profileId;
-                }
-            }
-            DB::table('modules')->where('id', $moduleId)->update($moduleUpdate);
         }
 
         $module = DB::table('modules')->where('id', $moduleId)->first();
@@ -1118,7 +1119,7 @@ class FacultyController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Students successfully assigned to module '{$moduleName}'.",
+            'message' => "Module '{$moduleName}' updated successfully.",
             'module' => $module
         ], 200);
     }
@@ -1145,8 +1146,9 @@ class FacultyController extends Controller
 
     /**
      * Assign a task under a module.
-     * When task is assigned, its status becomes 'todo'.
-     * Only allows assigning to students who are assigned with that particular module.
+     * When task is first created without student, status is 'todo'.
+     * If module has only 1 student, auto-assign task to that student with status 'in_progress'.
+     * If task is assigned to student, status becomes 'in_progress'.
      */
     public function createTask(Request $request)
     {
@@ -1156,8 +1158,11 @@ class FacultyController extends Controller
             'module_id' => 'required|integer',
             'task_id' => 'nullable', // Task ID from tasks table or 'new'
             'new_title' => 'nullable|string|max:255',
+            'title' => 'nullable|string|max:255',
             'new_description' => 'nullable|string',
-            'assigned_to' => 'required|integer',
+            'description' => 'nullable|string',
+            'weight' => 'nullable|integer',
+            'assigned_to' => 'nullable|integer',
             'due_date' => 'nullable|date',
         ]);
 
@@ -1171,17 +1176,30 @@ class FacultyController extends Controller
             return response()->json(['error' => 'Cannot assign tasks. This project is closed.'], 422);
         }
 
-        // STRICT VALIDATION: Student MUST be assigned to this particular module in module_student table!
-        $isAssigned = DB::table('module_student')
+        // Students assigned to this module
+        $moduleStudents = DB::table('module_student')
             ->where('module_id', $validated['module_id'])
-            ->where('student_id', $validated['assigned_to'])
-            ->exists();
+            ->pluck('student_id');
 
-        if (!$isAssigned) {
+        $assignedTo = !empty($validated['assigned_to']) ? (int)$validated['assigned_to'] : null;
+        $taskTitle = $validated['new_title'] ?? $validated['title'] ?? null;
+        $taskDesc = $validated['new_description'] ?? $validated['description'] ?? null;
+        $taskWeight = $validated['weight'] ?? 1;
+
+        // Rule: if only one student is assigned to a module then, when a task is created for that module insert the student id in task table
+        if ($moduleStudents->count() === 1) {
+            $assignedTo = $moduleStudents->first();
+        }
+
+        // If a student was explicitly provided, ensure they belong to this module
+        if ($assignedTo && !$moduleStudents->contains($assignedTo)) {
             return response()->json([
                 'error' => 'Selected student is not assigned to this module. Tasks can only be assigned to students who belong to this module.'
             ], 422);
         }
+
+        // Rule: when a student is assigned to a task, change status to 'in_progress', otherwise 'todo'
+        $taskStatus = $assignedTo ? 'in_progress' : 'todo';
 
         $taskId = $validated['task_id'] ?? 'new';
 
@@ -1190,37 +1208,36 @@ class FacultyController extends Controller
             if (!$task) {
                 return response()->json(['error' => 'Selected task not found under this module.'], 404);
             }
-            // Update task assignment and set status to 'todo'
-            DB::table('tasks')->where('id', $taskId)->update([
-                'assigned_to' => $validated['assigned_to'],
-                'status' => 'todo',
+            $taskUpdate = [
+                'assigned_to' => $assignedTo,
+                'status' => $taskStatus,
                 'due_date' => !empty($validated['due_date']) ? $validated['due_date'] : $task->due_date,
                 'updated_at' => now(),
-            ]);
+            ];
+            DB::table('tasks')->where('id', $taskId)->update($taskUpdate);
             $taskTitle = $task->title;
         } else {
-            if (empty($validated['new_title'])) {
+            if (empty($taskTitle)) {
                 return response()->json(['error' => 'Task title is required.'], 422);
             }
             $taskId = DB::table('tasks')->insertGetId([
                 'module_id' => $validated['module_id'],
-                'title' => $validated['new_title'],
-                'description' => $validated['new_description'] ?? null,
-                'weight' => 1,
-                'assigned_to' => $validated['assigned_to'],
-                'status' => 'todo',
+                'title' => $taskTitle,
+                'description' => $taskDesc,
+                'weight' => $taskWeight,
+                'assigned_to' => $assignedTo,
+                'status' => $taskStatus,
                 'due_date' => !empty($validated['due_date']) ? $validated['due_date'] : null,
                 'created_by' => $facultyId,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            $taskTitle = $validated['new_title'];
         }
 
         // Send notification to the assigned student
-        if (Schema::hasTable('notifications')) {
+        if ($assignedTo && Schema::hasTable('notifications')) {
             DB::table('notifications')->insert([
-                'user_id' => $validated['assigned_to'],
+                'user_id' => $assignedTo,
                 'type' => 'task_assigned',
                 'message' => "New task assigned to you: '{$taskTitle}' under module '{$module->module_name}'.",
                 'is_read' => 0,
@@ -1239,17 +1256,17 @@ class FacultyController extends Controller
                 'modules.module_name',
                 'tasks.title',
                 'tasks.description',
-                // 'tasks.weight',
                 'tasks.status',
                 'tasks.due_date',
                 'tasks.assigned_to',
-                'users.name as assigned_to_name'
+                'users.name as assigned_to_name',
+                'users.email as assigned_to_email'
             )
             ->first();
 
         return response()->json([
             'success' => true,
-            'message' => 'Task assigned successfully.',
+            'message' => $assignedTo ? "Task '{$taskTitle}' assigned successfully." : "Task '{$taskTitle}' created successfully.",
             'task' => $task
         ], 200);
     }
@@ -1313,12 +1330,24 @@ class FacultyController extends Controller
 
         $now = now();
 
-        DB::table('tasks')->where('id', $id)->update([
+        $taskUpdate = [
             'review_status' => $dbStatus,
             'reviewed_by' => $facultyId,
             'reviewed_at' => $now,
             'updated_at' => $now
-        ]);
+        ];
+
+        // Rule: when review_status of a task in task table is approved then change the status of task table to 'completed'
+        if ($dbStatus === 'approved') {
+            $taskUpdate['status'] = 'completed';
+        }
+
+        DB::table('tasks')->where('id', $id)->update($taskUpdate);
+
+        // Rule: if the status of all the task of a module is 'completed' then change the status of module table to 'completed'
+        if ($dbStatus === 'approved' && $task->module_id) {
+            $this->checkAndUpdateModuleCompletion($task->module_id);
+        }
 
         // Send notification to the assigned student
         if ($task->assigned_to) {
@@ -1402,6 +1431,7 @@ class FacultyController extends Controller
                 'student_work_logs.hours_worked',
                 'student_work_logs.description',
                 'student_work_logs.approval_status',
+                'student_work_logs.ratings',
                 'student_work_logs.approved_by',
                 'student_work_logs.approved_at',
                 'student_work_logs.created_at',
@@ -1420,6 +1450,23 @@ class FacultyController extends Controller
             ->orderBy('student_work_logs.id', 'desc')
             ->get();
 
+        // Calculate deadline compliance for each work log
+        $workLogs = $workLogs->map(function ($log) {
+            $isLate = false;
+            $daysLate = 0;
+            if (!empty($log->task_due_date)) {
+                $subDate = !empty($log->created_at) ? date('Y-m-d', strtotime($log->created_at)) : $log->work_date;
+                if ($subDate > $log->task_due_date) {
+                    $isLate = true;
+                    $diff = (strtotime($subDate) - strtotime($log->task_due_date)) / 86400;
+                    $daysLate = max(1, (int) ceil($diff));
+                }
+            }
+            $log->is_late = $isLate;
+            $log->days_late = $daysLate;
+            return $log;
+        });
+
         return response()->json([
             'project' => $project,
             'work_logs' => $workLogs
@@ -1430,6 +1477,7 @@ class FacultyController extends Controller
      * Approve or reject a student work log.
      * When faculty approves it:
      * - Update approval_status = 'approved', approved_by, approved_at in student_work_logs.
+     * - Save rating in stars (1-5) in student_work_logs.ratings if provided.
      * - Update status in tasks table as 'completed', review_status as 'approved'.
      * - Notify student.
      */
@@ -1438,7 +1486,9 @@ class FacultyController extends Controller
         $facultyId = $this->getFacultyId($request);
 
         $validated = $request->validate([
-            'approval_status' => 'required|in:approved,rejected,pending'
+            'approval_status' => 'required|in:approved,rejected,pending',
+            'rating' => 'nullable|numeric|min:1|max:5',
+            'ratings' => 'nullable'
         ]);
 
         $workLog = DB::table('student_work_logs')->where('id', $id)->first();
@@ -1465,13 +1515,21 @@ class FacultyController extends Controller
         $newStatus = $validated['approval_status'];
         $now = now();
 
-        // 1. Update student_work_logs
-        DB::table('student_work_logs')->where('id', $id)->update([
+        $updateData = [
             'approval_status' => $newStatus,
             'approved_by' => $facultyId,
             'approved_at' => $now,
             'updated_at' => $now
-        ]);
+        ];
+
+        // Save rating in stars into student_work_logs
+        if ($request->filled('rating') || $request->filled('ratings')) {
+            $starVal = $request->input('rating') ?? $request->input('ratings');
+            $updateData['ratings'] = (string) round((float) $starVal);
+        }
+
+        // 1. Update student_work_logs
+        DB::table('student_work_logs')->where('id', $id)->update($updateData);
 
         // 2. If approved, update status in tasks table as 'completed'
         $updatedTask = null;
@@ -1485,6 +1543,9 @@ class FacultyController extends Controller
             ]);
 
             $updatedTask = DB::table('tasks')->where('id', $workLog->task_id)->first();
+            if ($updatedTask && $updatedTask->module_id) {
+                $this->checkAndUpdateModuleCompletion($updatedTask->module_id);
+            }
         }
 
         // 3. Send notification to the student
@@ -1518,12 +1579,14 @@ class FacultyController extends Controller
                 'student_work_logs.hours_worked',
                 'student_work_logs.description',
                 'student_work_logs.approval_status',
+                'student_work_logs.ratings',
                 'student_work_logs.approved_by',
                 'student_work_logs.approved_at',
                 'student.name as student_name',
                 'student.email as student_email',
                 'tasks.title as task_title',
                 'tasks.status as task_status',
+                'tasks.due_date as task_due_date',
                 'modules.module_name',
                 'approver.name as approved_by_name'
             )
@@ -1537,6 +1600,92 @@ class FacultyController extends Controller
             'work_log' => $refreshedLog,
             'task' => $updatedTask
         ], 200);
+    }
+
+    /**
+     * Rate a student work log in stars (1-5).
+     * Saves into student_work_logs table column 'ratings'.
+     */
+    public function rateWorkLog($id, Request $request)
+    {
+        $facultyId = $this->getFacultyId($request);
+
+        $validated = $request->validate([
+            'rating' => 'required|numeric|min:1|max:5'
+        ]);
+
+        $workLog = DB::table('student_work_logs')->where('id', $id)->first();
+        if (!$workLog) {
+            return response()->json(['error' => 'Work log not found.'], 404);
+        }
+
+        $ratingVal = (string) round((float) $validated['rating']);
+
+        DB::table('student_work_logs')->where('id', $id)->update([
+            'ratings' => $ratingVal,
+            'updated_at' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Rating of {$ratingVal} star(s) saved successfully.",
+            'rating' => (int) $ratingVal,
+            'ratings' => $ratingVal
+        ]);
+    }
+
+    /**
+     * Get documented client requirements for a project.
+     */
+    public function getProjectClientRequirements($id, Request $request)
+    {
+        $requirements = [];
+        if (Schema::hasTable('client_requirements')) {
+            $requirements = DB::table('client_requirements')
+                ->where('project_id', $id)
+                ->orderBy('id', 'asc')
+                ->get();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $requirements
+        ]);
+    }
+
+    /**
+     * Get requirement changes and update notifications for a project.
+     */
+    public function getProjectRequirementChanges($id, Request $request)
+    {
+        $changes = [];
+        if (Schema::hasTable('requirement_changes')) {
+            $query = DB::table('requirement_changes')
+                ->leftJoin('client_requirements', 'client_requirements.id', '=', 'requirement_changes.client_requirement_id')
+                ->leftJoin('users as requesters', 'requesters.id', '=', 'requirement_changes.requested_by')
+                ->where(function ($q) use ($id) {
+                    if (Schema::hasColumn('requirement_changes', 'project_id')) {
+                        $q->where('requirement_changes.project_id', $id)
+                          ->orWhere('client_requirements.project_id', $id);
+                    } else {
+                        $q->where('client_requirements.project_id', $id);
+                    }
+                });
+
+            $changes = $query->select(
+                'requirement_changes.*',
+                'client_requirements.title as requirement_title',
+                'requesters.name as requested_by_name'
+            )
+            ->orderBy('requirement_changes.id', 'desc')
+            ->get();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $changes,
+            'count' => count($changes)
+        ]);
     }
 
     /**
@@ -1566,6 +1715,32 @@ class FacultyController extends Controller
             'message' => 'GitHub repository link verified successfully.',
             'repository' => $updatedRepo
         ], 200);
+    }
+
+    /**
+     * Check if all tasks under a module are completed.
+     * If all are completed, update the module status to 'completed'.
+     */
+    private function checkAndUpdateModuleCompletion($moduleId)
+    {
+        if (!$moduleId) {
+            return;
+        }
+
+        $totalTasks = DB::table('tasks')->where('module_id', $moduleId)->count();
+        if ($totalTasks > 0) {
+            $incompleteTasks = DB::table('tasks')
+                ->where('module_id', $moduleId)
+                ->where('status', '!=', 'completed')
+                ->count();
+
+            if ($incompleteTasks === 0) {
+                DB::table('modules')->where('id', $moduleId)->update([
+                    'status' => 'completed',
+                    'updated_at' => now(),
+                ]);
+            }
+        }
     }
 }
 

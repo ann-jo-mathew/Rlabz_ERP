@@ -391,6 +391,87 @@ class StudentController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function getProjectTasks(Request $request, $projectId)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Verify project exists
+        $project = DB::table('projects')->where('id', $projectId)->first();
+        if (!$project) {
+            return response()->json(['error' => 'Project not found.'], 404);
+        }
+
+        // Verify student belongs to this project or has assigned tasks
+        $isAssigned = DB::table('project_student')
+            ->where('project_id', $projectId)
+            ->where('student_id', $studentId)
+            ->exists();
+
+        $hasTasks = DB::table('tasks')
+            ->join('modules', 'modules.id', '=', 'tasks.module_id')
+            ->where('modules.project_id', $projectId)
+            ->where('tasks.assigned_to', $studentId)
+            ->exists();
+
+        if (!$isAssigned && !$hasTasks) {
+            return response()->json(['error' => 'You do not have access to this project.'], 403);
+        }
+
+        // Get modules for this project
+        $moduleIds = DB::table('modules')
+            ->where('project_id', $projectId)
+            ->pluck('id');
+
+        // Query tasks:
+        // 1. MUST be assigned to this student (assigned_to = $studentId)
+        // 2. MUST NOT be completed UNLESS rework is needed (status != 'completed' OR review_status == 'rejected')
+        $tasks = DB::table('tasks')
+            ->join('modules', 'modules.id', '=', 'tasks.module_id')
+            ->whereIn('tasks.module_id', $moduleIds)
+            ->where('tasks.assigned_to', $studentId)
+            ->where(function ($q) {
+                $q->where('tasks.status', '!=', 'completed')
+                  ->orWhere('tasks.review_status', '=', 'rejected');
+            })
+            ->select(
+                'tasks.id',
+                'tasks.title',
+                'tasks.description',
+                'tasks.status',
+                'tasks.review_status',
+                'tasks.due_date',
+                'modules.module_name'
+            )
+            ->orderBy('tasks.id', 'asc')
+            ->get()
+            ->map(function ($t) {
+                $isRework = ($t->review_status === 'rejected');
+                $statusMap = [
+                    'todo' => 'Todo',
+                    'in_progress' => 'In Progress',
+                    'completed' => 'Completed',
+                    'blocked' => 'Blocked',
+                ];
+                return [
+                    'id' => $t->id,
+                    'code' => 'T-' . $t->id,
+                    'title' => $t->title,
+                    'description' => $t->description ?: '',
+                    'status' => $statusMap[strtolower($t->status ?: 'todo')] ?? ucfirst($t->status),
+                    'rawStatus' => strtolower($t->status ?: 'todo'),
+                    'reviewStatus' => $t->review_status ?: 'pending',
+                    'isRework' => $isRework,
+                    'moduleName' => $t->module_name,
+                    'dueDate' => $t->due_date ? date('M j, Y', strtotime($t->due_date)) : null,
+                ];
+            });
+
+        return response()->json($tasks);
+    }
+
     public function getReports(Request $request)
     {
         $studentId = $this->getStudentId($request);
@@ -400,22 +481,42 @@ class StudentController extends Controller
 
         $reports = DB::table('student_reports')
             ->leftJoin('projects', 'projects.id', '=', 'student_reports.project_id')
+            ->leftJoin('tasks', 'tasks.id', '=', 'student_reports.task_id')
             ->where('student_reports.student_id', $studentId)
+            ->whereNotNull('student_reports.project_id')
+            ->where('student_reports.project_id', '>', 0)
             ->select(
                 'student_reports.*',
-                'projects.title as project_title'
+                'projects.title as project_title',
+                'tasks.title as task_title',
+                'tasks.status as task_status'
             )
             ->orderBy('student_reports.report_date', 'desc')
             ->orderBy('student_reports.id', 'desc')
             ->get()
             ->map(function ($r) {
                 $fileName = $r->report_file ? basename($r->report_file) : null;
+                $isWeekly = strtolower($r->report_type) === 'weekly';
+
+                $weekLabel = null;
+                if ($r->week_start && $r->week_end) {
+                    $startStr = date('j M', strtotime($r->week_start));
+                    $endStr = date('j M Y', strtotime($r->week_end));
+                    $weekLabel = "{$startStr} – {$endStr}";
+                }
+
                 return [
                     'id' => $r->id,
                     'projectId' => $r->project_id,
-                    'projectTitle' => $r->project_title ?: 'General',
+                    'projectTitle' => $r->project_title ?: '',
+                    'taskId' => $r->task_id,
+                    'taskCode' => $r->task_id ? 'T-' . $r->task_id : null,
+                    'taskTitle' => $r->task_title,
                     'type' => ucfirst($r->report_type),
                     'date' => $r->report_date,
+                    'weekStart' => $r->week_start,
+                    'weekEnd' => $r->week_end,
+                    'weekLabel' => $weekLabel,
                     'workDone' => $r->work_done,
                     'status' => ucfirst($r->approval_status ?: 'pending'),
                     'feedback' => $r->feedback,
@@ -437,54 +538,77 @@ class StudentController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $rawType = strtolower($request->input('type', 'weekly'));
-        if (!in_array($rawType, ['daily', 'weekly'])) {
-            return response()->json(['error' => 'Invalid report type. Allowed types are Daily and Weekly.'], 422);
+        $rawType = strtolower($request->input('type', 'daily'));
+        if ($rawType === 'weekly') {
+            return response()->json([
+                'error' => 'Weekly progress reports are generated automatically from your daily reports. Please submit a Daily Report.'
+            ], 422);
         }
 
         $validator = Validator::make($request->all(), [
-            'type' => 'required|string',
+            'projectId' => 'required|integer',
+            'taskId' => 'required|integer',
             'date' => 'required|date',
-            'projectId' => 'nullable|integer',
-            'workDone' => 'required|string',
-            'report_file' => 'nullable|file|mimes:pdf,docx|max:10240',
+            'workDone' => 'required|string|min:3',
         ], [
-            'report_file.mimes' => 'Only PDF (.pdf) and Word (.docx) files are allowed for Weekly Reports.',
-            'report_file.max' => 'The attached file size must not exceed 10MB.',
-            'workDone.required' => 'Work done description is required.',
+            'projectId.required' => 'Please select a project.',
+            'taskId.required' => 'Please select an assigned task.',
             'date.required' => 'Report date is required.',
+            'workDone.required' => 'Work done description is required.',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()->first()], 422);
         }
 
-        $reportFilePath = null;
-        if ($rawType === 'weekly') {
-            if ($request->hasFile('report_file')) {
-                $file = $request->file('report_file');
-                $reportFilePath = $file->store("reports/weekly/{$studentId}", 'public');
-            }
-        } else {
-            // For Daily report: enforce file attachment is NULL even if sent
-            $reportFilePath = null;
-        }
-
-        $projectId = $request->input('projectId') ? intval($request->input('projectId')) : null;
-        if ($projectId && !DB::table('projects')->where('id', $projectId)->exists()) {
-            $projectId = null;
-        }
-
+        $projectId = intval($request->input('projectId'));
+        $taskId = intval($request->input('taskId'));
         $reportDate = $request->input('date', now()->toDateString());
-        $reportType = ucfirst($rawType);
+        $workDone = trim($request->input('workDone'));
 
+        // Verify project exists
+        $project = DB::table('projects')->where('id', $projectId)->first();
+        if (!$project) {
+            return response()->json(['error' => 'Selected project does not exist.'], 422);
+        }
+
+        // Verify task exists, belongs to project, assigned to student, and is active or rework
+        $task = DB::table('tasks')
+            ->join('modules', 'modules.id', '=', 'tasks.module_id')
+            ->where('tasks.id', $taskId)
+            ->where('modules.project_id', $projectId)
+            ->select('tasks.*')
+            ->first();
+
+        if (!$task) {
+            return response()->json(['error' => 'Selected task does not belong to this project.'], 422);
+        }
+
+        if ($task->assigned_to != $studentId) {
+            return response()->json(['error' => 'You can only log reports for tasks assigned to you.'], 403);
+        }
+
+        if ($task->status === 'completed' && $task->review_status !== 'rejected') {
+            return response()->json(['error' => 'This task is already completed and cannot accept reports unless rework is requested.'], 422);
+        }
+
+        // Calculate week boundaries for this daily report
+        $dateCarbon = Carbon::parse($reportDate);
+        $weekStart = $dateCarbon->copy()->startOfWeek(Carbon::MONDAY)->toDateString();
+        $weekEnd = $dateCarbon->copy()->endOfWeek(Carbon::SUNDAY)->toDateString();
+
+        // Insert Daily Report
         $reportId = DB::table('student_reports')->insertGetId([
             'student_id' => $studentId,
             'project_id' => $projectId,
-            'report_type' => $rawType,
+            'task_id' => $taskId,
+            'report_type' => 'daily',
             'report_date' => $reportDate,
-            'work_done' => $request->input('workDone'),
-            'report_file' => $reportFilePath,
+            'week_start' => $weekStart,
+            'week_end' => $weekEnd,
+            'weekly_key' => null, // Daily reports have NULL weekly_key
+            'work_done' => $workDone,
+            'report_file' => null,
             'approval_status' => 'pending',
             'feedback' => null,
             'submitted_at' => now(),
@@ -492,11 +616,14 @@ class StudentController extends Controller
             'updated_at' => now(),
         ]);
 
+        // Automatically create or update the corresponding Weekly Progress Report
+        $this->syncWeeklyProgressReport($studentId, $projectId, $reportDate);
+
         if (Schema::hasTable('notifications')) {
             DB::table('notifications')->insert([
                 'user_id' => $studentId,
                 'type' => 'report',
-                'message' => "{$reportType} Progress Report for {$reportDate} successfully submitted",
+                'message' => "Daily Report for {$reportDate} logged (Task T-{$taskId}). Weekly Progress updated.",
                 'is_read' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -506,9 +633,118 @@ class StudentController extends Controller
         return response()->json([
             'success' => true,
             'report_id' => $reportId,
-            'report_file' => $reportFilePath,
-            'message' => "{$reportType} report submitted successfully.",
+            'message' => "Daily report submitted successfully and weekly progress updated.",
         ]);
+    }
+
+    /**
+     * Automatically creates or updates the Weekly Progress Report for a student, project, and week.
+     * Prevents duplicates with a database-level unique constraint on weekly_key.
+     */
+    private function syncWeeklyProgressReport($studentId, $projectId, $reportDate)
+    {
+        $dateCarbon = Carbon::parse($reportDate);
+        $weekStart = $dateCarbon->copy()->startOfWeek(Carbon::MONDAY)->toDateString();
+        $weekEnd = $dateCarbon->copy()->endOfWeek(Carbon::SUNDAY)->toDateString();
+        $weeklyKey = "std_{$studentId}_proj_{$projectId}_wk_{$weekStart}";
+
+        // Fetch all daily reports for this student, project, and week range
+        $dailyReports = DB::table('student_reports')
+            ->leftJoin('tasks', 'tasks.id', '=', 'student_reports.task_id')
+            ->where('student_reports.student_id', $studentId)
+            ->where('student_reports.project_id', $projectId)
+            ->where('student_reports.report_type', 'daily')
+            ->whereBetween('student_reports.report_date', [$weekStart, $weekEnd])
+            ->select(
+                'student_reports.id',
+                'student_reports.report_date',
+                'student_reports.work_done',
+                'student_reports.task_id',
+                'tasks.title as task_title',
+                'tasks.status as task_status'
+            )
+            ->orderBy('student_reports.report_date', 'asc')
+            ->orderBy('student_reports.id', 'asc')
+            ->get();
+
+        if ($dailyReports->isEmpty()) {
+            return;
+        }
+
+        // Group daily reports by task
+        $tasksGrouped = [];
+        foreach ($dailyReports as $dr) {
+            $tId = $dr->task_id ?: 'general';
+            if (!isset($tasksGrouped[$tId])) {
+                $statusMap = [
+                    'todo' => 'Todo',
+                    'in_progress' => 'In Progress',
+                    'completed' => 'Completed',
+                    'blocked' => 'Blocked',
+                ];
+                $tasksGrouped[$tId] = [
+                    'taskId' => $dr->task_id,
+                    'taskCode' => $dr->task_id ? 'T-' . $dr->task_id : 'General',
+                    'taskTitle' => $dr->task_title ?: 'General Work',
+                    'taskStatus' => $statusMap[strtolower($dr->task_status ?: 'todo')] ?? ucfirst($dr->task_status ?: 'Todo'),
+                    'entries' => [],
+                ];
+            }
+            $tasksGrouped[$tId]['entries'][] = [
+                'date' => $dr->report_date,
+                'work' => $dr->work_done,
+            ];
+        }
+
+        // Generate formatted readable text summary
+        $formattedText = "Tasks Worked On:\n\n";
+        foreach ($tasksGrouped as $tg) {
+            $formattedText .= "{$tg['taskCode']} — {$tg['taskTitle']}\n";
+            $formattedText .= "Status: {$tg['taskStatus']}\n";
+            foreach ($tg['entries'] as $entry) {
+                $formattedDate = date('M j', strtotime($entry['date']));
+                $formattedText .= "• [{$formattedDate}] {$entry['work']}\n";
+            }
+            $formattedText .= "\n";
+        }
+        $formattedText = trim($formattedText);
+
+        // Check if weekly report already exists for this weekly_key
+        $existingWeekly = DB::table('student_reports')
+            ->where('weekly_key', $weeklyKey)
+            ->first();
+
+        if ($existingWeekly) {
+            // Update existing weekly report
+            DB::table('student_reports')
+                ->where('id', $existingWeekly->id)
+                ->update([
+                    'work_done' => $formattedText,
+                    'report_date' => $weekEnd,
+                    'week_start' => $weekStart,
+                    'week_end' => $weekEnd,
+                    'updated_at' => now(),
+                ]);
+        } else {
+            // Insert new weekly report
+            DB::table('student_reports')->insert([
+                'student_id' => $studentId,
+                'project_id' => $projectId,
+                'task_id' => null,
+                'report_type' => 'weekly',
+                'report_date' => $weekEnd,
+                'week_start' => $weekStart,
+                'week_end' => $weekEnd,
+                'weekly_key' => $weeklyKey,
+                'work_done' => $formattedText,
+                'report_file' => null,
+                'approval_status' => 'pending',
+                'feedback' => null,
+                'submitted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 
     public function downloadReportFile(Request $request, $id)
@@ -556,14 +792,32 @@ class StudentController extends Controller
             ->whereIn('student_work_logs.project_student_id', $projectStudentIds)
             ->select(
                 'student_work_logs.id',
+                'projects.id as project_id',
                 'projects.title as project',
+                'tasks.id as task_id',
+                'tasks.title as task_title',
                 'student_work_logs.work_date as date',
                 'student_work_logs.hours_worked as hours',
                 'student_work_logs.description',
                 'student_work_logs.approval_status as status'
             )
             ->orderBy('student_work_logs.work_date', 'desc')
-            ->get();
+            ->orderBy('student_work_logs.id', 'desc')
+            ->get()
+            ->map(function ($l) {
+                return [
+                    'id' => $l->id,
+                    'projectId' => $l->project_id,
+                    'project' => $l->project,
+                    'taskId' => $l->task_id,
+                    'taskCode' => $l->task_id ? 'T-' . $l->task_id : null,
+                    'taskTitle' => $l->task_title,
+                    'date' => $l->date,
+                    'hours' => $l->hours,
+                    'description' => $l->description,
+                    'status' => $l->status,
+                ];
+            });
 
         return response()->json($logs);
     }
@@ -575,8 +829,15 @@ class StudentController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $projectId = $request->input('projectId');
         $projectTitle = $request->input('project');
-        $project = DB::table('projects')->where('title', $projectTitle)->first();
+
+        $projectQuery = DB::table('projects');
+        if ($projectId) {
+            $project = $projectQuery->where('id', $projectId)->first();
+        } else {
+            $project = $projectQuery->where('title', $projectTitle)->first();
+        }
 
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
@@ -591,39 +852,58 @@ class StudentController extends Controller
             return response()->json(['error' => 'Student not assigned to this project'], 403);
         }
 
-        // Find or create active module
-        $module = DB::table('modules')->where('project_id', $project->id)->first();
-        if (!$module) {
-            $moduleId = DB::table('modules')->insertGetId([
-                'project_id' => $project->id,
-                'module_name' => 'General Module',
-                'status' => 'in_progress',
-                'created_by' => $studentId,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-        } else {
-            $moduleId = $module->id;
-        }
+        $taskId = intval($request->input('taskId'));
 
-        // Find or create a generic task under the module
-        $task = DB::table('tasks')
-            ->where('module_id', $moduleId)
-            ->where('assigned_to', $studentId)
-            ->first();
+        if ($taskId) {
+            $task = DB::table('tasks')
+                ->join('modules', 'modules.id', '=', 'tasks.module_id')
+                ->where('tasks.id', $taskId)
+                ->where('modules.project_id', $project->id)
+                ->select('tasks.*')
+                ->first();
 
-        if (!$task) {
-            $taskId = DB::table('tasks')->insertGetId([
-                'module_id' => $moduleId,
-                'title' => 'General Tasks',
-                'assigned_to' => $studentId,
-                'status' => 'in_progress',
-                'created_by' => $studentId,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            if (!$task) {
+                return response()->json(['error' => 'Selected task does not belong to this project.'], 422);
+            }
+
+            if ($task->assigned_to != $studentId) {
+                return response()->json(['error' => 'You can only log hours for tasks assigned to you.'], 403);
+            }
         } else {
-            $taskId = $task->id;
+            // Find or create active module
+            $module = DB::table('modules')->where('project_id', $project->id)->first();
+            if (!$module) {
+                $moduleId = DB::table('modules')->insertGetId([
+                    'project_id' => $project->id,
+                    'module_name' => 'General Module',
+                    'status' => 'in_progress',
+                    'created_by' => $studentId,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } else {
+                $moduleId = $module->id;
+            }
+
+            // Find or create a task under the module
+            $task = DB::table('tasks')
+                ->where('module_id', $moduleId)
+                ->where('assigned_to', $studentId)
+                ->first();
+
+            if (!$task) {
+                $taskId = DB::table('tasks')->insertGetId([
+                    'module_id' => $moduleId,
+                    'title' => 'Assigned Tasks',
+                    'assigned_to' => $studentId,
+                    'status' => 'in_progress',
+                    'created_by' => $studentId,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } else {
+                $taskId = $task->id;
+            }
         }
 
         $workDate = $request->input('date', now()->toDateString());
@@ -1115,7 +1395,17 @@ class StudentController extends Controller
                 $allTasks = DB::table('tasks')
                     ->leftJoin('users', 'users.id', '=', 'tasks.assigned_to')
                     ->whereIn('tasks.module_id', $moduleIds)
-                    ->select('tasks.id', 'tasks.module_id', 'tasks.title', 'tasks.assigned_to', 'users.name as assignee', 'tasks.status', 'tasks.due_date')
+                    ->select(
+                        'tasks.id', 
+                        'tasks.module_id', 
+                        'tasks.title', 
+                        'tasks.description',
+                        'tasks.assigned_to', 
+                        'users.name as assignee', 
+                        'tasks.status', 
+                        'tasks.review_status',
+                        'tasks.due_date'
+                    )
                     ->get();
 
                 $totalTasks = $allTasks->count();
@@ -1134,10 +1424,13 @@ class StudentController extends Controller
                     $tasksByModule[$t->module_id][] = [
                         'id' => $t->id,
                         'title' => $t->title,
+                        'description' => $t->description ?: '',
                         'assignedTo' => $t->assigned_to,
                         'assignee' => $t->assignee ?: 'Unassigned',
                         'isMyTask' => ($t->assigned_to == $studentId),
                         'status' => $statusMap[strtolower($t->status ?: 'todo')] ?? 'Todo',
+                        'reviewStatus' => $t->review_status,
+                        'isRework' => ($t->review_status === 'rejected'),
                         'dueDate' => $t->due_date ? date('M d, Y', strtotime($t->due_date)) : null,
                     ];
                 }
@@ -1260,6 +1553,7 @@ class StudentController extends Controller
                 'tasks.title',
                 'tasks.description',
                 'tasks.status',
+                'tasks.review_status',
                 'tasks.due_date',
                 'tasks.created_at',
                 'modules.id as module_id',
@@ -1286,11 +1580,14 @@ class StudentController extends Controller
                     'description' => $t->description ?: '',
                     'status' => $statusMap[strtolower($t->status)] ?? ucfirst($t->status),
                     'rawStatus' => strtolower($t->status),
+                    'reviewStatus' => $t->review_status,
+                    'isRework' => ($t->review_status === 'rejected'),
                     'dueDate' => $t->due_date ? date('M j, Y', strtotime($t->due_date)) : 'No deadline',
                     'createdAt' => $t->created_at ? (string)$t->created_at : null,
                     'isOverdue' => $t->due_date ? (strtotime($t->due_date) < time() && strtolower($t->status) !== 'completed') : false,
                     'module' => $t->module_name ?: 'General Module',
                     'project' => $t->project_title ?: 'Academic Project',
+                    'projectId' => $t->project_id,
                     'assignedBy' => $assigner,
                 ];
             });

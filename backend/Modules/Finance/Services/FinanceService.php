@@ -14,6 +14,75 @@ use DB;
 
 class FinanceService
 {
+    // ─────────────────────────────────────────────────────────────────────────
+    // BUSINESS VALIDATION RULES
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Rule A + Rule B combined guard for all financial write operations.
+     *
+     * Rule A: Project budget must be set and > 0.
+     * Rule B: Project status must not be 'closed', 'completed', or 'cancelled'.
+     *
+     * @param  \Modules\Project\Models\Project  $project
+     * @return array{valid: bool, message: string, http_status: int}
+     */
+    public function validateProjectForFinancialWrite(Project $project): array
+    {
+        // Proposed or rejected projects are pending executive approval
+        if (in_array(strtolower($project->status ?? ''), ['proposed', 'rejected'])) {
+            $label = ucfirst($project->status ?? 'Proposed');
+            return [
+                'valid'       => false,
+                'message'     => "Financial actions disabled: Project is {$label} and pending executive approval.",
+                'http_status' => 422,
+            ];
+        }
+
+        // Rule B – Status lock
+        $lockedStatuses = ['closed', 'completed', 'cancelled'];
+        if (in_array($project->status, $lockedStatuses)) {
+            $label = ucfirst($project->status);
+            return [
+                'valid'       => false,
+                'message'     => "Financial distributions are locked for {$label} projects.",
+                'http_status' => 422,
+            ];
+        }
+
+        // Rule A – Budget guard
+        if (is_null($project->budget) || (float) $project->budget <= 0) {
+            return [
+                'valid'       => false,
+                'message'     => 'Cannot allocate costs: Project does not have an approved budget set.',
+                'http_status' => 422,
+            ];
+        }
+
+        return ['valid' => true, 'message' => '', 'http_status' => 200];
+    }
+
+    /**
+     * Build a finance_lock descriptor for a project (used in list responses
+     * so the frontend can disable write actions without an extra API call).
+     *
+     * @param  \Modules\Project\Models\Project  $project
+     * @return array{locked: bool, reason: string|null}
+     */
+    public function buildFinanceLock(Project $project): array
+    {
+        $lockedStatuses = ['closed', 'completed', 'cancelled'];
+        if (in_array($project->status, $lockedStatuses)) {
+            return ['locked' => true, 'reason' => 'status', 'label' => ucfirst($project->status)];
+        }
+        if (is_null($project->budget) || (float) $project->budget <= 0) {
+            return ['locked' => true, 'reason' => 'no_budget', 'label' => 'No Approved Budget'];
+        }
+        return ['locked' => false, 'reason' => null, 'label' => null];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     public function getApprovedHourlyRate($projectStudentId = null)
     {
         $setting = DB::table('finance_settings')->first();
@@ -201,7 +270,7 @@ class FinanceService
 
     public function getAllInvoices()
     {
-        return Invoice::with(['projectFinance.project', 'clientPayments'])->get();
+        return Invoice::with(['projectFinance.project', 'clientPayments', 'items'])->get();
     }
 
     public function getAllTransactions()
@@ -272,8 +341,10 @@ class FinanceService
 
     public function getAllProjects()
     {
-        // Only return projects that are accepted, in_progress, or closed
-        $projects = Project::whereIn('status', ['accepted', 'in_progress', 'closed'])->get();
+        // Proposed and rejected projects are pending executive approval (higher than finance head)
+        // and MUST NOT be viewed or listed in Finance until accepted / in_progress.
+        // Closed, cancelled, and zero-budget projects remain visible in tables and dropdowns with status tags.
+        $projects = Project::whereNotIn('status', ['proposed', 'rejected'])->get();
         $finances = ProjectFinance::with(['developmentAllocations', 'invoices'])->get()->keyBy('project_id');
         
         $projects->each(function($project) use ($finances) {
@@ -282,15 +353,19 @@ class FinanceService
                 $pf->append(['total_invoiced', 'total_collected', 'pending_amount', 'total_expenses']);
             }
             $project->project_finance = $pf;
+
+            // Attach finance_lock so the frontend can render UI constraints inline
+            $project->finance_lock = $this->buildFinanceLock($project);
         });
         
         return $projects;
     }
 
+
     public function getProjectFinanceDetails($id)
     {
         $projectFinance = ProjectFinance::with(['project', 'invoices.clientPayments', 'developmentAllocations', 'hostingCharges', 'maintenanceSupportCharges'])->where('project_id', $id)->first();
-        if (!$projectFinance) {
+        if (!$projectFinance || ($projectFinance->project && in_array(strtolower($projectFinance->project->status ?? ''), ['proposed', 'rejected']))) {
             return null;
         }
 

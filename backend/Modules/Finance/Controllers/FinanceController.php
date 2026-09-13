@@ -5,6 +5,8 @@ namespace Modules\Finance\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Finance\Services\FinanceService;
+use Modules\Project\Models\Project;
+use DB;
 
 class FinanceController extends Controller
 {
@@ -73,22 +75,109 @@ class FinanceController extends Controller
         $validated = $request->validate([
             'student_allocation' => 'required|numeric|min:0',
             'faculty_allocation' => 'required|numeric|min:0',
-            'rlabz_allocation' => 'required|numeric|min:0'
+            'rlabz_allocation'   => 'required|numeric|min:0'
         ]);
 
+        // ── Business Validation: Rule A + Rule B ──────────────────────────────
+        $project = Project::findOrFail($id);
+        $check = $this->financeService->validateProjectForFinancialWrite($project);
+        if (!$check['valid']) {
+            return response()->json(['message' => $check['message']], $check['http_status']);
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         $projectFinance = \Modules\Finance\Models\ProjectFinance::where('project_id', $id)->firstOrFail();
-        
+
+        // legacyAllocateCost — original allocation logic preserved below.
+        // Do NOT remove; existing integrations may call this method directly.
         // Remove existing allocations
-        \DB::table('development_allocations')->where('project_finance_id', $projectFinance->id)->delete();
-        
+        DB::table('development_allocations')->where('project_finance_id', $projectFinance->id)->delete();
+
         // Insert new allocations
-        \DB::table('development_allocations')->insert([
+        DB::table('development_allocations')->insert([
             ['project_finance_id' => $projectFinance->id, 'category' => 'student', 'amount' => $validated['student_allocation'], 'created_at' => now(), 'updated_at' => now()],
             ['project_finance_id' => $projectFinance->id, 'category' => 'faculty', 'amount' => $validated['faculty_allocation'], 'created_at' => now(), 'updated_at' => now()],
-            ['project_finance_id' => $projectFinance->id, 'category' => 'rlabz', 'amount' => $validated['rlabz_allocation'], 'created_at' => now(), 'updated_at' => now()],
+            ['project_finance_id' => $projectFinance->id, 'category' => 'rlabz',   'amount' => $validated['rlabz_allocation'],   'created_at' => now(), 'updated_at' => now()],
         ]);
 
         return response()->json(['message' => 'Allocations updated successfully']);
+    }
+
+    /**
+     * Create a new ProjectFinance record for a project.
+     * POST /finance/projects
+     *
+     * Enforces Rule A (budget > 0) and Rule B (status not locked) before persisting.
+     */
+    public function addProjectFinance(Request $request)
+    {
+        $validated = $request->validate([
+            'project_id'         => 'required|exists:projects,id',
+            'estimated_cost'     => 'nullable|numeric|min:0',
+            'dev_student'        => 'nullable|numeric|min:0',
+            'dev_faculty'        => 'nullable|numeric|min:0',
+            'dev_rlabz'          => 'nullable|numeric|min:0',
+            'host_ssl'           => 'nullable|numeric|min:0',
+            'host_domain'        => 'nullable|numeric|min:0',
+            'host_api'           => 'nullable|numeric|min:0',
+            'maintenance_support'=> 'nullable|numeric|min:0',
+        ]);
+
+        // ── Business Validation: Rule A + Rule B ──────────────────────────────
+        $project = Project::findOrFail($validated['project_id']);
+        $check = $this->financeService->validateProjectForFinancialWrite($project);
+        if (!$check['valid']) {
+            return response()->json(['message' => $check['message']], $check['http_status']);
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
+        // Prevent duplicate finance records for the same project
+        if (\Modules\Finance\Models\ProjectFinance::where('project_id', $validated['project_id'])->exists()) {
+            return response()->json(['message' => 'A finance record already exists for this project.'], 422);
+        }
+
+        $devTotal = ($validated['dev_student'] ?? 0)
+                  + ($validated['dev_faculty'] ?? 0)
+                  + ($validated['dev_rlabz']   ?? 0);
+
+        $pf = \Modules\Finance\Models\ProjectFinance::create([
+            'project_id'               => $validated['project_id'],
+            'total_development_amount' => $devTotal,
+            'created_by'               => $this->currentUserId($request),
+        ]);
+
+        // Development allocations
+        $allocations = [];
+        foreach (['student' => 'dev_student', 'faculty' => 'dev_faculty', 'rlabz' => 'dev_rlabz'] as $cat => $key) {
+            if (!empty($validated[$key])) {
+                $allocations[] = ['project_finance_id' => $pf->id, 'category' => $cat, 'amount' => $validated[$key], 'created_at' => now(), 'updated_at' => now()];
+            }
+        }
+        if (!empty($allocations)) {
+            DB::table('development_allocations')->insert($allocations);
+        }
+
+        // Hosting charges
+        foreach (['ssl' => 'host_ssl', 'domain' => 'host_domain', 'api' => 'host_api'] as $type => $key) {
+            if (!empty($validated[$key])) {
+                \Modules\Finance\Models\HostingCharge::create([
+                    'project_finance_id' => $pf->id,
+                    'charge_type'        => $type,
+                    'amount'             => $validated[$key],
+                    'purchase_date'      => now()->toDateString(),
+                ]);
+            }
+        }
+
+        // Maintenance & support
+        if (!empty($validated['maintenance_support'])) {
+            \Modules\Finance\Models\MaintenanceSupportCharge::create([
+                'project_finance_id' => $pf->id,
+                'amount'             => $validated['maintenance_support'],
+            ]);
+        }
+
+        return response()->json(['message' => 'Project finance record created successfully', 'data' => $pf->load('developmentAllocations')], 201);
     }
 
     public function recordClientPayment(Request $request)

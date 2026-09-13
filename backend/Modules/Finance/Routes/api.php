@@ -7,7 +7,9 @@ use Modules\Finance\Http\Controllers\PaymentController;
 Route::group(['prefix' => 'finance', 'middleware' => ['auth.jwt']], function () {
     Route::get('/dashboard', [FinanceController::class, 'getDashboard']);
     Route::get('/projects', [FinanceController::class, 'getProjects']);
+    Route::post('/projects', [FinanceController::class, 'addProjectFinance']);     // Create finance record
     Route::get('/projects/{id}', [FinanceController::class, 'getProjectDetails']);
+    Route::get('/projects/{id}/billing-limits', [PaymentController::class, 'getProjectBillingLimits']);
     Route::post('/projects/{id}/allocations', [FinanceController::class, 'updateAllocations']);
     
     // Payments

@@ -1282,4 +1282,49 @@
 .faculty-verify-tasks .status-badge.cancelled { background: #fee2e2; color: #dc2626; }
 .faculty-sprints .status-badge.blocked,
 .faculty-meetings .status-badge.blocked,
-.faculty-verify-tasks .status-badge.blocked { background: #f1f5f9; color: #475569; }
+.faculty-verify-tasks .status-badge.blocked { background: #f1f5f9; color: #475569; }
+
+/* Interactive Cards & Panels Across All Faculty Pages */
+.faculty-kpi-card-clickable,
+.faculty-stat-card-interactive {
+    cursor: pointer !important;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease !important;
+    position: relative;
+    user-select: none;
+}
+.faculty-kpi-card-clickable:hover,
+.faculty-stat-card-interactive:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08) !important;
+    border-color: var(--primary, #059669) !important;
+}
+.faculty-kpi-card-clickable:active,
+.faculty-stat-card-interactive:active {
+    transform: translateY(-1px) !important;
+}
+
+/* My Projects Table Hover: Make project name green like Assign Module & Task, keep background neutral #f8fafc */
+.premium-table tbody tr.project-row-clickable,
+.project-table-container table tbody tr {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.premium-table tbody tr.project-row-clickable:hover,
+.premium-table tbody tr:hover,
+.project-table-container table tbody tr:hover {
+    background: #f8fafc !important;
+}
+.premium-table tbody tr.project-row-clickable:hover td,
+.premium-table tbody tr:hover td,
+.project-table-container table tbody tr:hover td {
+    background: transparent !important;
+}
+.premium-table tbody tr.project-row-clickable:hover td:first-child,
+.premium-table tbody tr:hover td:first-child,
+.project-table-container table tbody tr:hover td:first-child,
+.premium-table tbody tr.project-row-clickable:hover td:first-child *,
+.project-table-container table tbody tr:hover td:first-child * {
+    color: #059669 !important;
+    background: transparent !important;
+    transition: color 0.15s ease;
+}

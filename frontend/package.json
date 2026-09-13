@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "chart.js": "^4.5.1",
     "html2pdf.js": "^0.14.0",
     "sweetalert2": "^11.26.25"
   },

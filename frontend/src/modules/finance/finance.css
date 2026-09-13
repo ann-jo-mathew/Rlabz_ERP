@@ -714,3 +714,56 @@ hr.fin-divider {
   to { opacity: 1; }
 }
 
+/* ── Scoped Invoice Modal & Line Item Styles ──────────────── */
+.fin-modal.finance-invoice-modal {
+  max-width: 780px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.finance-invoice-modal .item-row-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.finance-invoice-modal .item-row-table th {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-color);
+  padding: 8px 6px;
+  text-align: left;
+}
+
+.finance-invoice-modal .item-row-table td {
+  padding: 6px;
+  vertical-align: middle;
+}
+
+.finance-invoice-modal .billing-caps-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  color: #166534;
+}
+
+.finance-invoice-modal .billing-cap-item {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.finance-invoice-modal .billing-cap-item strong {
+  font-weight: 700;
+}
+

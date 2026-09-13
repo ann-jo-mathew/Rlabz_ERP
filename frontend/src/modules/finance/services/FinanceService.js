@@ -16,6 +16,16 @@ class FinanceService {
       return null;
     }
     const data = await response.json();
+    // Surface backend validation errors (Rule A / Rule B) as proper JS Errors
+    // so view catch-blocks can display the exact server message to the user.
+    if (response.status === 422) {
+      const msg = data?.message || data?.error || 'Validation error.';
+      throw new Error(msg);
+    }
+    if (!response.ok) {
+      const msg = data?.message || data?.error || `Request failed (${response.status}).`;
+      throw new Error(msg);
+    }
     return data;
   }
 
@@ -91,6 +101,16 @@ class FinanceService {
 
   async createInvoice(data) {
     return this._fetch('/finance/invoices', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getBillingLimits(projectId) {
+    return await this._fetch(`/finance/projects/${projectId}/billing-limits`) || {
+      total_development_amount: 0,
+      remaining_dev_billable: 0,
+      total_project_budget: 0,
+      hosting_charges: [],
+      maintenance_charges: []
+    };
   }
 
   async getProjectStudents(projectId) {

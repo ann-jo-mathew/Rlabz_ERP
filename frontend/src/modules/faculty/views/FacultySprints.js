@@ -1044,7 +1044,7 @@ export function FacultySprints() {
                 }
 
                 const checkedStudentIds = Array.from(selectedStudentIdsForModule);
-                if (checkedStudentIds.length === 0) {
+                if (moduleIdVal !== 'new' && checkedStudentIds.length === 0) {
                     if (msgContainer) {
                         msgContainer.innerHTML = `
                             <div style="background: #fef2f2; border: 1px solid #f87171; color: #991b1b; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600;">
@@ -1215,12 +1215,22 @@ export function FacultySprints() {
         }
 
         function applyTaskSelection(taskIdVal, isReassign = false) {
+            const curModuleId = parseInt(taskModuleSelect?.value);
+            const curMod = (projectDetail?.modules || []).find(m => m.id === curModuleId);
+            const curAssigned = curMod?.assigned_students || [];
+
             if (taskIdVal === 'new') {
                 if (containerNewTask) containerNewTask.style.display = 'block';
                 if (taskTitleInput) taskTitleInput.required = true;
                 if (taskPreview) taskPreview.style.display = 'none';
-                taskStudentSelect.value = '';
-                updateStudentTaskPreview(null);
+
+                if (curAssigned.length === 1) {
+                    taskStudentSelect.value = curAssigned[0].student_id;
+                    updateStudentTaskPreview(curAssigned[0].student_id);
+                } else {
+                    taskStudentSelect.value = '';
+                    updateStudentTaskPreview(null);
+                }
             } else if (taskIdVal && taskIdVal !== '') {
                 if (containerNewTask) containerNewTask.style.display = 'none';
                 if (taskTitleInput) taskTitleInput.required = false;
@@ -1320,10 +1330,26 @@ export function FacultySprints() {
                 if (studentsHint) {
                     studentsHint.innerHTML = `<span style="color: #dc2626; font-weight: 600;">⚠ No students belong to this module. Please assign students in the 'Assign Module' tab first.</span>`;
                 }
-            } else {
+                updateStudentTaskPreview(null);
+            } else if (assignedStudents.length === 1) {
+                // Exactly 1 student assigned to module -> auto-assign to that student
+                const soleStudent = assignedStudents[0];
                 taskStudentSelect.disabled = false;
                 taskStudentSelect.innerHTML = `
-                    <option value="">-- Select student assigned to this module --</option>
+                    <option value="${soleStudent.student_id}" selected>
+                        ${soleStudent.name} ${soleStudent.designation ? `(${soleStudent.designation})` : ''} — [Sole Student (Auto-assigned)]
+                    </option>
+                `;
+                taskStudentSelect.value = soleStudent.student_id;
+                if (studentsHint) {
+                    studentsHint.innerHTML = `<span style="color: var(--primary, #059669); font-weight: 600;">✓ Module is assigned to only <strong>${soleStudent.name}</strong> — automatically assigned to this student.</span>`;
+                }
+                updateStudentTaskPreview(soleStudent.student_id);
+            } else {
+                // Multiple students assigned to module -> allow faculty to select
+                taskStudentSelect.disabled = false;
+                taskStudentSelect.innerHTML = `
+                    <option value="">-- Select student assigned to this module (${assignedStudents.length} available) --</option>
                     ${assignedStudents.map(s => {
                         const studentTasks = (projectDetail.tasks || []).filter(t => t.assigned_to === s.student_id);
                         const modTasks = studentTasks.filter(t => t.module_id === moduleId);
@@ -1335,13 +1361,13 @@ export function FacultySprints() {
                     }).join('')}
                 `;
                 if (studentsHint) {
-                    studentsHint.innerHTML = `<span style="color: var(--primary, #059669); font-weight: 600;">✓ Showing ${assignedStudents.length} student(s) assigned to this module.</span>`;
+                    studentsHint.innerHTML = `<span style="color: #0284c7; font-weight: 600;">ℹ Module has ${assignedStudents.length} students assigned. Select which student to assign this task to.</span>`;
                 }
+                updateStudentTaskPreview(null);
             }
 
             if (containerNewTask) containerNewTask.style.display = 'none';
             if (taskPreview) taskPreview.style.display = 'none';
-            updateStudentTaskPreview(null);
         });
 
         // When Task Dropdown selection changes:
