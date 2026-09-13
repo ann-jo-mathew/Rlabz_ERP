@@ -37,8 +37,7 @@ class Invoice extends Model
 
     public function clientPayments()
     {
-        return $this->hasMany(ClientPayment::class);
-    }
+       return $this->hasMany(ClientPayment::class, 'project_finance_id', 'project_finance_id');    }
 
     public function getGstAmountAttribute()
     {

@@ -6,6 +6,7 @@ use Modules\Finance\Models\ProjectFinance;
 use Modules\Finance\Models\Invoice;
 use Modules\Finance\Models\StudentPayment;
 use Modules\Finance\Models\HostingCharge;
+use Modules\Dashboard\Models\Notification;
 use Modules\Project\Models\Project;
 use Modules\Project\Models\Task;
 use Carbon\Carbon;
@@ -36,6 +37,9 @@ class FinanceService
         // Total Profit = Total Revenue/Billing - Total Costs.
         $totalProfit = $totalInvoiced - $totalExpenses;
 
+        $sslExpiring = $this->getSslExpiryWarnings();
+        $this->syncSslExpiryNotifications($sslExpiring);
+
         return [
             'totalBilling' => round($totalInvoiced, 2),
             'totalCollected' => round($totalCollected, 2),
@@ -48,8 +52,49 @@ class FinanceService
             'totalExpenses' => round($totalExpenses, 2),
             'totalProfit' => round($totalProfit, 2),
             'projectProfit' => round($totalCollected - $totalExpenses, 2),
-            'sslExpiring' => $this->getSslExpiryWarnings(),
+            'sslExpiring' => $sslExpiring,
         ];
+    }
+
+    /**
+     * Turns the SSL expiry warnings above into rows in the generic `notifications`
+     * table (one per coordinator per hosting charge), so they surface via the bell
+     * icon instead of a standalone page banner. Does not change how expiry itself is
+     * calculated — this only mirrors getSslExpiryWarnings()'s existing output.
+     * updateOrCreate avoids re-spamming a notification on every dashboard load while
+     * still refreshing the message text as days-remaining changes.
+     */
+    public function syncSslExpiryNotifications($sslExpiring = null)
+    {
+        $sslExpiring = $sslExpiring ?? $this->getSslExpiryWarnings();
+        if ($sslExpiring->isEmpty()) {
+            return;
+        }
+
+        $coordinatorIds = DB::table('users')->where('role', 'coordinator')->pluck('id');
+        if ($coordinatorIds->isEmpty()) {
+            return;
+        }
+
+        foreach ($sslExpiring as $warning) {
+            $message = $warning['expired']
+                ? "SSL certificate for project '{$warning['project_title']}' has expired ({$warning['expiry_date']})."
+                : "SSL certificate for project '{$warning['project_title']}' is expiring in {$warning['days_until_expiry']} day(s) ({$warning['expiry_date']}).";
+
+            foreach ($coordinatorIds as $userId) {
+                Notification::updateOrCreate(
+                    [
+                        'user_id' => $userId,
+                        'type' => 'ssl_expiry',
+                        'project_id' => $warning['project_id'],
+                    ],
+                    [
+                        'message' => $message,
+                        'urgency' => 'urgent',
+                    ]
+                );
+            }
+        }
     }
 
     /**

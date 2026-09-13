@@ -13,6 +13,7 @@ use Modules\Coordinator\Models\ProjectClosure;
 use Modules\Coordinator\Models\ProjectFaculty;
 use Modules\Coordinator\Models\ProjectStudent;
 use Modules\Coordinator\Models\RequirementChange;
+use Modules\Coordinator\Models\StudentRole;
 use Modules\Project\Models\Module;
 use Modules\Project\Models\Project;
 use Modules\Project\Models\Task;
@@ -194,6 +195,23 @@ class CoordinatorController extends Controller
             return response()->json(['error' => 'Student is already assigned to this project'], 422);
         }
 
+        // A student's project role is global (set once, reused everywhere) — see
+        // StudentRole. If they already have one, it overrides whatever was submitted;
+        // a mismatched submission is rejected rather than silently accepted.
+        $existingRole = StudentRole::where('student_id', $validated['student_id'])->first();
+        if ($existingRole && $existingRole->role !== $validated['role']) {
+            $label = ucwords(str_replace('_', ' ', $existingRole->role));
+            return response()->json([
+                'error' => "This student's role is already set to \"{$label}\" and cannot be changed by assigning them to a new project.",
+            ], 422);
+        }
+        if (!$existingRole) {
+            StudentRole::create([
+                'student_id' => $validated['student_id'],
+                'role' => $validated['role'],
+            ]);
+        }
+
         $project->students()->attach($validated['student_id'], [
             'role' => $validated['role'],
             'assigned_date' => $validated['assigned_date'] ?? now()->toDateString(),
@@ -240,6 +258,16 @@ class CoordinatorController extends Controller
         }
 
         $students = $query->orderBy('name')->get(['id', 'name', 'email']);
+
+        // Surface each student's existing global role (if any) so the assignment UI
+        // can lock the role picker before submission instead of only finding out
+        // via a validation error after the coordinator picks a conflicting one.
+        $existingRoles = StudentRole::whereIn('student_id', $students->pluck('id'))
+            ->pluck('role', 'student_id');
+
+        $students->each(function ($student) use ($existingRoles) {
+            $student->existing_role = $existingRoles->get($student->id);
+        });
 
         return response()->json(['data' => $students]);
     }

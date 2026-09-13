@@ -181,3 +181,131 @@
   color: #6b7280;
   font-size: 0.85rem;
 }
+
+/* Certificate preview — landscape, formal printed-certificate layout.
+   Scoped with .certificate-modal so it only widens THIS modal instance,
+   not the shared .director-modal class used across the app. */
+.director-modal.certificate-modal {
+  width: 95%;
+  max-width: 920px;
+}
+
+.certificate-sheet {
+  width: 100%;
+  aspect-ratio: 1.414 / 1;
+  background: #fffdf9;
+  border: 10px solid #1e3a8a;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.certificate-sheet-inner {
+  height: 100%;
+  border: 2px solid #c9a24b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 56px;
+  box-sizing: border-box;
+  text-align: center;
+  font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+.certificate-brand {
+  letter-spacing: 6px;
+  font-weight: 800;
+  color: #1e3a8a;
+  font-size: 0.9rem;
+  font-family: Arial, sans-serif;
+}
+
+.certificate-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: 1.5px;
+  margin-top: 6px;
+}
+
+.certificate-subtitle {
+  font-size: 0.92rem;
+  color: #4b5563;
+  margin-top: 10px;
+  font-family: Arial, sans-serif;
+}
+
+.certificate-student-name {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-top: 4px;
+}
+
+.certificate-sentence {
+  max-width: 680px;
+  margin: 14px auto 0;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: #1f2937;
+}
+
+.certificate-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.certificate-footer-col {
+  flex: 1;
+  text-align: center;
+}
+
+.certificate-footer-center {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.certificate-footer-line {
+  width: 150px;
+  margin: 0 auto 6px;
+  border-top: 1px solid #9ca3af;
+}
+
+.certificate-footer-label {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.88rem;
+}
+
+.certificate-footer-role {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+  .certificate-sheet-inner {
+    padding: 18px 20px;
+  }
+  .certificate-title {
+    font-size: 1.4rem;
+  }
+  .certificate-student-name {
+    font-size: 1.15rem;
+  }
+  .certificate-sentence {
+    font-size: 0.82rem;
+  }
+  .certificate-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

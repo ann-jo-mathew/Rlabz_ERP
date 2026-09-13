@@ -340,6 +340,7 @@ export async function CoordinatorProjectDetail(route, router) {
               <option value="tester">Tester</option>
               <option value="other">Other</option>
             </select>
+            <small id="assign-role-note" style="display:none; color:#6b7280; margin-top:0.25rem;">This student already has a role set — it applies to every project and can't be changed here.</small>
           </div>
           <div class="coordinator-form-group"><label>Assigned date (optional)</label><input type="date" id="assign-student-date" /></div>
         </div>
@@ -352,7 +353,11 @@ export async function CoordinatorProjectDetail(route, router) {
       const overlay = openModal(html);
 
       const sel = overlay.querySelector('#assign-student-id');
+      const roleSel = overlay.querySelector('#assign-student-role');
+      const roleNote = overlay.querySelector('#assign-role-note');
       const available = await fetchEligibleStudents();
+      const studentsById = new Map(available.map((s) => [String(s.id), s]));
+
       if (!available.length) {
         sel.innerHTML = `<option value="">No unassigned students available</option>`;
       } else {
@@ -364,6 +369,19 @@ export async function CoordinatorProjectDetail(route, router) {
           sel.appendChild(opt);
         });
       }
+
+      sel.addEventListener('change', () => {
+        const student = studentsById.get(sel.value);
+        const existingRole = student?.existing_role;
+        if (existingRole) {
+          roleSel.value = existingRole;
+          roleSel.disabled = true;
+          roleNote.style.display = 'block';
+        } else {
+          roleSel.disabled = false;
+          roleNote.style.display = 'none';
+        }
+      });
 
       overlay.querySelector('#assign-student-submit').addEventListener('click', async () => {
         const studentId = Number(overlay.querySelector('#assign-student-id').value || 0);
