@@ -58,8 +58,8 @@ export async function FinanceLayout(contentChild, route, router) {
     <aside class="sidebar finance-sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
+          <img src="/assets/RlabZ_Watermark.png" alt="RLabZ" class="sidebar-watermark" />
           <span>RLABZ ERP</span>
-          <span class="badge">FINANCE</span>
         </div>
       </div>
       <!-- NOTE: Deliberately avoiding .sidebar-nav class to prevent core router from overriding this -->
