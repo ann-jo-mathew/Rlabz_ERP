@@ -37,7 +37,7 @@ class Invoice extends Model
 
     public function clientPayments()
     {
-       return $this->hasMany(ClientPayment::class, 'project_finance_id', 'project_finance_id');    }
+       return $this->hasMany(ClientPayment::class);    }
 
     public function items()
     {
