@@ -1,6 +1,7 @@
 import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
 import html2pdf from 'html2pdf.js';
+import { renderPagination, setupPaginationListeners } from '../utils/pagination.js';
 
 export async function InvoicesBills(route, router) {
   const container = document.createElement('div');
@@ -304,8 +305,16 @@ export async function InvoicesBills(route, router) {
   try {
     let invoices = [];
     let projects = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
 
     const renderTable = () => {
+      const totalPages = Math.ceil(invoices.length / itemsPerPage);
+      if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const paginated = invoices.slice(start, start + itemsPerPage);
+
       container.innerHTML = `
         <div class="fin-page-header">
           <div style="display:flex; justify-content:space-between; align-items:center; width: 100%;">
@@ -339,7 +348,7 @@ export async function InvoicesBills(route, router) {
                 </tr>
               </thead>
               <tbody>
-                ${invoices.map(inv => {
+                ${paginated.map(inv => {
         const proj = inv.project_finance?.project || {};
         return `
                   <tr>
@@ -366,9 +375,17 @@ export async function InvoicesBills(route, router) {
               </tbody>
             </table>
           </div>
+          <div id="pagination-container"></div>
         </div>
       `;
       bindEvents();
+
+      const paginationContainer = container.querySelector('#pagination-container');
+      paginationContainer.innerHTML = renderPagination(invoices.length, currentPage, itemsPerPage);
+      setupPaginationListeners(paginationContainer, (page) => {
+        currentPage = page;
+        renderTable();
+      });
     };
 
     const loadInvoices = async () => {

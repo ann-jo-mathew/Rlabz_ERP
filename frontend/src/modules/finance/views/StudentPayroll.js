@@ -1,6 +1,7 @@
 import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
 import html2pdf from 'html2pdf.js';
+import { renderPagination, setupPaginationListeners } from '../utils/pagination.js';
 
 export async function StudentPayroll(route, router) {
   const container = document.createElement('div');
@@ -18,6 +19,8 @@ export async function StudentPayroll(route, router) {
   let allProjects = [];
   let rateHistory = [];
   let currentGlobalRate = 0;
+  let currentPage = 1;
+  const itemsPerPage = 10;
 
   // ─── Receipt PDF Generation ───────────────────────────────────
   const generateReceipt = (pr) => {
@@ -146,11 +149,19 @@ export async function StudentPayroll(route, router) {
     if (filtered.length === 0) {
       tbody.innerHTML = '';
       noResults.style.display = 'block';
+      container.querySelector('#pagination-container').innerHTML = '';
       return;
     }
 
     noResults.style.display = 'none';
-    tbody.innerHTML = filtered.map(pr => {
+
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const paginated = filtered.slice(start, start + itemsPerPage);
+
+    tbody.innerHTML = paginated.map(pr => {
       const sName = pr.student_name || 'Unknown';
       const projName = pr.project_name || 'Unknown';
       const desg = (pr.designation || '').charAt(0).toUpperCase() + (pr.designation || '').slice(1);
@@ -197,6 +208,13 @@ export async function StudentPayroll(route, router) {
     }).join('');
 
     bindTableEvents();
+
+    const paginationContainer = container.querySelector('#pagination-container');
+    paginationContainer.innerHTML = renderPagination(filtered.length, currentPage, itemsPerPage);
+    setupPaginationListeners(paginationContainer, (page) => {
+      currentPage = page;
+      renderTable();
+    });
   };
 
   const bindTableEvents = () => {
@@ -287,11 +305,15 @@ export async function StudentPayroll(route, router) {
 
   try {
     container.innerHTML = `
-      <div class="fin-page-header">
+      <div class="fin-page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
         <div>
           <h1>Student Payroll</h1>
           <p>Project-based student compensation management</p>
         </div>
+        <button id="manage-rate-btn" class="fin-btn primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Manage Hourly Rate
+        </button>
       </div>
 
 
@@ -329,7 +351,7 @@ export async function StudentPayroll(route, router) {
           <label>Payment Status</label>
           <div class="fin-select-wrap">
             <select id="status-filter" class="fin-input">
-              <option value="All">All Statuses</option>
+              <option value="All">All Status</option>
               <option value="Pending">Pending</option>
               <option value="Partially Paid">Partially Paid</option>
               <option value="Paid">Paid</option>
@@ -371,11 +393,7 @@ export async function StudentPayroll(route, router) {
             <p style="margin:0;font-size:0.9rem">No payroll records found for the selected filters.</p>
           </div>
         </div>
-      </div>
-      
-      <!-- Manage Hourly Rate Button at bottom (secondary priority) -->
-      <div style="margin-top: 1.5rem; text-align: center;">
-        <button id="manage-rate-btn" class="fin-btn outline">Manage Hourly Rate</button>
+        <div id="pagination-container"></div>
       </div>
     `;
 
@@ -422,7 +440,7 @@ export async function StudentPayroll(route, router) {
       const modal = document.createElement('div');
       modal.className = 'fin-modal-overlay';
       modal.innerHTML = `
-        <div class="fin-modal" style="max-width:600px; width:90%;">
+        <div class="fin-modal" style="max-width:800px; width:90%;">
           <h3 style="margin:0 0 1rem">Manage Student Hourly Rate</h3>
           
           <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
@@ -500,16 +518,17 @@ export async function StudentPayroll(route, router) {
     const desgFilter = container.querySelector('#desg-filter');
     const statusFilter = container.querySelector('#status-filter');
 
-    projectFilter.addEventListener('change', renderTable);
-    searchInput.addEventListener('input', renderTable);
-    desgFilter.addEventListener('change', renderTable);
-    statusFilter.addEventListener('change', renderTable);
+    projectFilter.addEventListener('change', () => { currentPage = 1; renderTable(); });
+    searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
+    desgFilter.addEventListener('change', () => { currentPage = 1; renderTable(); });
+    statusFilter.addEventListener('change', () => { currentPage = 1; renderTable(); });
 
     container.querySelector('#clear-filters-btn').addEventListener('click', () => {
       projectFilter.value = 'All';
       searchInput.value = '';
       desgFilter.value = 'All';
       statusFilter.value = 'All';
+      currentPage = 1;
       renderTable();
     });
 

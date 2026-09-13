@@ -1,5 +1,6 @@
 import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
+import { renderPagination, setupPaginationListeners } from '../utils/pagination.js';
 
 export async function OperationalCosts(route, router) {
   const container = document.createElement('div');
@@ -16,6 +17,10 @@ export async function OperationalCosts(route, router) {
   let allCosts = [];
   let renewalHistory = [];
   let currentFilter = 'all'; // default filter
+
+  let costsCurrentPage = 1;
+  let sslCurrentPage = 1;
+  const itemsPerPage = 10;
 
   container.innerHTML = `
     <div class="fin-page-header">
@@ -64,6 +69,7 @@ export async function OperationalCosts(route, router) {
           </tbody>
         </table>
       </div>
+      <div id="pagination-container-costs"></div>
     </div>
     
     <div class="fin-panel" style="margin-top:2rem;">
@@ -89,6 +95,7 @@ export async function OperationalCosts(route, router) {
           </tbody>
         </table>
       </div>
+      <div id="pagination-container-ssl"></div>
     </div>
   `;
 
@@ -102,10 +109,17 @@ export async function OperationalCosts(route, router) {
 
     if (filtered.length === 0) {
       tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">No records found for the selected filter</td></tr>';
+      container.querySelector('#pagination-container-costs').innerHTML = '';
       return;
     }
 
-    tbody.innerHTML = filtered.map(cost => {
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    if (costsCurrentPage > totalPages && totalPages > 0) costsCurrentPage = totalPages;
+
+    const start = (costsCurrentPage - 1) * itemsPerPage;
+    const paginated = filtered.slice(start, start + itemsPerPage);
+
+    tbody.innerHTML = paginated.map(cost => {
       const isExpired = cost.expiryDate && new Date(cost.expiryDate) < new Date();
 
       let statusHtml = '<span class="fin-badge info">Active</span>';
@@ -137,6 +151,13 @@ export async function OperationalCosts(route, router) {
     `}).join('');
 
     bindRenewEvents();
+
+    const paginationContainer = container.querySelector('#pagination-container-costs');
+    paginationContainer.innerHTML = renderPagination(filtered.length, costsCurrentPage, itemsPerPage);
+    setupPaginationListeners(paginationContainer, (page) => {
+      costsCurrentPage = page;
+      renderTable();
+    });
   };
 
   const bindRenewEvents = () => {
@@ -218,10 +239,17 @@ export async function OperationalCosts(route, router) {
     if (!tbody) return;
     if (renewalHistory.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">No SSL renewals found</td></tr>';
+      container.querySelector('#pagination-container-ssl').innerHTML = '';
       return;
     }
 
-    tbody.innerHTML = renewalHistory.map(h => `
+    const totalPages = Math.ceil(renewalHistory.length / itemsPerPage);
+    if (sslCurrentPage > totalPages && totalPages > 0) sslCurrentPage = totalPages;
+
+    const start = (sslCurrentPage - 1) * itemsPerPage;
+    const paginated = renewalHistory.slice(start, start + itemsPerPage);
+
+    tbody.innerHTML = paginated.map(h => `
       <tr>
         <td>${fmtDate(h.renewal_date)}</td>
         <td>
@@ -235,10 +263,18 @@ export async function OperationalCosts(route, router) {
         <td>${h.renewed_by_name || 'System'}</td>
       </tr>
     `).join('');
+
+    const paginationContainer = container.querySelector('#pagination-container-ssl');
+    paginationContainer.innerHTML = renderPagination(renewalHistory.length, sslCurrentPage, itemsPerPage);
+    setupPaginationListeners(paginationContainer, (page) => {
+      sslCurrentPage = page;
+      renderRenewalHistory();
+    });
   };
 
   container.querySelector('#type-filter').addEventListener('change', (e) => {
     currentFilter = e.target.value;
+    costsCurrentPage = 1;
     renderTable();
   });
 

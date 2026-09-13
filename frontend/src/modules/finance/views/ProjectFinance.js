@@ -1,5 +1,6 @@
 import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
+import { renderPagination, setupPaginationListeners } from '../utils/pagination.js';
 
 export async function ProjectFinance(route, router) {
   const container = document.createElement('div');
@@ -276,7 +277,7 @@ export async function ProjectFinance(route, router) {
           <label>Status</label>
           <div class="fin-select-wrap">
             <select id="status-filter" class="fin-input">
-              <option value="All">All Statuses</option>
+              <option value="All">All Status</option>
               <option value="accepted">Accepted</option>
               <option value="in_progress">In Progress</option>
               <option value="closed">Closed</option>
@@ -377,10 +378,13 @@ export async function ProjectFinance(route, router) {
             <p style="margin:0;font-size:0.9rem">No projects match the current filters.</p>
           </div>
         </div>
+        <div id="pagination-container"></div>
       </div>
     `;
 
     let allProjects = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
     
     const renderProjects = () => {
       const searchTerm = container.querySelector('#search-input').value.toLowerCase();
@@ -399,14 +403,23 @@ export async function ProjectFinance(route, router) {
         return matchName && matchStatus;
       });
 
-      countEl.textContent = `${filtered.length} of ${allProjects.length} projects`;
+      countEl.textContent = `${filtered.length} projects`;
+
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+      if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const paginated = filtered.slice(start, start + itemsPerPage);
+
+      const formatStatus = (s) => s.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
       if (filtered.length === 0) {
         tbody.innerHTML = '';
         noResults.style.display = 'block';
+        container.querySelector('#pagination-container').innerHTML = '';
       } else {
         noResults.style.display = 'none';
-        tbody.innerHTML = filtered.map(p => {
+        tbody.innerHTML = paginated.map(p => {
           const pf      = p.project_finance || {};
           const pName   = p.title || 'Unknown Project';
           const client  = p.client_name || 'Unknown Client';
@@ -429,7 +442,7 @@ export async function ProjectFinance(route, router) {
               <div style="font-weight:600;display:flex;align-items:center;flex-wrap:wrap">${pName}${lockLabel}</div>
               <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${client}</div>
             </td>
-            <td><span class="fin-badge ${statusBadgeClass(status)}">${status.replace('_', ' ')}</span></td>
+            <td><span class="fin-badge ${statusBadgeClass(status)}">${formatStatus(status)}</span></td>
             <td>${fmt(p.budget || 0)}</td>
             <td style="font-weight:600">${fmt(billing)}</td>
             <td style="color:var(--primary);font-weight:700">${fmt(pf.total_collected || 0)}</td>
@@ -444,6 +457,13 @@ export async function ProjectFinance(route, router) {
 
         container.querySelectorAll('.view-details-btn').forEach(btn => {
           btn.addEventListener('click', () => router.push(`/finance/projects/${btn.dataset.id}`));
+        });
+
+        const paginationContainer = container.querySelector('#pagination-container');
+        paginationContainer.innerHTML = renderPagination(filtered.length, currentPage, itemsPerPage);
+        setupPaginationListeners(paginationContainer, (page) => {
+          currentPage = page;
+          renderProjects();
         });
       }
     };
@@ -493,11 +513,12 @@ export async function ProjectFinance(route, router) {
       }
     };
 
-    container.querySelector('#search-input').addEventListener('input', renderProjects);
-    container.querySelector('#status-filter').addEventListener('change', renderProjects);
+    container.querySelector('#search-input').addEventListener('input', () => { currentPage = 1; renderProjects(); });
+    container.querySelector('#status-filter').addEventListener('change', () => { currentPage = 1; renderProjects(); });
     container.querySelector('#clear-filters-btn').addEventListener('click', () => {
       container.querySelector('#search-input').value = '';
       container.querySelector('#status-filter').value = 'All';
+      currentPage = 1;
       renderProjects();
     });
 
