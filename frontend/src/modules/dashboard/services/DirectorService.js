@@ -66,7 +66,7 @@ function saveState(data) {
 const API_BASE = `${ROOT_API_BASE}/dashboard`;
 
 async function getAuthHeadersAsync(forceRefresh = false) {
-  let token = localStorage.getItem('token');
+  let token = localStorage.getItem('token') || localStorage.getItem('access_token');
   if (!token || forceRefresh) {
     try {
       const res = await fetch(`${ROOT_API_BASE}/auth/login`, {
@@ -92,7 +92,7 @@ async function getAuthHeadersAsync(forceRefresh = false) {
 }
 
 function getAuthHeaders() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
   return {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -100,13 +100,30 @@ function getAuthHeaders() {
   };
 }
 
+const OVERVIEW_CACHE_KEY = 'rlabz_director_overview_cache';
 let cacheOverview = null;
 let cacheFaculties = null;
 let cacheAuditLogs = null;
 
 export class DirectorService {
   static getCachedOverview() {
-    return cacheOverview;
+    if (cacheOverview) {
+      return cacheOverview;
+    }
+    try {
+      const stored = localStorage.getItem(OVERVIEW_CACHE_KEY);
+      if (stored) {
+        cacheOverview = JSON.parse(stored);
+        return cacheOverview;
+      }
+    } catch (e) {}
+    // Instant fallback from local stored state so initial render is 0ms
+    const fallback = this.getOverview();
+    if (fallback) {
+      cacheOverview = fallback;
+      return fallback;
+    }
+    return null;
   }
 
   static getOverview() {
@@ -291,7 +308,7 @@ export class DirectorService {
   static async fetchOverviewRemote() {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       let headers = await getAuthHeadersAsync();
       let response = await fetch(`${API_BASE}/overview`, { headers, signal: controller.signal });
       if (response.status === 401) {
@@ -332,6 +349,9 @@ export class DirectorService {
             }))
           };
           cacheOverview = overviewData;
+          try {
+            localStorage.setItem(OVERVIEW_CACHE_KEY, JSON.stringify(overviewData));
+          } catch (e) {}
           return overviewData;
         }
       }
