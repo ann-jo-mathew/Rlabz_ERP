@@ -1001,5 +1001,19 @@ class FullDatabaseDemoSeeder extends Seeder
                 'updated_at' => now(),
             ]
         );
+
+        // 16. Student Roles
+        $studentRolesData = [
+            ['student_id' => $student1Id, 'role' => 'project_lead'],
+            ['student_id' => $student2Id, 'role' => 'developer'],
+            ['student_id' => $student3Id, 'role' => 'designer'],
+            ['student_id' => $student4Id, 'role' => 'tester'],
+        ];
+        foreach ($studentRolesData as $srd) {
+            DB::table('student_roles')->updateOrInsert(
+                ['student_id' => $srd['student_id']],
+                ['role' => $srd['role'], 'created_at' => now(), 'updated_at' => now()]
+            );
+        }
     }
 }

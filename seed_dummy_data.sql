@@ -1,31 +1,52 @@
 -- =============================================================
 -- Rlabz ERP - Full Dummy Data Seed Script (Schema-accurate)
--- Generated: September 2026
+-- Generated & Aligned: September 2026
 -- Usage: pipe to mysql or run via MySQL Workbench/phpMyAdmin
 -- =============================================================
 SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_MODE = '';
 
-TRUNCATE TABLE ssl_renewal_history; TRUNCATE TABLE student_hourly_rate_history;
-TRUNCATE TABLE finance_settings; TRUNCATE TABLE faculty_payments;
-TRUNCATE TABLE client_payments; TRUNCATE TABLE student_payments;
-TRUNCATE TABLE invoices; TRUNCATE TABLE maintenance_support_charges;
-TRUNCATE TABLE hosting_charges; TRUNCATE TABLE development_allocations;
-TRUNCATE TABLE project_finances; TRUNCATE TABLE student_work_logs;
-TRUNCATE TABLE student_reports; TRUNCATE TABLE student_profiles;
-TRUNCATE TABLE faculty_profiles; TRUNCATE TABLE github_repositories;
-TRUNCATE TABLE final_project_documents; TRUNCATE TABLE project_reports;
-TRUNCATE TABLE certificates; TRUNCATE TABLE feedback;
-TRUNCATE TABLE chat_messages; TRUNCATE TABLE chat_participants;
-TRUNCATE TABLE chats; TRUNCATE TABLE meeting_participants;
-TRUNCATE TABLE meeting_notes; TRUNCATE TABLE meetings;
-TRUNCATE TABLE project_closures; TRUNCATE TABLE requirement_changes;
-TRUNCATE TABLE client_requirements; TRUNCATE TABLE project_faculty;
-TRUNCATE TABLE project_student; TRUNCATE TABLE notifications;
-TRUNCATE TABLE audit_logs; TRUNCATE TABLE tasks;
-TRUNCATE TABLE module_student; TRUNCATE TABLE modules;
-TRUNCATE TABLE projects; TRUNCATE TABLE users;
 TRUNCATE TABLE personal_access_tokens;
+TRUNCATE TABLE ssl_renewal_history;
+TRUNCATE TABLE student_hourly_rate_history;
+TRUNCATE TABLE finance_settings;
+TRUNCATE TABLE faculty_payments;
+TRUNCATE TABLE client_payments;
+TRUNCATE TABLE student_payments;
+TRUNCATE TABLE invoice_items;
+TRUNCATE TABLE invoices;
+TRUNCATE TABLE maintenance_support_charges;
+TRUNCATE TABLE hosting_charges;
+TRUNCATE TABLE development_allocations;
+TRUNCATE TABLE project_finances;
+TRUNCATE TABLE student_work_logs;
+TRUNCATE TABLE student_reports;
+TRUNCATE TABLE student_roles;
+TRUNCATE TABLE student_profiles;
+TRUNCATE TABLE faculty_profiles;
+TRUNCATE TABLE github_repositories;
+TRUNCATE TABLE final_project_documents;
+TRUNCATE TABLE project_reports;
+TRUNCATE TABLE certificates;
+TRUNCATE TABLE feedback;
+TRUNCATE TABLE chat_messages;
+TRUNCATE TABLE chat_participants;
+TRUNCATE TABLE chats;
+TRUNCATE TABLE meeting_participants;
+TRUNCATE TABLE meeting_notes;
+TRUNCATE TABLE meetings;
+TRUNCATE TABLE project_closures;
+TRUNCATE TABLE requirement_changes;
+TRUNCATE TABLE client_requirements;
+TRUNCATE TABLE project_faculty;
+TRUNCATE TABLE project_student;
+TRUNCATE TABLE notifications;
+TRUNCATE TABLE audit_logs;
+TRUNCATE TABLE tasks;
+TRUNCATE TABLE module_student;
+TRUNCATE TABLE modules;
+TRUNCATE TABLE projects;
+TRUNCATE TABLE users;
 
 -- 1. USERS
 INSERT INTO users (id,name,email,password,phone,role,permissions,created_at,updated_at) VALUES
@@ -61,9 +82,12 @@ INSERT INTO modules (id,project_id,weight_percentage,module_name,description,sta
 
 -- 4. MODULE_STUDENT
 INSERT INTO module_student (id,module_id,student_id,assigned_date,created_at,updated_at) VALUES
-(1,1,6,'2026-01-15',NOW(),NOW()),(2,2,6,'2026-01-15',NOW(),NOW()),
-(3,2,7,'2026-01-20',NOW(),NOW()),(4,4,7,'2026-02-01',NOW(),NOW()),
-(5,5,8,'2026-02-01',NOW(),NOW()),(6,7,8,'2026-03-01',NOW(),NOW());
+(1,1,6,'2026-01-15',NOW(),NOW()),
+(2,2,6,'2026-01-15',NOW(),NOW()),
+(3,2,7,'2026-01-20',NOW(),NOW()),
+(4,4,7,'2026-02-01',NOW(),NOW()),
+(5,5,8,'2026-02-01',NOW(),NOW()),
+(6,7,8,'2026-03-01',NOW(),NOW());
 
 -- 5. TASKS
 INSERT INTO tasks (id,module_id,title,description,assigned_to,status,due_date,reviewed_by,review_status,reviewed_at,created_by,created_at,updated_at) VALUES
@@ -87,38 +111,45 @@ INSERT INTO audit_logs (id,user_id,action,description,created_at) VALUES
 (5,6,'task_submitted','Student submitted task for review',NOW()),
 (6,3,'invoice_created','Finance created invoice INV-2026-001',NOW());
 
--- 7. NOTIFICATIONS
-INSERT INTO notifications (id,user_id,type,message,is_read,created_at,updated_at) VALUES
-(1,6,'task_assigned','You have been assigned a new task: Design login page UI',1,NOW(),NOW()),
-(2,7,'task_assigned','You have been assigned: Medical history module',0,NOW(),NOW()),
-(3,4,'task_review','Task submitted for review: Patient registration form',0,NOW(),NOW()),
-(4,2,'project_update','Project Hospital Management has been updated',1,NOW(),NOW()),
-(5,8,'task_assigned','You have been assigned: Faculty schedule page',0,NOW(),NOW()),
-(6,6,'report_approved','Your weekly report has been approved',1,NOW(),NOW());
+-- 7. NOTIFICATIONS (Schema-accurate with project_id and urgency)
+INSERT INTO notifications (id,user_id,project_id,type,urgency,message,is_read,created_at,updated_at) VALUES
+(1,6,1,'task_assigned','normal','You have been assigned a new task: Design login page UI',1,NOW(),NOW()),
+(2,7,1,'task_assigned','normal','You have been assigned: Medical history module',0,NOW(),NOW()),
+(3,4,1,'task_review','urgent','Task submitted for review: Patient registration form',0,NOW(),NOW()),
+(4,2,1,'project_update','normal','Project Hospital Management has been updated',1,NOW(),NOW()),
+(5,8,2,'task_assigned','normal','You have been assigned: Faculty schedule page',0,NOW(),NOW()),
+(6,6,1,'report_approved','info','Your weekly report has been approved',1,NOW(),NOW()),
+(7,3,1,'finance_alert','urgent','Invoice INV-2026-002 is due for client follow-up',0,NOW(),NOW()),
+(8,6,1,'payment_credited','info','Stipend of Rs. 6,000 for HMS milestone credited',0,NOW(),NOW());
 
 -- 8. PROJECT_STUDENT
 INSERT INTO project_student (id,project_id,student_id,role,assigned_date,created_at,updated_at) VALUES
-(1,1,6,'project_lead','2026-01-10',NOW(),NOW()),(2,1,7,'developer','2026-01-15',NOW(),NOW()),
-(3,2,7,'developer','2026-02-01',NOW(),NOW()),(4,2,8,'designer','2026-02-05',NOW(),NOW()),
-(5,4,8,'project_lead','2026-03-01',NOW(),NOW()),(6,5,6,'developer','2025-09-01',NOW(),NOW());
+(1,1,6,'project_lead','2026-01-10',NOW(),NOW()),
+(2,1,7,'developer','2026-01-15',NOW(),NOW()),
+(3,2,7,'developer','2026-02-01',NOW(),NOW()),
+(4,2,8,'designer','2026-02-05',NOW(),NOW()),
+(5,4,8,'project_lead','2026-03-01',NOW(),NOW()),
+(6,5,6,'developer','2025-09-01',NOW(),NOW());
 
 -- 9. PROJECT_FACULTY
 INSERT INTO project_faculty (id,project_id,faculty_id,assigned_date,created_at,updated_at) VALUES
-(1,1,4,'2026-01-10',NOW(),NOW()),(2,2,5,'2026-02-01',NOW(),NOW()),
-(3,4,4,'2026-03-01',NOW(),NOW()),(4,5,4,'2025-09-01',NOW(),NOW());
+(1,1,4,'2026-01-10',NOW(),NOW()),
+(2,2,5,'2026-02-01',NOW(),NOW()),
+(3,4,4,'2026-03-01',NOW(),NOW()),
+(4,5,4,'2025-09-01',NOW(),NOW());
 
--- 10. CLIENT_REQUIREMENTS
-INSERT INTO client_requirements (id,title,description,status,created_at,updated_at) VALUES
-(1,'Patient Aadhaar verification','System must verify patient identity using Aadhaar during registration','new',NOW(),NOW()),
-(2,'Multi-language support','Application should support English and Malayalam','in_progress',NOW(),NOW()),
-(3,'Mobile responsive design','All screens must be usable on mobile devices','new',NOW(),NOW()),
-(4,'Student bulk import via Excel','Admin can import student data from Excel file','new',NOW(),NOW()),
-(5,'Offline mode for inventory app','App should work without internet and sync when connected','in_progress',NOW(),NOW());
+-- 10. CLIENT_REQUIREMENTS (Schema-accurate with project_id)
+INSERT INTO client_requirements (id,project_id,title,description,status,created_at,updated_at) VALUES
+(1,1,'Patient Aadhaar verification','System must verify patient identity using Aadhaar during registration','new',NOW(),NOW()),
+(2,1,'Multi-language support','Application should support English and Malayalam','in_progress',NOW(),NOW()),
+(3,2,'Mobile responsive design','All screens must be usable on mobile devices','new',NOW(),NOW()),
+(4,2,'Student bulk import via Excel','Admin can import student data from Excel file','new',NOW(),NOW()),
+(5,4,'Offline mode for inventory app','App should work without internet and sync when connected','in_progress',NOW(),NOW());
 
--- 11. REQUIREMENT_CHANGES
-INSERT INTO requirement_changes (id,client_requirement_id,previous_value,updated_value,changed_by,created_at,updated_at) VALUES
-(1,2,'Support only English','Support English and Malayalam',2,NOW(),NOW()),
-(2,5,'Offline mode optional','Offline mode is mandatory - core feature',2,NOW(),NOW());
+-- 11. REQUIREMENT_CHANGES (Schema-accurate with project_id)
+INSERT INTO requirement_changes (id,client_requirement_id,project_id,previous_value,updated_value,changed_by,created_at,updated_at) VALUES
+(1,2,1,'Support only English','Support English and Malayalam',2,NOW(),NOW()),
+(2,5,4,'Offline mode optional','Offline mode is mandatory - core feature',2,NOW(),NOW());
 
 -- 12. PROJECT_CLOSURES
 INSERT INTO project_closures (id,project_id,closed_by,closure_date,final_status,remarks) VALUES
@@ -133,17 +164,25 @@ INSERT INTO faculty_profiles (id,faculty_id,department,designation,created_at,up
 INSERT INTO student_profiles (id,student_id,course,batch,semester,designation,created_at,updated_at) VALUES
 (1,6,'B.Tech Computer Science','2023-27',6,'orbit',NOW(),NOW()),
 (2,7,'B.Tech Information Technology','2023-27',6,'nova',NOW(),NOW()),
-(3,8,'B.Tech Computer Science','2024-28',4,'spark',NOW(),NOW());
+(3,8,'B.Tech Computer Science','2024-28',4,'spark',NOW(),NOW()),
+(4,9,'BCA','2024-27',4,'spark',NOW(),NOW());
 
--- 15. STUDENT_REPORTS
-INSERT INTO student_reports (id,student_id,project_id,report_type,report_date,work_done,report_file,approval_status,feedback,submitted_at,created_at,updated_at) VALUES
-(1,6,1,'daily','2026-09-01','Completed login page UI design. All input validations added. Pushed to GitHub.',NULL,'approved','Good progress','2026-09-01 18:00:00',NOW(),NOW()),
-(2,6,1,'weekly','2026-09-07','This week: Implemented JWT auth, tested all endpoints, fixed 3 bugs.',NULL,'approved','Well done','2026-09-07 18:00:00',NOW(),NOW()),
-(3,7,1,'daily','2026-09-02','Started medical history module. Created DB schema and basic CRUD APIs.',NULL,'pending',NULL,'2026-09-02 18:30:00',NOW(),NOW()),
-(4,8,2,'daily','2026-09-03','Worked on faculty schedule page layout. Completed responsive grid component.',NULL,'approved','Nicely formatted','2026-09-03 19:00:00',NOW(),NOW()),
-(5,8,4,'weekly','2026-09-07','Built product listing API with pagination and filters. Unit tests written.',NULL,'pending',NULL,'2026-09-07 17:00:00',NOW(),NOW());
+-- 15. STUDENT_ROLES (Global student project role)
+INSERT INTO student_roles (id,student_id,role,created_at,updated_at) VALUES
+(1,6,'project_lead',NOW(),NOW()),
+(2,7,'developer',NOW(),NOW()),
+(3,8,'designer',NOW(),NOW()),
+(4,9,'tester',NOW(),NOW());
 
--- 16. STUDENT_WORK_LOGS
+-- 16. STUDENT_REPORTS (Schema-accurate matching all columns)
+INSERT INTO student_reports (id,project_id,student_id,task_id,report_type,report_date,week_start,week_end,weekly_key,work_done,report_file,approval_status,feedback,submitted_at,created_at,updated_at) VALUES
+(1,1,6,1,'daily','2026-09-01','2026-08-31','2026-09-06',NULL,'Completed login page UI design. All input validations added. Pushed to GitHub.',NULL,'approved','Good progress','2026-09-01 18:00:00',NOW(),NOW()),
+(2,1,6,2,'weekly','2026-09-07','2026-09-07','2026-09-13','6_1_2026-09-07','This week: Implemented JWT auth, tested all endpoints, fixed 3 bugs.',NULL,'approved','Well done','2026-09-07 18:00:00',NOW(),NOW()),
+(3,1,7,3,'daily','2026-09-02','2026-08-31','2026-09-06',NULL,'Started medical history module. Created DB schema and basic CRUD APIs.',NULL,'pending',NULL,'2026-09-02 18:30:00',NOW(),NOW()),
+(4,2,8,7,'daily','2026-09-03','2026-08-31','2026-09-06',NULL,'Worked on faculty schedule page layout. Completed responsive grid component.',NULL,'approved','Nicely formatted','2026-09-03 19:00:00',NOW(),NOW()),
+(5,4,8,8,'weekly','2026-09-07','2026-09-07','2026-09-13','8_4_2026-09-07','Built product listing API with pagination and filters. Unit tests written.',NULL,'pending',NULL,'2026-09-07 17:00:00',NOW(),NOW());
+
+-- 17. STUDENT_WORK_LOGS
 INSERT INTO student_work_logs (id,project_student_id,task_id,work_date,hours_worked,description,approval_status,approved_by,approved_at,created_at,updated_at) VALUES
 (1,1,1,'2026-02-08',3.50,'Designed login and registration page mockups in Figma','approved',4,'2026-02-10 09:00:00',NOW(),NOW()),
 (2,1,1,'2026-02-09',4.00,'Converted Figma designs to React components','approved',4,'2026-02-10 09:30:00',NOW(),NOW()),
@@ -152,101 +191,112 @@ INSERT INTO student_work_logs (id,project_student_id,task_id,work_date,hours_wor
 (5,3,6,'2026-09-02',3.00,'Built student registration API endpoints','pending',NULL,NULL,NOW(),NOW()),
 (6,5,8,'2026-09-03',5.50,'Developed product listing REST API with filters','pending',NULL,NULL,NOW(),NOW());
 
--- 17. PROJECT_FINANCES
-INSERT INTO project_finances (id,project_id,total_development_amount,gst_percentage,created_by,approved_by,approved_at,status,created_at,updated_at) VALUES
-(1,1,212000.00,18.00,3,1,'2026-01-20 11:00:00','approved',NOW(),NOW()),
-(2,2,152542.00,18.00,3,1,'2026-02-10 11:00:00','approved',NOW(),NOW()),
-(3,4,67797.00,18.00,3,NULL,NULL,'draft',NOW(),NOW()),
-(4,5,80508.00,18.00,3,1,'2025-10-01 11:00:00','approved',NOW(),NOW());
+-- 18. PROJECT_FINANCES (Schema-accurate: estimated_cost, subtotal, gst_amount, total_amount)
+INSERT INTO project_finances (id,project_id,total_development_amount,estimated_cost,subtotal,gst_amount,total_amount,created_by,approved_by,approved_at,status,created_at,updated_at) VALUES
+(1,1,212000.00,250000.00,250000.00,45000.00,295000.00,3,1,'2026-01-20 11:00:00','approved',NOW(),NOW()),
+(2,2,152542.00,180000.00,180000.00,32400.00,212400.00,3,1,'2026-02-10 11:00:00','approved',NOW(),NOW()),
+(3,3,101695.00,120000.00,120000.00,21600.00,141600.00,3,NULL,NULL,'draft',NOW(),NOW()),
+(4,4,67797.00,80000.00,80000.00,14400.00,94400.00,3,1,'2026-03-05 10:00:00','approved',NOW(),NOW()),
+(5,5,80508.00,95000.00,95000.00,17100.00,112100.00,3,1,'2025-10-01 11:00:00','approved',NOW(),NOW());
 
--- 18. DEVELOPMENT_ALLOCATIONS
-INSERT INTO development_allocations (id,project_finance_id,category,amount,created_at,updated_at) VALUES
-(1,1,'student',75000.00,NOW(),NOW()),
-(2,1,'faculty',50000.00,NOW(),NOW()),
-(3,1,'rlabz',125000.00,NOW(),NOW()),
-(4,2,'student',54000.00,NOW(),NOW()),
-(5,2,'faculty',36000.00,NOW(),NOW()),
-(6,2,'rlabz',90000.00,NOW(),NOW()),
-(7,3,'student',24000.00,NOW(),NOW()),
-(8,3,'rlabz',56000.00,NOW(),NOW()),
-(9,4,'student',28500.00,NOW(),NOW()),
-(10,4,'faculty',19000.00,NOW(),NOW()),
-(11,4,'rlabz',47500.00,NOW(),NOW());
+-- 19. DEVELOPMENT_ALLOCATIONS
+INSERT INTO development_allocations (id,project_finance_id,category,recipient_type,recipient_id,amount,remarks,created_by,created_at,updated_at) VALUES
+(1,1,'student','student',6,75000.00,'Student allocation for HMS',3,NOW(),NOW()),
+(2,1,'faculty','faculty',4,50000.00,'Faculty supervision allocation for HMS',3,NOW(),NOW()),
+(3,1,'rlabz','rlabz',NULL,125000.00,'Institutional overhead share',3,NOW(),NOW()),
+(4,2,'student','student',7,54000.00,'Student allocation for College ERP',3,NOW(),NOW()),
+(5,2,'faculty','faculty',5,36000.00,'Faculty supervision allocation for ERP',3,NOW(),NOW()),
+(6,2,'rlabz','rlabz',NULL,90000.00,'Institutional overhead share',3,NOW(),NOW()),
+(7,3,'student','student',8,24000.00,'Student allocation for Alumni portal',3,NOW(),NOW()),
+(8,3,'rlabz','rlabz',NULL,56000.00,'Institutional overhead share',3,NOW(),NOW()),
+(9,4,'student','student',8,28500.00,'Student allocation for Retail app',3,NOW(),NOW()),
+(10,4,'faculty','faculty',4,19000.00,'Faculty supervision allocation for Retail app',3,NOW(),NOW()),
+(11,4,'rlabz','rlabz',NULL,47500.00,'Institutional overhead share',3,NOW(),NOW());
 
--- 19. HOSTING_CHARGES
-INSERT INTO hosting_charges (id,project_finance_id,charge_type,amount,purchase_date,expiry_date,reference_details,created_at,updated_at) VALUES
-(1,1,'hosting',12000.00,'2026-01-10','2027-01-10','AWS EC2 t3.medium hosting for medcarehms.com',NOW(),NOW()),
-(2,1,'ssl',3500.00,'2026-01-10','2027-01-15','Comodo SSL certificate for medcarehms.com',NOW(),NOW()),
-(3,1,'domain',1200.00,'2026-01-10','2027-01-10','medcarehms.com domain renewal via GoDaddy',NOW(),NOW()),
-(4,2,'hosting',8000.00,'2026-02-01','2027-02-01','DigitalOcean Droplet staging and production',NOW(),NOW()),
-(5,2,'ssl',2500.00,'2026-01-28','2027-02-01','Wildcard SSL certificate for *.mits.edu.in',NOW(),NOW()),
-(6,3,'hosting',4000.00,'2026-03-01','2027-03-01','Linode VPS hosting for inventory app API backend',NOW(),NOW());
+-- 20. HOSTING_CHARGES (Schema-accurate with dates and descriptions)
+INSERT INTO hosting_charges (id,project_finance_id,charge_type,amount,purchase_date,expiry_date,reference_details,name_or_reference,description,created_at,updated_at) VALUES
+(1,1,'hosting',12000.00,'2026-01-10','2027-01-10','AWS EC2 t3.medium hosting for medcarehms.com','AWS EC2 Hosting','Primary cloud instance for HMS',NOW(),NOW()),
+(2,1,'ssl',3500.00,'2026-01-10','2027-01-15','Comodo SSL certificate for medcarehms.com','Comodo SSL','Production TLS encryption cert',NOW(),NOW()),
+(3,1,'domain',1200.00,'2026-01-10','2027-01-10','medcarehms.com domain renewal via GoDaddy','GoDaddy Domain','Official project domain registration',NOW(),NOW()),
+(4,2,'hosting',8000.00,'2026-02-01','2027-02-01','DigitalOcean Droplet staging and production','DigitalOcean Droplet','Staging server for College ERP',NOW(),NOW()),
+(5,2,'ssl',2500.00,'2026-01-28','2027-02-01','Wildcard SSL certificate for *.mits.edu.in','Wildcard SSL','Subdomain encryption certificate',NOW(),NOW()),
+(6,4,'hosting',4000.00,'2026-03-01','2027-03-01','Linode VPS hosting for inventory app API backend','Linode VPS','API server for retail mobile app',NOW(),NOW());
 
--- 20. MAINTENANCE_SUPPORT_CHARGES
+-- 21. MAINTENANCE_SUPPORT_CHARGES
 INSERT INTO maintenance_support_charges (id,project_finance_id,amount,start_date,end_date,description,created_at,updated_at) VALUES
 (1,1,25000.00,'2026-01-01','2026-12-31','Annual maintenance: bug fixes minor enhancements and server monitoring',NOW(),NOW()),
 (2,4,10000.00,'2026-08-01','2027-07-31','Post-launch support: 3 months warranty plus 9 months AMC',NOW(),NOW());
 
--- 21. INVOICES
+-- 22. INVOICES
 INSERT INTO invoices (id,project_finance_id,invoice_number,invoice_date,due_date,amount_before_gst,gst_percentage,description,created_by,created_at,updated_at) VALUES
 (1,1,'INV-2026-001','2026-01-25','2026-02-25',100000.00,18.00,'Advance payment 40 percent of total development cost - HMS project',3,NOW(),NOW()),
 (2,1,'INV-2026-002','2026-04-01','2026-05-01',75000.00,18.00,'Second milestone: Patient management module completion',3,NOW(),NOW()),
 (3,2,'INV-2026-003','2026-02-15','2026-03-15',90000.00,18.00,'Advance 50 percent for College ERP Portal project',3,NOW(),NOW()),
-(4,4,'INV-2025-010','2025-09-15','2025-10-15',47500.00,18.00,'Research portal project 50 percent advance',3,NOW(),NOW()),
-(5,4,'INV-2025-015','2026-07-01','2026-07-31',47500.00,18.00,'Research portal project 50 percent final payment on delivery',3,NOW(),NOW());
+(4,5,'INV-2025-010','2025-09-15','2025-10-15',47500.00,18.00,'Research portal project 50 percent advance',3,NOW(),NOW()),
+(5,5,'INV-2025-015','2026-07-01','2026-07-31',47500.00,18.00,'Research portal project 50 percent final payment on delivery',3,NOW(),NOW());
 
--- 22. STUDENT_PAYMENTS
-INSERT INTO student_payments (id,project_student_id,designation,approved_hours,hourly_rate,amount,payment_date,created_at,updated_at) VALUES
-(1,1,'orbit',40.00,150.00,6000.00,'2026-03-05',NOW(),NOW()),
-(2,1,'orbit',35.00,150.00,5250.00,'2026-04-05',NOW(),NOW()),
-(3,2,'nova',30.00,100.00,3000.00,'2026-03-05',NOW(),NOW()),
-(4,3,'nova',25.00,100.00,2500.00,'2026-03-05',NOW(),NOW()),
-(5,6,'orbit',80.00,150.00,12000.00,'2026-01-05',NOW(),NOW()),
-(6,6,'orbit',90.00,150.00,13500.00,'2026-02-05',NOW(),NOW());
+-- 23. INVOICE_ITEMS (Itemized line items per invoice)
+INSERT INTO invoice_items (id,invoice_id,description,rate,quantity,amount,created_at,updated_at) VALUES
+(1,1,'HMS System Architecture & UI/UX Design Milestone',40000.00,1,40000.00,NOW(),NOW()),
+(2,1,'Core Authentication Module & Database Schema Implementation',60000.00,1,60000.00,NOW(),NOW()),
+(3,2,'Patient Registration & Medical Records Management Intake APIs',45000.00,1,45000.00,NOW(),NOW()),
+(4,2,'Medical History Module & Audit Trail Security Integration',30000.00,1,30000.00,NOW(),NOW()),
+(5,3,'College ERP Inception, Student & Faculty Portal Sprint 1',90000.00,1,90000.00,NOW(),NOW()),
+(6,4,'Faculty Research Portal Initial Prototype & Schema Setup',47500.00,1,47500.00,NOW(),NOW()),
+(7,5,'Faculty Research Portal Final Code Delivery, Testing & Handover',47500.00,1,47500.00,NOW(),NOW());
 
--- 23. CLIENT_PAYMENTS
-INSERT INTO client_payments (id,invoice_id,amount,payment_date,payment_method,payment_reference,remarks,recorded_by,created_at,updated_at) VALUES
-(1,1,118000.00,'2026-02-01','NEFT','TXN20260201HMS001','Advance payment received. Amount includes 18 percent GST.',3,NOW(),NOW()),
-(2,3,106200.00,'2026-02-20','RTGS','TXN20260220ERP001','Advance for ERP project. GST inclusive.',3,NOW(),NOW()),
-(3,4,56050.00,'2025-09-20','NEFT','TXN20250920RES001','Advance payment for research portal.',3,NOW(),NOW()),
-(4,5,56050.00,'2026-07-10','UPI','TXN20260710RES002','Final payment received on completion.',3,NOW(),NOW());
+-- 24. STUDENT_PAYMENTS (Schema-accurate with task_id, finance_id, method, reference)
+INSERT INTO student_payments (id,project_student_id,task_id,project_finance_id,designation,approved_hours,hourly_rate,amount,payment_period_start,payment_period_end,status,payment_date,payment_method,payment_reference,remarks,created_by,created_at,updated_at) VALUES
+(1,1,1,1,'orbit',40.00,150.00,6000.00,'2026-02-01','2026-02-28','paid','2026-03-05','bank_transfer','STUPAY2026030501','UI login screens delivery',3,NOW(),NOW()),
+(2,1,2,1,'orbit',35.00,150.00,5250.00,'2026-03-01','2026-03-31','paid','2026-04-05','bank_transfer','STUPAY2026040501','JWT middleware implementation',3,NOW(),NOW()),
+(3,2,3,1,'nova',30.00,100.00,3000.00,'2026-02-01','2026-02-28','paid','2026-03-05','bank_transfer','STUPAY2026030502','Patient registration CRUD',3,NOW(),NOW()),
+(4,3,6,2,'nova',25.00,100.00,2500.00,'2026-02-01','2026-02-28','paid','2026-03-05','bank_transfer','STUPAY2026030503','Student registration CRUD',3,NOW(),NOW()),
+(5,6,9,5,'orbit',80.00,150.00,12000.00,'2025-12-01','2025-12-31','paid','2026-01-05','bank_transfer','STUPAY2026010501','Research paper submission form',3,NOW(),NOW()),
+(6,6,10,5,'orbit',90.00,150.00,13500.00,'2026-01-01','2026-01-31','paid','2026-02-05','bank_transfer','STUPAY2026020501','Review workflow completion',3,NOW(),NOW());
 
--- 24. FACULTY_PAYMENTS
-INSERT INTO faculty_payments (id,project_faculty_id,amount,payment_date,status,created_at,updated_at) VALUES
-(1,1,15000.00,'2026-03-31','paid',NOW(),NOW()),
-(2,1,15000.00,'2026-06-30','paid',NOW(),NOW()),
-(3,2,12000.00,'2026-04-30','paid',NOW(),NOW()),
-(4,4,19000.00,'2026-08-05','paid',NOW(),NOW()),
-(5,3,8000.00,'2026-05-31','processing',NOW(),NOW());
+-- 25. CLIENT_PAYMENTS (Schema-accurate with project_finance_id, payment_type, status)
+INSERT INTO client_payments (id,invoice_id,project_finance_id,amount,payment_date,payment_method,payment_type,payment_reference,status,remarks,recorded_by,created_at,updated_at) VALUES
+(1,1,1,118000.00,'2026-02-01','NEFT','advance','TXN20260201HMS001','received','Advance payment received. Amount includes 18 percent GST.',3,NOW(),NOW()),
+(2,3,2,106200.00,'2026-02-20','RTGS','advance','TXN20260220ERP001','received','Advance for ERP project. GST inclusive.',3,NOW(),NOW()),
+(3,4,5,56050.00,'2025-09-20','NEFT','advance','TXN20250920RES001','received','Advance payment for research portal.',3,NOW(),NOW()),
+(4,5,5,56050.00,'2026-07-10','UPI','full','TXN20260710RES002','received','Final payment received on completion.',3,NOW(),NOW());
 
--- 25. FINANCE_SETTINGS
+-- 26. FACULTY_PAYMENTS (Schema-accurate with finance_id, faculty_id, status)
+INSERT INTO faculty_payments (id,project_faculty_id,project_finance_id,faculty_id,amount,status,payment_date,payment_method,payment_reference,remarks,created_at,updated_at) VALUES
+(1,1,1,4,15000.00,'paid','2026-03-31','bank_transfer','FAC20260331HMS01','Mentorship and code review for HMS sprint 1',NOW(),NOW()),
+(2,1,1,4,15000.00,'paid','2026-06-30','bank_transfer','FAC20260630HMS02','HMS sprint 2 review and security audit',NOW(),NOW()),
+(3,2,2,5,12000.00,'paid','2026-04-30','bank_transfer','FAC20260430ERP01','College ERP architecture guidance',NOW(),NOW()),
+(4,4,5,4,19000.00,'paid','2026-08-05','bank_transfer','FAC20260805RES01','Research portal final signoff bonus',NOW(),NOW()),
+(5,3,4,4,8000.00,'processing','2026-05-31','bank_transfer','FAC20260531INV01','Retail inventory app supervision',NOW(),NOW());
+
+-- 27. FINANCE_SETTINGS
 INSERT INTO finance_settings (id,student_hourly_rate,created_at,updated_at) VALUES
 (1,150.00,NOW(),NOW());
 
--- 26. STUDENT_HOURLY_RATE_HISTORY
+-- 28. STUDENT_HOURLY_RATE_HISTORY
 INSERT INTO student_hourly_rate_history (id,old_rate,new_rate,updated_by,created_at,updated_at) VALUES
 (1,100.00,120.00,1,'2026-04-01 10:00:00','2026-04-01 10:00:00'),
 (2,120.00,150.00,1,'2026-07-01 10:00:00','2026-07-01 10:00:00');
 
--- 27. SSL_RENEWAL_HISTORY
+-- 29. SSL_RENEWAL_HISTORY
 INSERT INTO ssl_renewal_history (id,hosting_charge_id,renewal_date,previous_expiry_date,new_expiry_date,renewal_amount,payment_reference,remarks,renewed_by,created_at,updated_at) VALUES
 (1,2,'2026-01-10',NULL,'2027-01-15',3500.00,'SSL-PAY-2026-001','First SSL purchase for medcarehms.com',3,NOW(),NOW()),
 (2,5,'2026-01-28',NULL,'2027-02-01',2500.00,'SSL-PAY-2026-002','SSL for mits-erp project domain',3,NOW(),NOW());
 
--- 28. CERTIFICATES
-INSERT INTO certificates (id,project_id,student_id,certificate_number,description,issue_date,certificate_file,issued_by) VALUES
-(1,5,6,'RLABZ-CERT-2026-001','Certificate of Completion for Research Paper Portal module development','2026-08-05','certificates/cert_arjun_research.pdf',1),
-(2,5,7,'RLABZ-CERT-2026-002','Certificate of Appreciation for Research Paper Portal review workflow','2026-08-05','certificates/cert_divya_research.pdf',1),
-(3,1,6,'RLABZ-CERT-2026-003','Module Completion Certificate for Authentication Module in HMS','2026-03-01','certificates/cert_arjun_hms_auth.pdf',2);
+-- 30. CERTIFICATES (Schema-accurate with module_id)
+INSERT INTO certificates (id,project_id,module_id,student_id,certificate_number,description,issue_date,certificate_file,issued_by) VALUES
+(1,5,9,6,'RLABZ-CERT-2026-001','Certificate of Completion for Research Paper Portal module development','2026-08-05','certificates/cert_arjun_research.pdf',1),
+(2,5,9,7,'RLABZ-CERT-2026-002','Certificate of Appreciation for Research Paper Portal review workflow','2026-08-05','certificates/cert_divya_research.pdf',1),
+(3,1,1,6,'RLABZ-CERT-2026-003','Module Completion Certificate for Authentication Module in HMS','2026-03-01','certificates/cert_arjun_hms_auth.pdf',2);
 
--- 29. CHATS
+-- 31. CHATS
 INSERT INTO chats (id,project_id,title,created_by,is_active,created_at,updated_at) VALUES
 (1,1,'Hospital Management General Chat',2,1,NOW(),NOW()),
 (2,2,'College ERP Discussion',2,1,NOW(),NOW()),
 (3,4,'Inventory Tracker App Team',2,1,NOW(),NOW()),
 (4,5,'Faculty Research Portal Archive',2,0,NOW(),NOW());
 
--- 30. CHAT_PARTICIPANTS
+-- 32. CHAT_PARTICIPANTS
 INSERT INTO chat_participants (id,chat_id,user_id,joined_at,created_at,updated_at) VALUES
 (1,1,2,NOW(),NOW(),NOW()),
 (2,1,4,NOW(),NOW(),NOW()),
@@ -263,7 +313,7 @@ INSERT INTO chat_participants (id,chat_id,user_id,joined_at,created_at,updated_a
 (13,4,4,NOW(),NOW(),NOW()),
 (14,4,6,NOW(),NOW(),NOW());
 
--- 31. CHAT_MESSAGES
+-- 33. CHAT_MESSAGES
 INSERT INTO chat_messages (id,chat_id,sender_id,message,created_at,updated_at) VALUES
 (1,1,2,'Welcome team to Hospital Management System project!',NOW(),NOW()),
 (2,1,4,'Please make sure the UI adheres to the design specifications.',NOW(),NOW()),
@@ -273,7 +323,7 @@ INSERT INTO chat_messages (id,chat_id,sender_id,message,created_at,updated_at) V
 (6,2,8,'Working on faculty schedule layout now.',NOW(),NOW()),
 (7,3,8,'Inventory Core API is nearly 80% done.',NOW(),NOW());
 
--- 32. MEETINGS
+-- 34. MEETINGS
 INSERT INTO meetings (id,project_id,title,scheduled_at,location,meeting_link,agenda,status,created_by,created_at,updated_at) VALUES
 (1,1,'HMS Kickoff Meeting','2026-01-10 10:00:00','Conference Room A','https://meet.google.com/abc-defg-hij','Project scope architecture and student allocations','completed',2,NOW(),NOW()),
 (2,1,'HMS Sprint 2 Review','2026-02-25 14:00:00','Online','https://meet.google.com/hms-rev2-meet','Review authentication module and demo login API','completed',2,NOW(),NOW()),
@@ -281,7 +331,7 @@ INSERT INTO meetings (id,project_id,title,scheduled_at,location,meeting_link,age
 (4,4,'Inventory App Architecture Sync','2026-03-20 15:30:00','Online','https://meet.google.com/inv-arch-sync','Discuss offline sync and sqlite storage on mobile','scheduled',2,NOW(),NOW()),
 (5,5,'Final Closure Sign-off','2026-08-01 09:30:00','Board Room','https://meet.google.com/res-close-meet','Client handover and project formal closure','completed',1,NOW(),NOW());
 
--- 33. MEETING_PARTICIPANTS
+-- 35. MEETING_PARTICIPANTS
 INSERT INTO meeting_participants (id,meeting_id,user_id,attendance_status,created_at,updated_at) VALUES
 (1,1,2,'attended',NOW(),NOW()),
 (2,1,4,'attended',NOW(),NOW()),
@@ -299,31 +349,31 @@ INSERT INTO meeting_participants (id,meeting_id,user_id,attendance_status,create
 (14,5,4,'attended',NOW(),NOW()),
 (15,5,6,'attended',NOW(),NOW());
 
--- 34. MEETING_NOTES
+-- 36. MEETING_NOTES
 INSERT INTO meeting_notes (id,meeting_id,`minutes`,`important_decisions`,uploaded_by,uploaded_on) VALUES
 (1,1,'Discussed core architecture and database modeling. Assigned authentication to Arjun Menon and patient registration to Divya Krishnan.','Adopted Laravel REST API + React frontend architecture. Approved 3-month milestone plan.',2,'2026-01-10 12:00:00'),
 (2,2,'Arjun presented the completed auth flow with JWT refresh tokens. Dr. Meena reviewed code quality and approved PR #12.','JWT access tokens set to 15m expiration with refresh token rotation.',4,'2026-02-25 15:30:00'),
 (3,5,'All deliverables accepted by Dr. Meena Raj. Source code tagged v1.0.0 and deployed to production server. Final signoff completed.','Final payment release approved. Certificates to be generated for participating students.',1,'2026-08-01 11:00:00');
 
--- 35. PROJECT_REPORTS
+-- 37. PROJECT_REPORTS
 INSERT INTO project_reports (id,project_id,report_title,report_file,uploaded_by,upload_date) VALUES
 (1,1,'HMS Monthly Progress Report - Jan 2026','reports/hms_progress_jan2026.pdf',2,'2026-01-31 17:00:00'),
 (2,1,'HMS Architecture and Design Document','reports/hms_architecture_v1.pdf',4,'2026-02-15 16:00:00'),
 (3,2,'College ERP Inception Report','reports/erp_inception_report.pdf',2,'2026-02-28 17:30:00'),
 (4,5,'Research Portal Final Project Report','reports/research_portal_final_report.pdf',4,'2026-08-01 10:30:00');
 
--- 36. FINAL_PROJECT_DOCUMENTS
+-- 38. FINAL_PROJECT_DOCUMENTS
 INSERT INTO final_project_documents (id,project_id,final_report,code_handover,closure_notes,uploaded_on) VALUES
 (1,5,'docs/final_report_research_portal.pdf','https://github.com/rlabz-org/research-portal/releases/tag/v1.0.0','All deliverables accepted. User manuals delivered. Handed over to department on Aug 1, 2026.','2026-08-01 11:30:00');
 
--- 37. GITHUB_REPOSITORIES
+-- 39. GITHUB_REPOSITORIES
 INSERT INTO github_repositories (id,project_id,repository_name,repository_url,submitted_date,is_verified,verified_by,verified_at,created_at,updated_at) VALUES
 (1,1,'medcare-hms','https://github.com/rlabz-org/medcare-hms','2026-01-12',1,4,'2026-01-13 10:00:00',NOW(),NOW()),
 (2,2,'mits-college-erp','https://github.com/rlabz-org/mits-college-erp','2026-02-02',1,5,'2026-02-03 11:00:00',NOW(),NOW()),
 (3,4,'retail-inventory-app','https://github.com/rlabz-org/retail-inventory-app','2026-03-02',0,NULL,NULL,NOW(),NOW()),
 (4,5,'faculty-research-portal','https://github.com/rlabz-org/faculty-research-portal','2025-09-05',1,4,'2025-09-06 09:30:00',NOW(),NOW());
 
--- 38. FEEDBACK
+-- 40. FEEDBACK
 INSERT INTO feedback (id,project_id,faculty_id,student_id,comments,created_at,updated_at) VALUES
 (1,1,4,6,'Exceptional work on the authentication flow and UI layout. Delivered on time with clean code.',NOW(),NOW()),
 (2,1,4,7,'Good progress on the patient registration screens. Keep focusing on validation edge cases.',NOW(),NOW()),
@@ -331,7 +381,7 @@ INSERT INTO feedback (id,project_id,faculty_id,student_id,comments,created_at,up
 (4,2,5,8,'Schedule component is clean, need to handle international timezones properly.',NOW(),NOW()),
 (5,5,4,6,'Outstanding contribution throughout the research portal lifecycle. Great code quality and documentation.',NOW(),NOW());
 
--- 39. PERSONAL_ACCESS_TOKENS
+-- 41. PERSONAL_ACCESS_TOKENS
 INSERT INTO personal_access_tokens (id,tokenable_type,tokenable_id,name,token,abilities,last_used_at,expires_at,created_at,updated_at) VALUES
 (1,'App\\Models\\User',1,'director-auth-token','e4d909c290d0fb1ca068ffaddf22cbd0adddef2f98e663a776e0123456789abc','[\"*\"]',NOW(),NULL,NOW(),NOW()),
 (2,'App\\Models\\User',6,'student-mobile-token','a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0','[\"*\"]',NOW(),NULL,NOW(),NOW());

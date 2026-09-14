@@ -44,9 +44,6 @@ function loadState() {
     if (data.faculties.some(f => f.id === 'FAC-01')) {
       data.faculties = [];
     }
-    if (data.students.length > 3) {
-      data.students = [];
-    }
     if (data.auditLogs.some(l => l.details && (l.details.includes('192.168.1.45') || l.id === 'LOG-001'))) {
       data.auditLogs = [];
     }
@@ -346,7 +343,8 @@ export class DirectorService {
               facultyName: p.faculty_name,
               status: p.status,
               progress: p.progress
-            }))
+            })),
+            deliveryVelocity: d.delivery_velocity || null
           };
           cacheOverview = overviewData;
           try {
@@ -525,7 +523,7 @@ export class DirectorService {
     const fresh = await this.fetchStudentsRemote();
     if (fresh) {
       if (trackFilter === 'All') return fresh;
-      return fresh.filter(s => s.track.toLowerCase() === trackFilter.toLowerCase());
+      return fresh.filter(s => s.track && s.track.toLowerCase() === trackFilter.toLowerCase());
     }
     return this.getStudents(trackFilter);
   }
@@ -546,13 +544,20 @@ export class DirectorService {
         if (result.status === 'success' && result.data && result.data.length > 0) {
           const students = result.data.map(s => ({
             id: s.id,
+            raw_id: s.raw_id,
             name: s.name,
             email: s.email,
             track: s.track,
             project: s.project,
-            status: s.status,
-            gpa: s.gpa,
-            github: s.github
+            projects: Array.isArray(s.projects) ? s.projects : (s.project ? [s.project] : []),
+            status: s.status || 'Active',
+            gpa: s.gpa || '9.0',
+            github: s.github || (s.name ? (s.name.split(' ')[0].toLowerCase() + '-dev') : 'student-dev'),
+            phone: s.phone || '+91 98470 00000',
+            department: s.department || 'Computer Applications',
+            batch: s.batch || '2025-2027',
+            semester: s.semester || 3,
+            mentor: s.mentor || 'Faculty Lead'
           }));
           const data = loadState();
           data.students = students;
@@ -580,9 +585,102 @@ export class DirectorService {
   }
 
   static getStudents(trackFilter = 'All') {
-    const students = loadState().students;
+    const students = loadState().students || [];
     if (trackFilter === 'All') return students;
-    return students.filter(s => s.track.toLowerCase() === trackFilter.toLowerCase());
+    return students.filter(s => s.track && s.track.toLowerCase() === trackFilter.toLowerCase());
+  }
+
+  static getStudentDetail(studentId) {
+    const cleanId = String(studentId || '').trim();
+    try {
+      const cached = localStorage.getItem(`rlabz_student_detail_${cleanId}`);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (e) {}
+
+    const students = this.getStudents('All');
+    let student = students.find(s => 
+      s.id === cleanId || 
+      String(s.raw_id) === cleanId || 
+      s.id === `STU-${cleanId.padStart(3, '0')}` ||
+      cleanId === `STU-${String(s.raw_id).padStart(3, '0')}`
+    );
+
+    if (!student && students.length > 0) {
+      student = students[0];
+    }
+
+    if (!student) {
+      return null;
+    }
+
+    const projectsList = Array.isArray(student.projects) && student.projects.length > 0
+      ? student.projects
+      : (student.project ? [student.project] : []);
+
+    const detailedProjects = projectsList.map((pTitle, idx) => ({
+      id: `PROJ-${100 + idx + 1}`,
+      title: pTitle,
+      role: idx === 0 ? 'Project Lead' : 'Developer',
+      status: 'in_progress',
+      progress: 60,
+      facultyLead: student.mentor || 'Faculty Lead',
+      tasksCount: 0
+    }));
+
+    return {
+      ...student,
+      projects: projectsList,
+      detailedProjects,
+      tasks: [],
+      stats: {
+        totalProjects: projectsList.length,
+        totalTasks: 0,
+        completedTasks: 0,
+        inProgressTasks: 0,
+        underReviewTasks: 0,
+        overallProgress: 0
+      }
+    };
+  }
+
+  static async fetchStudentDetailRemote(studentId) {
+    try {
+      const cleanId = String(studentId || '').trim();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      let headers = await getAuthHeadersAsync();
+      let response = await fetch(`${API_BASE}/students/${cleanId}`, { headers, signal: controller.signal });
+      if (response.status === 401) {
+        headers = await getAuthHeadersAsync(true);
+        response = await fetch(`${API_BASE}/students/${cleanId}`, { headers, signal: controller.signal });
+      }
+      clearTimeout(timeoutId);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data) {
+          const detail = result.data;
+          try {
+            localStorage.setItem(`rlabz_student_detail_${cleanId}`, JSON.stringify(detail));
+            if (detail.id) {
+              localStorage.setItem(`rlabz_student_detail_${detail.id}`, JSON.stringify(detail));
+            }
+          } catch (e) {}
+          return detail;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch student detail remote:', e);
+    }
+    return null;
+  }
+
+  static async getStudentDetailAsync(studentId) {
+    const cleanId = String(studentId || '').trim();
+    const fresh = await this.fetchStudentDetailRemote(cleanId);
+    if (fresh) return fresh;
+    return this.getStudentDetail(cleanId);
   }
 
   static getClientRequirements() {

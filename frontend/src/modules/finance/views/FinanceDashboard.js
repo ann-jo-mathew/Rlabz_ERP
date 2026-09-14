@@ -223,8 +223,11 @@ export async function FinanceDashboard(route, router) {
     ? Math.round((summary.totalCollected / summary.totalBilling) * 100)
     : 0;
 
-  // Build project rows (Top 3 for dashboard)
-  const projectRows = (projects || []).slice(0, 3).map(p => {
+  const overallProfit = (summary.totalCollected || 0) - (summary.totalExpenses || 0);
+
+  // Build project rows (Top 5 for dashboard)
+  const displayProjects = (projects || []).slice(0, 5);
+  const projectRows = displayProjects.map(p => {
     const pf = p.project_finance || {};
     const totalBilling = pf.total_invoiced || 0;
     const collected = pf.total_collected || 0;
@@ -282,10 +285,10 @@ export async function FinanceDashboard(route, router) {
         <div class="kpi-value">${fmt(summary.totalBilling)}</div>
         <div class="kpi-sub">Total revenue billed across projects</div>
       </div>
-      <div class="fin-kpi-card teal">
-        <div class="kpi-label">Collected</div>
-        <div class="kpi-value">${fmt(summary.totalCollected)}</div>
-        <div class="kpi-sub">${recvPct}% collected</div>
+      <div class="fin-kpi-card ${overallProfit >= 0 ? 'teal' : 'danger'}">
+        <div class="kpi-label">Overall Profit</div>
+        <div class="kpi-value">${fmt(overallProfit)}</div>
+        <div class="kpi-sub">Collected - Total Expenses</div>
       </div>
       <div class="fin-kpi-card warning">
         <div class="kpi-label">Pending from Client</div>
@@ -337,22 +340,15 @@ export async function FinanceDashboard(route, router) {
       </div>
 
       <!-- Bar: Collection Status by Project -->
-      <div class="fin-panel" style="margin-bottom:0">
+      <div class="fin-panel" style="margin-bottom:0; display:flex; flex-direction:column;">
         <div class="fin-panel-header">
           <div>
-            <div class="fin-panel-title">Financial Summary by Project</div>
+            <div class="fin-panel-title">Financial Summary &mdash; Active Projects</div>
             <div class="fin-panel-subtitle">Received vs Outstanding vs Unbilled</div>
           </div>
         </div>
-        <div class="fin-chart-wrap" style="flex: 1;">
+        <div class="fin-chart-wrap" style="flex: 1; min-height:220px;">
           <canvas id="bar-chart" height="220"></canvas>
-        </div>
-        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <div style="font-size:0.85rem; color:var(--text-muted); font-weight: 600;">Overall Project Profit</div>
-              <div style="font-size:0.75rem; color:var(--text-muted);">Collected - Total Expenses</div>
-            </div>
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--indigo, #4f46e5);">${fmt(summary.projectProfit || 0)}</div>
         </div>
       </div>
     </div>
@@ -364,7 +360,7 @@ export async function FinanceDashboard(route, router) {
           <div class="fin-panel-title">Project Finance Overview</div>
           <div class="fin-panel-subtitle">Top active projects snapshot</div>
         </div>
-        <a href="/finance/projects" class="fin-btn ghost sm" data-link>View All Projects &rarr;</a>
+        ${(projects || []).length > 5 ? `<a href="/finance/projects" class="fin-btn ghost sm" data-link>View All Projects &rarr;</a>` : ''}
       </div>
       <div class="fin-table-wrap">
         <table class="fin-table">
@@ -474,32 +470,43 @@ export async function FinanceDashboard(route, router) {
     },
   });
 
-  // Bar chart (Financial Summary by Project: Received vs Outstanding vs Unbilled)
-  const projFullTitles = (projects || []).map(p => p.title || p.name || 'Project');
-  const projLabels = (projects || []).map(p => {
-    const name = p.title || p.name || 'Project';
-    return name.length > 18 ? name.slice(0, 18) + '\u2026' : name;
+  // Bar chart (Financial Summary — Active Projects)
+  let activeProjects = (projects || []).filter(p => {
+    const s = (p.status || '').toLowerCase();
+    return s !== 'closed' && s !== 'completed' && s !== 'archived';
   });
 
-  const projReceived = (projects || []).map(p => {
-    const pf = p.project_finance || {};
-    return pf.total_collected || 0;
+  // Sort by financial activity descending
+  activeProjects.sort((a, b) => {
+    const actA = (a.budget || 0) + (a.project_finance?.total_invoiced || 0);
+    const actB = (b.budget || 0) + (b.project_finance?.total_invoiced || 0);
+    return actB - actA;
   });
 
-  const projOutstanding = (projects || []).map(p => {
-    const pf = p.project_finance || {};
-    const invoiced = pf.total_invoiced || 0;
-    const collected = pf.total_collected || 0;
-    return Math.max(0, invoiced - collected);
-  });
+  // Top 8-10 active projects
+  activeProjects = activeProjects.slice(0, 10);
 
-  const projUnbilled = (projects || []).map(p => {
-    const pf = p.project_finance || {};
-    const budget = p.budget || pf.total_development_amount || 0;
-    const invoiced = pf.total_invoiced || 0;
-    return Math.max(0, budget - invoiced);
-  });
+  if (activeProjects.length === 0) {
+    const chartWrap = container.querySelector('#bar-chart').parentElement;
+    chartWrap.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-muted); text-align:center;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:1rem; opacity:0.5;">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="9" y1="21" x2="9" y2="9"></line>
+        </svg>
+        <div style="font-weight:600; font-size:1rem; color:var(--text-dark);">No active projects</div>
+        <div style="font-size:0.85rem; max-width:250px; margin-top:0.25rem;">There are currently no ongoing projects to display.</div>
+      </div>
+    `;
+  } else {
+    const projFullTitles = activeProjects.map(p => p.title || p.name || 'Project');
+    const projLabels = activeProjects.map(p => {
+      const name = p.title || p.name || 'Project';
+      return name.length > 18 ? name.slice(0, 18) + '\u2026' : name;
+    });
 
+<<<<<<< HEAD
   new Chart(container.querySelector('#bar-chart'), {
     type: 'bar',
     data: {
@@ -521,22 +528,65 @@ export async function FinanceDashboard(route, router) {
             title: items => {
               const idx = items[0]?.dataIndex;
               return idx !== undefined ? projFullTitles[idx] : items[0]?.label;
+=======
+    const projReceived = activeProjects.map(p => {
+      const pf = p.project_finance || {};
+      return pf.total_collected || 0;
+    });
+
+    const projOutstanding = activeProjects.map(p => {
+      const pf = p.project_finance || {};
+      const invoiced = pf.total_invoiced || 0;
+      const collected = pf.total_collected || 0;
+      return Math.max(0, invoiced - collected);
+    });
+
+    const projUnbilled = activeProjects.map(p => {
+      const pf = p.project_finance || {};
+      const budget = p.budget || pf.total_development_amount || 0;
+      const invoiced = pf.total_invoiced || 0;
+      return Math.max(0, budget - invoiced);
+    });
+
+    new Chart(container.querySelector('#bar-chart'), {
+      type: 'bar',
+      data: {
+        labels: projLabels,
+        datasets: [
+          { label: 'Received', data: projReceived, backgroundColor: COLORS.primary, borderRadius: 4, borderSkipped: false },
+          { label: 'Outstanding', data: projOutstanding, backgroundColor: COLORS.warning, borderRadius: 4, borderSkipped: false },
+          { label: 'Unbilled', data: projUnbilled, backgroundColor: COLORS.danger, borderRadius: 4, borderSkipped: false },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { color: COLORS.text, font: { family: 'Plus Jakarta Sans', size: 12 } } },
+          tooltip: {
+            ...tooltipDefaults,
+            callbacks: {
+              title: items => {
+                const idx = items[0]?.dataIndex;
+                return idx !== undefined ? projFullTitles[idx] : items[0]?.label;
+              },
+              label: ctx => `  ${ctx.dataset.label}: \u20B9${Number(ctx.raw).toLocaleString('en-IN')}`
+>>>>>>> origin/main
             },
-            label: ctx => `  ${ctx.dataset.label}: \u20B9${Number(ctx.raw).toLocaleString('en-IN')}`
           },
         },
-      },
-      scales: {
-        x: { stacked: true, grid: { display: false }, ticks: { color: COLORS.text } },
-        y: {
-          stacked: true,
-          grid: { color: COLORS.grid },
-          ticks: { color: COLORS.text, callback: v => '\u20B9' + (v / 1000) + 'K' },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: COLORS.text } },
+          y: {
+            stacked: true,
+            grid: { color: COLORS.grid },
+            ticks: { color: COLORS.text, callback: v => '\u20B9' + (v / 1000) + 'K' },
+          },
         },
-      },
-      animation: { duration: 900 },
-    },
-  });
+        animation: { duration: 900 },
+      }
+    });
+  }
 
   return container;
 }

@@ -1,5 +1,6 @@
 import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
+import { renderPagination, setupPaginationListeners } from '../utils/pagination.js';
 
 export async function CostDistribution(route, router) {
   const container = document.createElement('div');
@@ -40,11 +41,11 @@ export async function CostDistribution(route, router) {
     if (!lock.locked) return '';
     if (lock.reason === 'status') {
       return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.68rem;font-weight:600;
-               padding:2px 7px;border-radius:9px;background:#fee2e2;color:#b91c1c;margin-left:6px">
+               padding:2px 7px;border-radius:9px;background:var(--bg-light);color:var(--text-muted);border:1px solid var(--border-color);margin-left:6px">
                🔒 ${lock.label}</span>`;
     }
     return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.68rem;font-weight:600;
-             padding:2px 7px;border-radius:9px;background:#fef3c7;color:#92400e;margin-left:6px">
+             padding:2px 7px;border-radius:9px;background:#fffbeb;color:#92400e;border:1px solid #fde68a;margin-left:6px">
              ⚠ No Budget</span>`;
   };
 
@@ -67,9 +68,10 @@ export async function CostDistribution(route, router) {
           <option value="All">All Projects</option>
         </select>
         <button id="clear-filters-btn" class="fin-btn outline">Clear Filters</button>
-        <span style="font-size:0.78rem;color:var(--text-muted);margin-left:auto">
-          🔒 = Locked &nbsp;|&nbsp; ⚠ = No Budget &nbsp;(visible but read-only)
-        </span>
+        <div style="display:flex;gap:0.75rem;margin-left:auto;align-items:center">
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;font-weight:500;padding:4px 8px;border-radius:12px;background:var(--bg-light);color:var(--text-muted);border:1px solid var(--border-color)"><span style="font-size:0.8rem">🔒</span> Locked</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;font-weight:500;padding:4px 8px;border-radius:12px;background:#fffbeb;color:#92400e;border:1px solid #fde68a"><span style="font-size:0.8rem">⚠</span> No Budget</span>
+        </div>
       </div>
       <div class="fin-table-wrap">
         <table class="fin-table">
@@ -90,10 +92,13 @@ export async function CostDistribution(route, router) {
           <p style="margin:0;font-size:0.9rem">No project cost distributions found.</p>
         </div>
       </div>
+      <div id="pagination-container"></div>
     </div>
   `;
 
   let allProjectsData = [];
+  let currentPage = 1;
+  const itemsPerPage = 10;
 
   const renderTable = () => {
     const tbody     = container.querySelector('#cost-tbody');
@@ -117,13 +122,20 @@ export async function CostDistribution(route, router) {
       noResults.style.display = 'block';
       countEl.textContent = '0 projects';
       tbody.innerHTML = '';
+      container.querySelector('#pagination-container').innerHTML = '';
       return;
     }
 
     countEl.textContent = `${filtered.length} projects`;
     noResults.style.display = 'none';
 
-    tbody.innerHTML = filtered.map(p => {
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const paginated = filtered.slice(start, start + itemsPerPage);
+
+    tbody.innerHTML = paginated.map(p => {
       const finance     = p.project_finance || {};
       const allocations = finance.development_allocations || [];
       const lock        = getFinanceLock(p);
@@ -202,6 +214,13 @@ export async function CostDistribution(route, router) {
     // Bind distribution modal events (only fires for non-locked buttons)
     container.querySelectorAll('.distribute-btn:not([disabled])').forEach(btn => {
       btn.addEventListener('click', () => openDistributeModal(btn));
+    });
+
+    const paginationContainer = container.querySelector('#pagination-container');
+    paginationContainer.innerHTML = renderPagination(filtered.length, currentPage, itemsPerPage);
+    setupPaginationListeners(paginationContainer, (page) => {
+      currentPage = page;
+      renderTable();
     });
   };
 
@@ -301,11 +320,12 @@ export async function CostDistribution(route, router) {
   };
 
   // ── Filters ────────────────────────────────────────────────────────────────
-  container.querySelector('#search-filter').addEventListener('input', renderTable);
-  container.querySelector('#project-filter').addEventListener('change', renderTable);
+  container.querySelector('#search-filter').addEventListener('input', () => { currentPage = 1; renderTable(); });
+  container.querySelector('#project-filter').addEventListener('change', () => { currentPage = 1; renderTable(); });
   container.querySelector('#clear-filters-btn').addEventListener('click', () => {
     container.querySelector('#search-filter').value = '';
     container.querySelector('#project-filter').value = 'All';
+    currentPage = 1;
     renderTable();
   });
 

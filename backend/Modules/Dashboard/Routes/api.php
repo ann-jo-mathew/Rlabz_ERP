@@ -19,6 +19,7 @@ Route::group(['prefix' => 'dashboard', 'middleware' => [JwtMiddleware::class]], 
     Route::get('/faculties', [DashboardController::class, 'getFaculties']);
     Route::get('/client-requirements', [DashboardController::class, 'getClientRequirements']);
     Route::get('/students', [DashboardController::class, 'getStudents']);
+    Route::get('/students/{id}', [DashboardController::class, 'getStudentDetail']);
     Route::post('/proposals/{proposalId}/status', [DashboardController::class, 'updateProposalStatus']);
     Route::post('/projects/{projectId}/start', [DashboardController::class, 'startProject']);
     Route::post('/projects/{projectId}/assign-faculty', [DashboardController::class, 'assignFaculty']);

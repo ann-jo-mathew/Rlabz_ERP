@@ -83,10 +83,7 @@ export function DirectorHome(route, router) {
         <!-- 1. Active Projects -->
         <div class="director-kpi-card kpi-sidebar-primary">
           <div class="director-kpi-top">
-            <div class="kpi-title-group">
-              <span class="director-kpi-title">Active Projects</span>
-              <span class="kpi-micro-pill">Live Execution</span>
-            </div>
+            <span class="director-kpi-title">Active Projects</span>
             <div class="director-kpi-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
             </div>
@@ -104,12 +101,9 @@ export function DirectorHome(route, router) {
         </div>
 
         <!-- 2. Pending Proposals -->
-        <div class="director-kpi-card kpi-sidebar-green">
+        <div class="director-kpi-card kpi-teal">
           <div class="director-kpi-top">
-            <div class="kpi-title-group">
-              <span class="director-kpi-title">Pending Proposals</span>
-              ${pendingCount > 0 ? `<span class="kpi-micro-pill kpi-pill-pulse">⚡ Action Needed</span>` : `<span class="kpi-micro-pill">✓ Clean</span>`}
-            </div>
+            <span class="director-kpi-title">Pending Proposals</span>
             <div class="director-kpi-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
             </div>
@@ -121,12 +115,9 @@ export function DirectorHome(route, router) {
         </div>
 
         <!-- 3. Student Talent Pool -->
-        <div class="director-kpi-card kpi-sidebar-green">
+        <div class="director-kpi-card kpi-indigo">
           <div class="director-kpi-top">
-            <div class="kpi-title-group">
-              <span class="director-kpi-title">Student Talent Pool</span>
-              <span class="kpi-micro-pill">3 Capability Tiers</span>
-            </div>
+            <span class="director-kpi-title">Student Talent Pool</span>
             <div class="director-kpi-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             </div>
@@ -138,10 +129,6 @@ export function DirectorHome(route, router) {
               <div class="kpi-segment orbit" style="width: ${orbitPct}%;"></div>
               <div class="kpi-segment spark" style="width: ${sparkPct}%;"></div>
             </div>
-            <div class="kpi-meter-legend">
-              <span>Nova: ${nova} • Orbit: ${orbit}</span>
-              <span>Spark: ${spark}</span>
-            </div>
           </div>
           <div class="director-kpi-subtext kpi-track-row">
             <span class="track-badge-micro nova">Nova: ${nova}</span>
@@ -151,12 +138,9 @@ export function DirectorHome(route, router) {
         </div>
 
         <!-- 4. Capital & Financial Budget -->
-        <div class="director-kpi-card kpi-sidebar-green">
+        <div class="director-kpi-card kpi-amber">
           <div class="director-kpi-top">
-            <div class="kpi-title-group">
-              <span class="director-kpi-title">Sanctioned Capital</span>
-              <span class="kpi-micro-pill">FY 25-26</span>
-            </div>
+            <span class="director-kpi-title">Sanctioned Capital</span>
             <div class="director-kpi-icon">₹</div>
           </div>
           <div class="director-kpi-value">${formatMoney(budget)}</div>
@@ -176,12 +160,9 @@ export function DirectorHome(route, router) {
         </div>
 
         <!-- 5. Faculty Leadership Load -->
-        <div class="director-kpi-card kpi-sidebar-green">
+        <div class="director-kpi-card kpi-crimson">
           <div class="director-kpi-top">
-            <div class="kpi-title-group">
-              <span class="director-kpi-title">Faculty Mentorship</span>
-              <span class="kpi-micro-pill">${facultyLoadPct}% Active</span>
-            </div>
+            <span class="director-kpi-title">Faculty Mentorship</span>
             <div class="director-kpi-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             </div>
@@ -218,24 +199,24 @@ export function DirectorHome(route, router) {
 
           <div class="director-chart-canvas-wrap">
             <canvas id="chart-student-distribution"></canvas>
-            <div class="director-donut-center-metric">
+            <div class="director-donut-center-metric" style="cursor: pointer;" title="Click to view all scholars">
               <div class="center-value">${totalStudents}</div>
               <div class="center-label">Scholars</div>
             </div>
           </div>
 
           <div class="director-chart-legend">
-            <div class="chart-legend-item">
+            <div class="chart-legend-item" style="cursor: pointer;" data-track="Nova" title="Click to view Nova Lead students">
               <span class="chart-legend-dot" style="background:#8b5cf6;"></span>
               <span>Nova Leads:</span>
               <span class="chart-legend-val">${nova} (${novaPct}%)</span>
             </div>
-            <div class="chart-legend-item">
+            <div class="chart-legend-item" style="cursor: pointer;" data-track="Orbit" title="Click to view Orbit Dev students">
               <span class="chart-legend-dot" style="background:#0284c7;"></span>
               <span>Orbit Devs:</span>
               <span class="chart-legend-val">${orbit} (${orbitPct}%)</span>
             </div>
-            <div class="chart-legend-item">
+            <div class="chart-legend-item" style="cursor: pointer;" data-track="Spark" title="Click to view Spark Learner students">
               <span class="chart-legend-dot" style="background:#10b981;"></span>
               <span>Spark Learners:</span>
               <span class="chart-legend-val">${spark} (${sparkPct}%)</span>
@@ -512,7 +493,8 @@ export function DirectorHome(route, router) {
       spent,
       pendingCount,
       activeProjects,
-      remainingProjects
+      remainingProjects,
+      deliveryVelocity: stats.deliveryVelocity || null
     });
 
     // ══════════════════════════════════════════════════════
@@ -537,6 +519,33 @@ export function DirectorHome(route, router) {
         const proposalList = stats.pendingProposalsList || DirectorService.getProposals();
         const proposal = proposalList.find(p => String(p.id) === id);
         if (proposal) showProposalModal(proposal, faculties);
+      });
+    });
+
+    // Doughnut chart legend items click navigation
+    container.querySelectorAll('.chart-legend-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const track = item.getAttribute('data-track');
+        if (track && router) {
+          router.push(`/dashboard/students?track=${track}`);
+        }
+      });
+    });
+
+    // Doughnut chart center metric click navigation
+    container.querySelector('.director-donut-center-metric')?.addEventListener('click', () => {
+      if (router) router.push('/dashboard/students');
+    });
+
+    // KPI Card 3 track badges navigation
+    container.querySelectorAll('.track-badge-micro').forEach(badge => {
+      badge.style.cursor = 'pointer';
+      badge.setAttribute('title', 'Click to view students in this track');
+      badge.addEventListener('click', () => {
+        if (!router) return;
+        if (badge.classList.contains('nova')) router.push('/dashboard/students?track=Nova');
+        else if (badge.classList.contains('orbit')) router.push('/dashboard/students?track=Orbit');
+        else if (badge.classList.contains('spark')) router.push('/dashboard/students?track=Spark');
       });
     });
   }
@@ -564,6 +573,7 @@ export function DirectorHome(route, router) {
       const orbit = data.studentCounts.orbit || 0;
       const spark = data.studentCounts.spark || 0;
       const total = data.studentCounts.total || (nova + orbit + spark) || 1;
+      const trackKeys = ['Nova', 'Orbit', 'Spark'];
 
       chartInstances.studentDonut = new ChartClass(donutEl, {
         type: 'doughnut',
@@ -574,13 +584,34 @@ export function DirectorHome(route, router) {
             backgroundColor: ['#8b5cf6', '#0284c7', '#10b981'],
             borderColor: '#ffffff',
             borderWidth: 3,
-            hoverOffset: 6,
+            hoverOffset: 8,
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           cutout: '72%',
+          onClick: (event, elements, chart) => {
+            let activeEls = elements;
+            if (!activeEls || activeEls.length === 0) {
+              const chartInst = chart || chartInstances.studentDonut;
+              if (chartInst && event && event.native) {
+                activeEls = chartInst.getElementsAtEventForMode(event.native, 'nearest', { intersect: true }, false);
+              }
+            }
+            if (activeEls && activeEls.length > 0) {
+              const index = activeEls[0].index;
+              const targetTrack = trackKeys[index] || 'All';
+              if (router) {
+                router.push(`/dashboard/students?track=${targetTrack}`);
+              }
+            }
+          },
+          onHover: (event, elements) => {
+            if (event.native && event.native.target) {
+              event.native.target.style.cursor = (elements && elements.length > 0) ? 'pointer' : 'default';
+            }
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -589,7 +620,7 @@ export function DirectorHome(route, router) {
                 label: ctx => {
                   const val = ctx.raw;
                   const pct = total > 0 ? ((val / total) * 100).toFixed(0) : 0;
-                  return `  ${ctx.label}: ${val} Scholars (${pct}%)`;
+                  return `  ${ctx.label}: ${val} Scholars (${pct}%) — Click to View`;
                 }
               }
             }
@@ -597,27 +628,35 @@ export function DirectorHome(route, router) {
           animation: { animateRotate: true, duration: 350 }
         }
       });
+
+      donutEl.style.cursor = 'pointer';
+      donutEl.addEventListener('click', (e) => {
+        if (chartInstances.studentDonut) {
+          const activePoints = chartInstances.studentDonut.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+          if (activePoints && activePoints.length > 0) {
+            const index = activePoints[0].index;
+            const targetTrack = trackKeys[index] || 'All';
+            if (router) {
+              router.push(`/dashboard/students?track=${targetTrack}`);
+            }
+          }
+        }
+      });
     }
 
     // 2. GROUPED BAR CHART: Project Budget vs Actual Spent
     const barEl = container.querySelector('#chart-budget-spend');
     if (barEl) {
-      const sampleProjects = (data.projects && data.projects.length > 0)
+      const dbProjects = (data.projects && data.projects.length > 0)
         ? data.projects.slice(0, 5)
-        : [
-            { title: 'ERP Portal', budget: 120000, spent: 85000 },
-            { title: 'Faculty App', budget: 75000, spent: 45000 },
-            { title: 'Finance Engine', budget: 90000, spent: 62000 },
-            { title: 'Certificates CMS', budget: 50000, spent: 30000 },
-            { title: 'Student Hub', budget: 60000, spent: 48000 }
-          ];
+        : (Array.isArray(DirectorService.getProjects()) ? DirectorService.getProjects().slice(0, 5) : []);
 
-      const labels = sampleProjects.map(p => {
+      const labels = dbProjects.map(p => {
         const title = p.title || 'Project';
         return title.length > 14 ? title.slice(0, 14) + '…' : title;
       });
-      const budgets = sampleProjects.map(p => Number(p.budget || 50000));
-      const spents = sampleProjects.map(p => Number(p.spent || (p.budget ? p.budget * 0.6 : 30000)));
+      const budgets = dbProjects.map(p => Number(p.budget || 0));
+      const spents = dbProjects.map(p => Number(p.spent || 0));
 
       chartInstances.budgetBar = new ChartClass(barEl, {
         type: 'bar',
@@ -676,10 +715,11 @@ export function DirectorHome(route, router) {
     // 3. SMOOTH SPLINE AREA CHART: Milestone Velocity Trajectory
     const lineEl = container.querySelector('#chart-delivery-velocity');
     if (lineEl) {
-      const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
-      const milestonesCompleted = [4, 7, 11, 15, 21, 28];
-      const taskThroughput = [14, 25, 42, 58, 85, 112];
-      const proposalsIntake = [2, 3, 5, 4, 6, 8];
+      const velocity = data.deliveryVelocity || {};
+      const months = velocity.labels || ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+      const milestonesCompleted = velocity.milestones_completed || [0, 0, 0, 0, 0, 0];
+      const taskThroughput = velocity.tasks_throughput || [0, 0, 0, 0, 0, 0];
+      const proposalsIntake = velocity.proposals_intake || [0, 0, 0, 0, 0, 0];
 
       const ctx = lineEl.getContext('2d');
       const gradient = ctx.createLinearGradient(0, 0, 0, 240);
@@ -762,10 +802,10 @@ export function DirectorHome(route, router) {
     // 4. POLAR AREA CHART: Portfolio Status Matrix
     const polarEl = container.querySelector('#chart-portfolio-polar');
     if (polarEl) {
-      const activeCount = Math.max(1, data.activeProjects || 3);
-      const proposedCount = Math.max(1, data.pendingCount || 2);
-      const completedCount = Math.max(1, data.remainingProjects || 2);
-      const highPriorityCount = Math.max(1, Math.round(activeCount * 0.4));
+      const activeCount = data.activeProjects || 0;
+      const proposedCount = data.pendingCount || 0;
+      const completedCount = data.remainingProjects || 0;
+      const highPriorityCount = Math.round(activeCount * 0.4);
 
       chartInstances.portfolioPolar = new ChartClass(polarEl, {
         type: 'polarArea',
