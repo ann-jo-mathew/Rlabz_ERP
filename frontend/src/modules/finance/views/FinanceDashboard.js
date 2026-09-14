@@ -2,9 +2,6 @@ import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
 import '../finance.css';
 
-// â”€â”€ Chart.js loader (Local if possible, otherwise we fallback to CDN for charts only, not PDFs. Wait, I should assume Chart is available globally from main app, or load it.)
-// For this rewrite, we will load Chart.js via CDN as it's already how it was done, the user only complained about CDN for PDF.
-// "The current implementation plan mentioned loading html2pdf.js through a CDN. Do NOT use a CDN for Finance PDF generation."
 function loadChartJs() {
   return new Promise((resolve) => {
     if (window.Chart) return resolve(window.Chart);
@@ -506,29 +503,6 @@ export async function FinanceDashboard(route, router) {
       return name.length > 18 ? name.slice(0, 18) + '\u2026' : name;
     });
 
-<<<<<<< HEAD
-  new Chart(container.querySelector('#bar-chart'), {
-    type: 'bar',
-    data: {
-      labels: projLabels,
-      datasets: [
-        { label: 'Received', data: projReceived, backgroundColor: COLORS.primary, borderRadius: 4, borderSkipped: false },
-        { label: 'Outstanding', data: projOutstanding, backgroundColor: COLORS.warning, borderRadius: 4, borderSkipped: false },
-        { label: 'Unbilled', data: projUnbilled, backgroundColor: '#dc2626', borderRadius: 4, borderSkipped: false },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { color: COLORS.text, font: { family: 'Plus Jakarta Sans', size: 12 } } },
-        tooltip: {
-          ...tooltipDefaults,
-          callbacks: {
-            title: items => {
-              const idx = items[0]?.dataIndex;
-              return idx !== undefined ? projFullTitles[idx] : items[0]?.label;
-=======
     const projReceived = activeProjects.map(p => {
       const pf = p.project_finance || {};
       return pf.total_collected || 0;
@@ -571,7 +545,6 @@ export async function FinanceDashboard(route, router) {
                 return idx !== undefined ? projFullTitles[idx] : items[0]?.label;
               },
               label: ctx => `  ${ctx.dataset.label}: \u20B9${Number(ctx.raw).toLocaleString('en-IN')}`
->>>>>>> origin/main
             },
           },
         },
