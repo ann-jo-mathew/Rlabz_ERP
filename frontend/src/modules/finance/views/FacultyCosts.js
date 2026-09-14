@@ -1,5 +1,6 @@
 import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
+import { renderPagination, setupPaginationListeners } from '../utils/pagination.js';
 
 export async function FacultyCosts(route, router) {
   const container = document.createElement('div');
@@ -15,6 +16,8 @@ export async function FacultyCosts(route, router) {
 
   let facultyCosts = [];
   let allProjects = [];
+  let currentPage = 1;
+  const itemsPerPage = 10;
 
   const renderFacultyTable = () => {
     const tbody = container.querySelector('#fc-tbody');
@@ -40,9 +43,17 @@ export async function FacultyCosts(route, router) {
     if (filtered.length === 0) {
       tbody.innerHTML = '';
       noResults.style.display = 'block';
+      container.querySelector('#pagination-container').innerHTML = '';
     } else {
       noResults.style.display = 'none';
-      tbody.innerHTML = filtered.map(fc => {
+
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+      if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const paginated = filtered.slice(start, start + itemsPerPage);
+
+      tbody.innerHTML = paginated.map(fc => {
         const fName = fc.faculty_name || 'Unknown';
         const pName = fc.project_name || 'Unknown';
         const status = fc.payment_date ? 'Paid' : 'Pending';
@@ -59,6 +70,13 @@ export async function FacultyCosts(route, router) {
           <td><span class="fin-badge ${status === 'Paid' ? 'success' : 'warning'}">${status}</span></td>
         </tr>
       `}).join('');
+
+      const paginationContainer = container.querySelector('#pagination-container');
+      paginationContainer.innerHTML = renderPagination(filtered.length, currentPage, itemsPerPage);
+      setupPaginationListeners(paginationContainer, (page) => {
+        currentPage = page;
+        renderFacultyTable();
+      });
     }
   };
 
@@ -148,7 +166,7 @@ export async function FacultyCosts(route, router) {
           <label>Status</label>
           <div class="fin-select-wrap">
             <select id="fc-status" class="fin-input">
-              <option value="All">All Statuses</option>
+              <option value="All">All Status</option>
               <option value="Paid">Paid</option>
               <option value="Pending">Pending</option>
             </select>
@@ -176,9 +194,9 @@ export async function FacultyCosts(route, router) {
               </tr>
             </thead>
             <tbody id="fc-tbody"></tbody>
-          </table>
           <div id="no-fc-results" style="display:none;text-align:center;padding:2.5rem;color:var(--text-muted)"><p style="margin:0;font-size:0.9rem">No results found.</p></div>
         </div>
+        <div id="pagination-container"></div>
       </div>
     </div>
   `;
@@ -263,13 +281,14 @@ export async function FacultyCosts(route, router) {
 
     // Filter events
     ['keyup', 'change'].forEach(evt => {
-      container.querySelector('#fc-search').addEventListener(evt, renderFacultyTable);
+      container.querySelector('#fc-search').addEventListener(evt, () => { currentPage = 1; renderFacultyTable(); });
     });
-    container.querySelector('#fc-status').addEventListener('change', renderFacultyTable);
+    container.querySelector('#fc-status').addEventListener('change', () => { currentPage = 1; renderFacultyTable(); });
 
     container.querySelector('#fc-clear-btn').addEventListener('click', () => {
       container.querySelector('#fc-search').value = '';
       container.querySelector('#fc-status').value = 'All';
+      currentPage = 1;
       renderFacultyTable();
     });
   };

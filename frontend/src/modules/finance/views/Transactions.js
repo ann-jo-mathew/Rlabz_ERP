@@ -1,5 +1,6 @@
 import { financeService } from '../services/FinanceService.js';
 import { updateFinanceSidebar } from '../layouts/FinanceLayout.js';
+import { renderPagination, setupPaginationListeners } from '../utils/pagination.js';
 
 export async function Transactions(route, router) {
   const container = document.createElement('div');
@@ -15,6 +16,8 @@ export async function Transactions(route, router) {
 
   let transactions = [];
   let allProjects = [];
+  let currentPage = 1;
+  const itemsPerPage = 10;
 
   const renderTable = () => {
     const tbody = container.querySelector('#txn-tbody');
@@ -68,9 +71,17 @@ export async function Transactions(route, router) {
     if (filtered.length === 0) {
       tbody.innerHTML = '';
       noResults.style.display = 'block';
+      container.querySelector('#pagination-container').innerHTML = '';
     } else {
       noResults.style.display = 'none';
-      tbody.innerHTML = filtered.map(t => {
+
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+      if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const paginated = filtered.slice(start, start + itemsPerPage);
+
+      tbody.innerHTML = paginated.map(t => {
         const isIncome = t.incomeExpense === 'Income';
         const amtColor = isIncome ? 'color:var(--primary)' : 'color:var(--text-main)';
         const amtPrefix = isIncome ? '+' : '−';
@@ -89,6 +100,13 @@ export async function Transactions(route, router) {
           </tr>
         `;
       }).join('');
+
+      const paginationContainer = container.querySelector('#pagination-container');
+      paginationContainer.innerHTML = renderPagination(filtered.length, currentPage, itemsPerPage);
+      setupPaginationListeners(paginationContainer, (page) => {
+        currentPage = page;
+        renderTable();
+      });
     }
   };
 
@@ -193,16 +211,19 @@ export async function Transactions(route, router) {
             <p style="margin:0;font-size:0.9rem">No transactions match the current filters.</p>
           </div>
         </div>
+        <div id="pagination-container"></div>
       </div>
     `;
 
-    container.querySelector('#search-input').addEventListener('input', renderTable);
-    container.querySelector('#filter-type').addEventListener('change', renderTable);
-    container.querySelector('#filter-project').addEventListener('change', renderTable);
-    container.querySelector('#filter-ie').addEventListener('change', renderTable);
-    container.querySelector('#filter-date-from').addEventListener('change', renderTable);
-    container.querySelector('#filter-date-to').addEventListener('change', renderTable);
-    container.querySelector('#filter-sort').addEventListener('change', renderTable);
+    const resetPageAndRender = () => { currentPage = 1; renderTable(); };
+    
+    container.querySelector('#search-input').addEventListener('input', resetPageAndRender);
+    container.querySelector('#filter-type').addEventListener('change', resetPageAndRender);
+    container.querySelector('#filter-project').addEventListener('change', resetPageAndRender);
+    container.querySelector('#filter-ie').addEventListener('change', resetPageAndRender);
+    container.querySelector('#filter-date-from').addEventListener('change', resetPageAndRender);
+    container.querySelector('#filter-date-to').addEventListener('change', resetPageAndRender);
+    container.querySelector('#filter-sort').addEventListener('change', resetPageAndRender);
 
     container.querySelector('#clear-filters-btn').addEventListener('click', () => {
       container.querySelector('#search-input').value = '';
@@ -212,6 +233,7 @@ export async function Transactions(route, router) {
       container.querySelector('#filter-date-from').value = '';
       container.querySelector('#filter-date-to').value = '';
       container.querySelector('#filter-sort').value = 'date-desc';
+      currentPage = 1;
       renderTable();
     });
 
