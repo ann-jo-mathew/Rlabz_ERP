@@ -314,6 +314,7 @@ class FinanceController extends Controller
             ->leftJoin('users', 'ssl_renewal_history.renewed_by', '=', 'users.id')
             ->select(
                 'ssl_renewal_history.*',
+                'projects.id as project_id',
                 'projects.title as project_name',
                 'hosting_charges.reference_details as hosting_details',
                 'users.name as renewed_by_name'

@@ -24,6 +24,7 @@ Route::group(['prefix' => 'finance', 'middleware' => ['auth.jwt']], function () 
     Route::get('/faculty-payments', [FinanceController::class, 'getFacultyPayments']);
     Route::get('/invoices', [FinanceController::class, 'getInvoices']);
     Route::get('/transactions', [FinanceController::class, 'getTransactions']);
+    Route::get('/ssl-status', [\Modules\Finance\Controllers\SslStatusController::class, 'getSslStatus']);
 
     Route::get('/student-hourly-rate', [FinanceController::class, 'getStudentHourlyRate']);
     Route::get('/student-hourly-rate/history', [FinanceController::class, 'getStudentHourlyRateHistory']);

@@ -106,8 +106,9 @@ class FinanceService
         // Total Profit = Total Revenue/Billing - Total Costs.
         $totalProfit = $totalInvoiced - $totalExpenses;
 
-        $sslExpiring = $this->getSslExpiryWarnings();
-        $this->syncSslExpiryNotifications($sslExpiring);
+        // SSL Expiry notifications are now handled by a dedicated asynchronous endpoint/service.
+        // The dashboard load should not wait for live SSL fetching.
+        $sslExpiring = [];
 
         return [
             'totalBilling' => round($totalInvoiced, 2),
@@ -288,11 +289,28 @@ class FinanceService
             ->select('faculty_payments.*', 'users.name as faculty_name', 'projects.title as project_name', 'projects.id as project_id')
             ->get();
 
+        $hostingCharges = HostingCharge::join('project_finances', 'hosting_charges.project_finance_id', '=', 'project_finances.id')
+            ->join('projects', 'project_finances.project_id', '=', 'projects.id')
+            ->select('hosting_charges.*', 'projects.title as project_name', 'projects.id as project_id')
+            ->get();
+
+        $maintenanceCharges = \Modules\Finance\Models\MaintenanceSupportCharge::join('project_finances', 'maintenance_support_charges.project_finance_id', '=', 'project_finances.id')
+            ->join('projects', 'project_finances.project_id', '=', 'projects.id')
+            ->select('maintenance_support_charges.*', 'projects.title as project_name', 'projects.id as project_id')
+            ->get();
+
+        $sslRenewals = \DB::table('ssl_renewal_history')
+            ->join('hosting_charges', 'ssl_renewal_history.hosting_charge_id', '=', 'hosting_charges.id')
+            ->join('project_finances', 'hosting_charges.project_finance_id', '=', 'project_finances.id')
+            ->join('projects', 'project_finances.project_id', '=', 'projects.id')
+            ->select('ssl_renewal_history.*', 'projects.title as project_name', 'projects.id as project_id')
+            ->get();
+
         $transactions = [];
         
         foreach ($clientPayments as $cp) {
             $transactions[] = [
-                'id' => $cp->id,
+                'id' => 'CP-'.$cp->id,
                 'date' => $cp->payment_date,
                 'projectId' => $cp->invoice->projectFinance->project->id ?? null,
                 'projectName' => $cp->invoice->projectFinance->project->title ?? 'Unknown',
@@ -327,6 +345,50 @@ class FinanceService
                 'type' => 'Faculty/Resource',
                 'desc' => 'Payment: ' . $fp->faculty_name,
                 'amount' => $fp->amount,
+                'incomeExpense' => 'Expense',
+                'status' => 'Completed'
+            ];
+        }
+
+        foreach ($hostingCharges as $hc) {
+            // Distinguish SSL, Domain, Hosting, etc.
+            $typeLabel = ucfirst($hc->charge_type) . ' Charge';
+            $transactions[] = [
+                'id' => 'HC-'.$hc->id,
+                'date' => $hc->purchase_date ?? $hc->created_at->toDateString(),
+                'projectId' => $hc->project_id,
+                'projectName' => $hc->project_name,
+                'type' => 'Hosting & Domain',
+                'desc' => $typeLabel . ($hc->name_or_reference ? ': ' . $hc->name_or_reference : ''),
+                'amount' => $hc->amount,
+                'incomeExpense' => 'Expense',
+                'status' => 'Completed'
+            ];
+        }
+
+        foreach ($sslRenewals as $ssr) {
+            $transactions[] = [
+                'id' => 'SSL-'.$ssr->id,
+                'date' => $ssr->renewal_date,
+                'projectId' => $ssr->project_id,
+                'projectName' => $ssr->project_name,
+                'type' => 'SSL Renewal',
+                'desc' => 'SSL Certificate Renewal',
+                'amount' => $ssr->renewal_amount,
+                'incomeExpense' => 'Expense',
+                'status' => 'Completed'
+            ];
+        }
+
+        foreach ($maintenanceCharges as $mc) {
+            $transactions[] = [
+                'id' => 'MC-'.$mc->id,
+                'date' => $mc->start_date ?? clone $mc->created_at->toDateString(),
+                'projectId' => $mc->project_id,
+                'projectName' => $mc->project_name,
+                'type' => 'Maintenance Support',
+                'desc' => 'Maintenance Charge' . ($mc->description ? ': ' . substr($mc->description, 0, 30) . '...' : ''),
+                'amount' => $mc->amount,
                 'incomeExpense' => 'Expense',
                 'status' => 'Completed'
             ];

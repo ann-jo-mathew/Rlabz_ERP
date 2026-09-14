@@ -22,13 +22,11 @@ return new class extends Migration
         // Sync existing ratings from student_work_logs into tasks
         $logsWithRatings = \Illuminate\Support\Facades\DB::table('student_work_logs')
             ->whereNotNull('task_id')
-            ->where(function ($q) {
-                $q->whereNotNull('rating')->orWhereNotNull('ratings');
-            })
+            ->whereNotNull('rating')
             ->get();
 
         foreach ($logsWithRatings as $log) {
-            $r = $log->rating ?? (is_numeric($log->ratings) ? (float) $log->ratings : null);
+            $r = $log->rating;
             if ($r !== null) {
                 \Illuminate\Support\Facades\DB::table('tasks')
                     ->where('id', $log->task_id)

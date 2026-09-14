@@ -74,8 +74,8 @@ export async function OperationalCosts(route, router) {
     
     <div class="fin-panel" style="margin-top:2rem;">
       <div class="fin-panel-header">
-        <div class="fin-panel-title">SSL Renewal History</div>
-        <div class="fin-panel-subtitle">Historical log of all SSL certificate renewals</div>
+        <div class="fin-panel-title">Renewal History</div>
+        <div class="fin-panel-subtitle">Historical record of operational renewals</div>
       </div>
       <div class="fin-table-wrap">
         <table class="fin-table" style="font-size: 0.85rem">
@@ -83,6 +83,7 @@ export async function OperationalCosts(route, router) {
             <tr>
               <th>Date</th>
               <th>Project / Details</th>
+              <th>Type</th>
               <th>Prev Expiry</th>
               <th>New Expiry</th>
               <th>Amount</th>
@@ -122,15 +123,52 @@ export async function OperationalCosts(route, router) {
     tbody.innerHTML = paginated.map(cost => {
       const isExpired = cost.expiryDate && new Date(cost.expiryDate) < new Date();
 
-      let statusHtml = '<span class="fin-badge info">Active</span>';
-      if (cost.expiryDate) {
-        const daysLeft = Math.ceil((new Date(cost.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
-        if (daysLeft < 0) {
-          statusHtml = '<span class="fin-badge warning" style="background:#fee2e2;color:#dc2626;border-color:#f87171;">Expired</span>';
-        } else if (daysLeft <= 7) {
-          statusHtml = '<span class="fin-badge warning" style="background:#ffedd5;color:#c2410c;border-color:#fb923c;">Expiring Soon</span>';
+      let displayDetails = cost.details;
+      let displayExpiry = fmtDate(cost.expiryDate);
+      let statusBadge = '<span class="fin-badge neutral">Active</span>';
+      
+      if (cost.category_raw === 'ssl') {
+        if (cost.domain && cost.domain !== 'Domain not configured') {
+          const href = cost.sslData && cost.sslData.ssl_url ? cost.sslData.ssl_url : `https://${cost.domain}`;
+          displayDetails = `${cost.details}<br><a href="${href}" target="_blank" onclick="event.stopPropagation()" style="color:var(--primary);text-decoration:none;font-weight:600;">${cost.domain}</a>`;
         } else {
-          statusHtml = '<span class="fin-badge success">Active</span>';
+          displayDetails = `${cost.details}<br><span style="color:var(--text-muted);font-style:italic;">${cost.domain}</span>`;
+        }
+        
+        if (cost.sslData) {
+          displayExpiry = cost.sslData.expiry_date ? fmtDate(cost.sslData.expiry_date) : '-';
+          
+          if (cost.sslData.error) {
+            statusBadge = '<span class="fin-badge danger">Unable to Fetch SSL</span>';
+          } else if (cost.sslData.status === 'Expired') {
+            statusBadge = '<span class="fin-badge danger">Expired</span>';
+          } else if (cost.sslData.status === 'Critical') {
+            statusBadge = '<span class="fin-badge danger">Critical</span>';
+          } else if (cost.sslData.status === 'Expiring Soon') {
+            statusBadge = '<span class="fin-badge warning">Expiring Soon</span>';
+          } else {
+            statusBadge = '<span class="fin-badge success">Active</span>';
+          }
+        } else {
+          // Fallback if no sslData
+          if (!cost.expiryDate) {
+            statusBadge = '<span class="fin-badge neutral">No Expiry Set</span>';
+          } else {
+            const daysRemaining = Math.ceil((new Date(cost.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+            if (daysRemaining <= 0) statusBadge = '<span class="fin-badge danger">Expired</span>';
+            else if (daysRemaining <= 7) statusBadge = '<span class="fin-badge danger">Critical</span>';
+            else if (daysRemaining <= 30) statusBadge = '<span class="fin-badge warning">Expiring Soon</span>';
+            else statusBadge = '<span class="fin-badge success">Active</span>';
+          }
+        }
+      } else {
+        if (!cost.expiryDate) {
+          statusBadge = '<span class="fin-badge neutral">No Expiry Set</span>';
+        } else {
+          const daysRemaining = Math.ceil((new Date(cost.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+          if (daysRemaining <= 0) statusBadge = '<span class="fin-badge danger">Expired</span>';
+          else if (daysRemaining <= 30) statusBadge = '<span class="fin-badge warning">Expiring Soon</span>';
+          else statusBadge = '<span class="fin-badge success">Active</span>';
         }
       }
 
@@ -138,17 +176,18 @@ export async function OperationalCosts(route, router) {
         `<button class="fin-btn outline sm renew-btn" data-pfid="${cost.pfid}" data-hcid="${cost.hcid}" data-type="${cost.category_raw}" data-provider="${cost.details}">Renew</button>` : '-';
 
       return `
-      <tr>
+      <tr class="clickable-row" data-pfid="${cost.pfid}" style="cursor: pointer;">
         <td><div style="font-weight:600">${cost.project}</div></td>
         <td><span class="fin-badge indigo">${cost.category}</span></td>
-        <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cost.details}</td>
+        <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayDetails}</td>
         <td style="font-weight:700">${fmt(cost.amount)}</td>
-        <td style="color:var(--text-muted)">${fmtDate(cost.startDate)}</td>
-        <td style="color:var(--text-muted); font-weight:600">${fmtDate(cost.expiryDate)}</td>
-        <td>${statusHtml}</td>
+        <td>${fmtDate(cost.startDate)}</td>
+        <td>${displayExpiry}</td>
+        <td>${statusBadge}</td>
         <td>${actionHtml}</td>
       </tr>
-    `}).join('');
+      `;
+    }).join('');
 
     bindRenewEvents();
 
@@ -162,7 +201,8 @@ export async function OperationalCosts(route, router) {
 
   const bindRenewEvents = () => {
     container.querySelectorAll('.renew-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const pfid = btn.dataset.pfid;
         const hcid = btn.dataset.hcid;
         const type = btn.dataset.type;
@@ -170,11 +210,24 @@ export async function OperationalCosts(route, router) {
         openResourceModal(pfid, type, prov, true, hcid);
       });
     });
+
+    container.querySelectorAll('.clickable-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const pfid = row.dataset.pfid;
+        if (pfid) {
+          router.push('/finance/projects/' + pfid);
+        }
+      });
+    });
   };
 
   const loadData = async () => {
     try {
-      const allProjects = await financeService.getProjectFinances();
+      const [allProjects, sslResponse] = await Promise.all([
+        financeService.getProjectFinances(),
+        financeService._fetch('/finance/ssl-status').catch(() => ({ ssl_status: [] }))
+      ]);
+      const sslStatuses = sslResponse?.ssl_status || [];
       allCosts = [];
 
       allProjects.forEach(p => {
@@ -184,13 +237,19 @@ export async function OperationalCosts(route, router) {
 
         if (pf.hosting_charges && pf.hosting_charges.length > 0) {
           pf.hosting_charges.forEach(hc => {
+            const isSsl = hc.charge_type === 'ssl';
+            const domain = hc.domain_name || 'Domain not configured';
+            const sslData = isSsl ? sslStatuses.find(s => s.project_id === p.id) : null;
+
             allCosts.push({
               hcid: hc.id,
-              pfid: pf.id,
+              pfid: p.id,
               project: projName,
               category: (hc.charge_type || 'hosting').toUpperCase(),
               category_raw: hc.charge_type || 'hosting',
               details: hc.reference_details || hc.provider || 'Internal/Unknown',
+              domain: domain,
+              sslData: sslData,
               amount: parseFloat(hc.amount) || 0,
               startDate: hc.purchase_date,
               expiryDate: hc.expiry_date
@@ -201,11 +260,13 @@ export async function OperationalCosts(route, router) {
         if (pf.maintenance_support_charges && pf.maintenance_support_charges.length > 0) {
           pf.maintenance_support_charges.forEach(mc => {
             allCosts.push({
-              pfid: pf.id,
+              pfid: p.id,
               project: projName,
               category: 'MAINTENANCE & SUPPORT',
               category_raw: 'maintenance',
               details: mc.description || 'Maintenance Contract',
+              domain: null,
+              sslData: null,
               amount: parseFloat(mc.amount) || 0,
               startDate: mc.start_date,
               expiryDate: mc.end_date
@@ -249,20 +310,33 @@ export async function OperationalCosts(route, router) {
     const start = (sslCurrentPage - 1) * itemsPerPage;
     const paginated = renewalHistory.slice(start, start + itemsPerPage);
 
-    tbody.innerHTML = paginated.map(h => `
+    tbody.innerHTML = paginated.map(h => {
+      let badgeType = 'default';
+      let typeLabel = 'SSL';
+      if (h.hosting_details && h.hosting_details.toLowerCase().includes('domain')) {
+        badgeType = 'warning';
+        typeLabel = 'Domain';
+      } else if (h.hosting_details && (h.hosting_details.toLowerCase().includes('hosting') || h.hosting_details.toLowerCase().includes('aws') || h.hosting_details.toLowerCase().includes('droplet'))) {
+        badgeType = 'primary';
+        typeLabel = 'Hosting';
+      }
+
+      return `
       <tr>
         <td>${fmtDate(h.renewal_date)}</td>
         <td>
           <div style="font-weight:600">${h.project_name || 'Unknown Project'}</div>
           <div style="font-size:0.75rem; color:var(--text-muted)">${h.hosting_details || ''}</div>
         </td>
+        <td><span class="fin-badge ${badgeType}">${typeLabel}</span></td>
         <td style="color:var(--text-muted)">${fmtDate(h.previous_expiry_date)}</td>
         <td style="font-weight:600">${fmtDate(h.new_expiry_date)}</td>
         <td style="font-weight:700">${fmt(h.renewal_amount)}</td>
         <td style="font-family:monospace">${h.payment_reference || '-'}</td>
         <td>${h.renewed_by_name || 'System'}</td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
 
     const paginationContainer = container.querySelector('#pagination-container-ssl');
     paginationContainer.innerHTML = renderPagination(renewalHistory.length, sslCurrentPage, itemsPerPage);

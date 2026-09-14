@@ -8,6 +8,7 @@ export async function ProjectFinance(route, router) {
   setTimeout(updateFinanceSidebar, 0);
 
   const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
 
   // ── Finance-lock helpers (Rule A + Rule B) ──────────────────────────────
   const LOCKED_STATUSES = ['closed', 'completed', 'cancelled'];
@@ -49,8 +50,8 @@ export async function ProjectFinance(route, router) {
       const project    = projectData.project || {};
       const projectLock = getFinanceLock(project);
       const payments = (projectData.invoices || []).flatMap(inv => (inv.client_payments || []).map(cp => ({
-        date: cp.payment_date,
-        type: 'Bank Transfer',
+        date: fmtDate(cp.payment_date),
+        type: cp.payment_method ? cp.payment_method.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Bank Transfer',
         amount: cp.amount,
         status: 'Confirmed'
       })));
@@ -147,7 +148,7 @@ export async function ProjectFinance(route, router) {
               <div class="fin-cost-section" style="margin-top:0.75rem;">
                 <div class="fin-cost-section-title">Maintenance & Support</div>
                 ${projectData.maintenance_support_charges?.length > 0
-                  ? `<div class="fin-cost-item"><span class="label">Annual Support</span><span class="value">${fmt(projectData.maintenance_support_charges.reduce((s,c)=>s+parseFloat(c.cost),0))}</span></div>`
+                  ? `<div class="fin-cost-item"><span class="label">Annual Support</span><span class="value">${fmt(projectData.maintenance_support_charges.reduce((s,c)=>s+parseFloat(c.amount),0))}</span></div>`
                   : `<div class="fin-cost-item"><span class="label" style="font-style:italic;">Not included</span><span class="value">–</span></div>`
                 }
               </div>
@@ -192,6 +193,9 @@ export async function ProjectFinance(route, router) {
             </div>
           </div>
         </div>
+
+        <!-- SSL Information (Dynamically loaded) -->
+        <div id="project-ssl-info-container"></div>
 
         <!-- Resource Expenses -->
         <div class="fin-panel">
@@ -242,6 +246,161 @@ export async function ProjectFinance(route, router) {
           alert('Please record client payments via the Invoices Ledger.');
           router.push('/finance/invoices');
         });
+      }
+
+      // Fetch and render SSL Information
+      const hasSsl = projectData.hosting_charges && projectData.hosting_charges.some(hc => hc.charge_type === 'ssl' && hc.domain_name);
+      if (hasSsl) {
+        const sslContainer = container.querySelector('#project-ssl-info-container');
+        if (sslContainer) {
+          sslContainer.innerHTML = `
+            <div class="fin-panel" style="margin-bottom: 1.25rem;">
+              <div class="fin-panel-header">
+                <div class="fin-panel-title">SSL Information</div>
+                <div class="fin-panel-subtitle">Live SSL Certificate Status</div>
+              </div>
+              <div style="padding: 1rem; text-align: center; color: var(--text-muted);">
+                <span class="fin-spinner" style="margin-right:8px"></span> Fetching live SSL certificate...
+              </div>
+            </div>
+          `;
+          
+          financeService._fetch('/finance/ssl-status').then(async response => {
+            if (response && response.ssl_status) {
+              const sslData = response.ssl_status.find(s => s.project_id === project.id);
+              if (sslData) {
+                let renewals = [];
+                try {
+                  const allRenewals = await financeService._fetch('/finance/ssl-renewal-history');
+                  if (allRenewals && Array.isArray(allRenewals)) {
+                    renewals = allRenewals.filter(r => r.project_id === project.id);
+                  }
+                } catch(e) {}
+                
+                const fmtN = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+                let statusBadge = '';
+                if (sslData.error) {
+                  statusBadge = '<span class="fin-badge danger">Unable to fetch SSL certificate</span>';
+                } else if (sslData.status === 'Expired') {
+                  statusBadge = '<span class="fin-badge danger">Expired</span>';
+                } else if (sslData.status === 'Critical') {
+                  statusBadge = '<span class="fin-badge danger">Critical</span>';
+                } else if (sslData.status === 'Expiring Soon') {
+                  statusBadge = '<span class="fin-badge warning">Expiring Soon</span>';
+                } else {
+                  statusBadge = '<span class="fin-badge success">Active</span>';
+                }
+                
+                const renewalWarning = sslData.unrecorded_renewal
+                  ? `<div style="background:#e0f2fe; color:#0369a1; padding: 10px; margin-top: 15px; border-radius: 6px; font-size: 0.9rem;">
+                      <strong>Notice:</strong> SSL certificate appears to have been renewed. Please record the renewal expense if it has not already been recorded.
+                     </div>`
+                  : '';
+                
+                const renewalsTable = renewals.length > 0 ? `
+                  <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <div style="font-size: 0.95rem; font-weight: 600; margin-bottom: 10px;">Renewal History</div>
+                    <div class="fin-table-wrap" style="max-height: 250px; overflow-y: auto;">
+                      <table class="fin-table" style="font-size: 0.85rem;">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Previous Expiry</th>
+                            <th>New Expiry</th>
+                            <th>Amount</th>
+                            <th>Renewed By</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${renewals.map(r => `
+                            <tr>
+                              <td>${fmtDate(r.renewal_date)}</td>
+                              <td>${fmtDate(r.previous_expiry_date)}</td>
+                              <td>${fmtDate(r.new_expiry_date)}</td>
+                              <td style="font-weight: 600;">${fmtN(r.renewal_amount)}</td>
+                              <td>${r.renewed_by_name || 'System / Unknown'}</td>
+                            </tr>
+                          `).join('')}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ` : '';
+                
+                sslContainer.innerHTML = `
+                  <div class="fin-panel" style="margin-bottom: 1.25rem;">
+                    <div class="fin-panel-header">
+                      <div class="fin-panel-title">SSL Information</div>
+                      <div class="fin-panel-subtitle">Live SSL Certificate Status</div>
+                    </div>
+                    <div class="fin-grid-2" style="padding: 0.5rem 0; gap: 1.5rem;">
+                      <div>
+                        <div style="margin-bottom: 0.75rem;">
+                          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Domain</div>
+                          <div style="font-weight: 600;">${sslData.domain}</div>
+                        </div>
+                        <div style="margin-bottom: 0.75rem;">
+                          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Website</div>
+                          <div style="font-weight: 600;"><a href="${sslData.ssl_url}" target="_blank" style="color:var(--primary);text-decoration:none;">${sslData.ssl_url}</a></div>
+                        </div>
+                        <div style="margin-bottom: 0.75rem;">
+                          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Provider / Details</div>
+                          <div style="font-weight: 500;">${sslData.provider}</div>
+                        </div>
+                      </div>
+                      <div>
+                        <div style="margin-bottom: 0.75rem;">
+                          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Current SSL Expiry</div>
+                          <div style="font-weight: 600;">${fmtDate(sslData.expiry_date)}</div>
+                        </div>
+                        <div style="margin-bottom: 0.75rem;">
+                          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Days Remaining</div>
+                          <div style="font-weight: 600;">${sslData.days_remaining !== null ? sslData.days_remaining + ' days' : '-'}</div>
+                        </div>
+                        <div style="margin-bottom: 0.75rem;">
+                          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">SSL Status</div>
+                          <div>${statusBadge}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 2rem;">
+                      <div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Initial SSL Cost</div>
+                        <div style="font-weight: 600;">${sslData.initial_ssl_amount ? fmtN(sslData.initial_ssl_amount) : '-'}</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Total Renewal Cost</div>
+                        <div style="font-weight: 600;">${sslData.total_renewal_cost !== null ? fmtN(sslData.total_renewal_cost) : '-'}</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Total SSL Spent</div>
+                        <div style="font-weight: 700; color: var(--primary);">${sslData.total_ssl_spent !== null ? fmtN(sslData.total_ssl_spent) : '-'}</div>
+                      </div>
+                    </div>
+                    
+                    ${renewalsTable}
+                    ${renewalWarning}
+                  </div>
+                `;
+              } else {
+                sslContainer.innerHTML = '';
+              }
+            }
+          }).catch(err => {
+            sslContainer.innerHTML = `
+              <div class="fin-panel" style="margin-bottom: 1.25rem;">
+                <div class="fin-panel-header">
+                  <div class="fin-panel-title">SSL Information</div>
+                  <div class="fin-panel-subtitle">Live SSL Certificate Status</div>
+                </div>
+                <div style="padding: 1rem; color: #dc2626;">
+                  Failed to fetch SSL status.
+                </div>
+              </div>
+            `;
+          });
+        }
       }
 
       } catch (e) {
@@ -465,6 +624,18 @@ export async function ProjectFinance(route, router) {
           currentPage = page;
           renderProjects();
         });
+
+        setTimeout(() => {
+          const expContainer = container.querySelector('#pagination-container-expenses');
+          if (expContainer) {
+            setupPaginationListeners(expContainer, (page) => {
+              expensesCurrentPage = page;
+              renderResourceExpenses(expensesCurrentPage);
+            });
+          }
+        }, 0);
+
+
       }
     };
 

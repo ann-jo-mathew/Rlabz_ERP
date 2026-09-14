@@ -861,6 +861,7 @@ class FullDatabaseDemoSeeder extends Seeder
             'amount' => 12000.00,
             'purchase_date' => '2026-01-01',
             'expiry_date' => '2027-01-01',
+            'domain_name' => 'medcarehms.com',
             'reference_details' => 'AWS EC2 Instance (Smart Campus IoT)',
             'created_at' => now(),
             'updated_at' => now(),
@@ -873,6 +874,32 @@ class FullDatabaseDemoSeeder extends Seeder
             'new_expiry_date' => '2028-01-01',
             'renewal_amount' => 2500.00,
             'renewed_by' => $financeId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        // Add an actual SSL charge for Project 1 so the dynamic fetcher tests it
+        $ssl1Id = DB::table('hosting_charges')->insertGetId([
+            'project_finance_id' => $pf1Id,
+            'charge_type' => 'ssl',
+            'amount' => 3500.00,
+            'purchase_date' => '2026-01-10',
+            'expiry_date' => '2027-01-15',
+            'domain_name' => 'medcarehms.com',
+            'reference_details' => 'Comodo SSL certificate for medcarehms.com',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        // SSL for Project 2
+        $ssl2Id = DB::table('hosting_charges')->insertGetId([
+            'project_finance_id' => $pf2Id,
+            'charge_type' => 'ssl',
+            'amount' => 2500.00,
+            'purchase_date' => '2026-01-28',
+            'expiry_date' => '2027-02-01',
+            'domain_name' => 'mits.edu.in',
+            'reference_details' => 'Wildcard SSL certificate for *.mits.edu.in',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
