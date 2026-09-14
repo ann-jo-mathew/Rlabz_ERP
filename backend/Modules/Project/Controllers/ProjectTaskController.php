@@ -136,7 +136,7 @@ class ProjectTaskController extends Controller
         $this->checkPermission($request, 'project.task.update');
         
         $request->validate([
-            'status' => 'required|string|in:To Do,In Progress,Completed,Blocked,todo,in_progress,completed,blocked'
+            'status' => 'required|string|in:To Do,In Progress,Completed,Blocked,Rework,todo,in_progress,completed,blocked,rework'
         ]);
 
         $task = Task::find($taskId);
@@ -157,10 +157,12 @@ class ProjectTaskController extends Controller
             'In Progress' => 'in_progress',
             'Completed' => 'completed',
             'Blocked' => 'blocked',
+            'Rework' => 'rework',
             'todo' => 'todo',
             'in_progress' => 'in_progress',
             'completed' => 'completed',
             'blocked' => 'blocked',
+            'rework' => 'rework',
         ];
         $task->status = $statusMap[$request->status];
         $task->save();
@@ -184,7 +186,7 @@ class ProjectTaskController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|string|in:blocked,in_progress,not_started,completed'
+            'status' => 'required|string|in:blocked,in_progress,not_started,completed,rework'
         ]);
 
         $module = Module::find($moduleId);
@@ -218,12 +220,12 @@ class ProjectTaskController extends Controller
                     $module->save();
                 }
             } else {
-                // If not all completed and previously marked completed, update to in_progress or not_started
+                // If not all completed and previously marked completed, update to rework or in_progress
                 if ($module->status === 'completed') {
-                    $hasAnyInProgressOrCompleted = $tasks->contains(function ($t) {
-                        return in_array(strtolower($t->status), ['in_progress', 'completed']);
+                    $hasAnyRework = $tasks->contains(function ($t) {
+                        return strtolower($t->status) === 'rework';
                     });
-                    $module->status = $hasAnyInProgressOrCompleted ? 'in_progress' : 'not_started';
+                    $module->status = $hasAnyRework ? 'rework' : 'in_progress';
                     $module->save();
                 }
             }

@@ -28,17 +28,18 @@
 }
 
 .premium-table thead {
-  background: var(--bg-main);
-  border-bottom: 2px solid var(--border-color);
+  background: #e8f7f1;
+  border-bottom: 2px solid #a7f3d0;
 }
 
 .premium-table th {
   padding: 1rem 1.5rem;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: #065f46;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background: #e8f7f1;
 }
 
 .premium-table td {
@@ -50,11 +51,20 @@
 }
 
 .premium-table tbody tr {
+  background: #ffffff;
   transition: var(--transition);
 }
 
+.premium-table tbody tr:nth-child(even) {
+  background: #ffffff;
+}
+
+.premium-table tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
 .premium-table tbody tr:hover {
-  background: var(--primary-light);
+  background: #f8fafc;
 }
 
 .premium-table tbody tr:last-child td {
@@ -285,16 +295,18 @@
   background: #ffffff;
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 12px;
-  padding: 1.1rem 1.25rem;
+  padding: 1.15rem 1.35rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
 }
 
 .project-info-tile:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.07);
+  border-color: #cbd5e1;
 }
 
 .project-info-icon-box {
@@ -338,13 +350,39 @@
   text-overflow: ellipsis;
 }
 
-/* Scope & Requirements Cards */
+/* Scope & Requirements Cards matching Dashboard effect */
 .project-section-card {
   background: #ffffff;
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 12px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.35rem 1.6rem;
   margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+}
+
+.project-section-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+.project-requirements-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.project-requirements-grid .project-section-card {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 900px) {
+  .project-requirements-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .project-section-header {
@@ -605,3 +643,25 @@
   color: #475569;
   border: 1px solid #e2e8f0;
 }
+
+/* Two-column horizontal layout for Project Requirements & Requirement Changes */
+.project-requirements-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: stretch;
+}
+
+.project-requirements-grid > .project-section-card {
+  margin-bottom: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 900px) {
+  .project-requirements-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

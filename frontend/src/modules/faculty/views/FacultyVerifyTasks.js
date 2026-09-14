@@ -80,11 +80,11 @@ export function FacultyVerifyTasks() {
                 <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                     <thead>
                         <tr style="background: var(--bg-main, #f8fafc); border-bottom: 2px solid var(--border-color, #e2e8f0);">
-                            <th style="padding: 1rem 1.5rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Project Title</th>
-                            <th style="padding: 1rem 1.5rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Client</th>
-                            <th style="padding: 1rem 1.5rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Type</th>
-                            <th style="padding: 1rem 1.5rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
-                            <th style="padding: 1rem 1.5rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
+                            <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Project Title</th>
+                            <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Client Name</th>
+                            <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Type</th>
+                            <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
+                            <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="verify-projects-table-body">
@@ -145,9 +145,8 @@ export function FacultyVerifyTasks() {
                         </span>
                     </td>
                     <td style="padding: 1.15rem 1.5rem; text-align: right;">
-                        <button class="btn btn-sm btn-primary shadow-hover btn-open-project-logs" data-id="${project.id}" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.95rem;">
-                            <span>Verify & Review</span>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        <button class="btn btn-sm btn-primary shadow-hover btn-open-project-logs" data-id="${project.id}">
+                            Verify
                         </button>
                     </td>
                 </tr>
@@ -231,11 +230,39 @@ export function FacultyVerifyTasks() {
             filteredLogs = workLogs.filter(l => (l.approval_status || '').toLowerCase() === 'rejected');
         }
 
+        const behindScheduleModules = projectDetail.behind_schedule_modules || [];
+
         container.innerHTML = `
             ${actionMessage ? `
                 <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.85rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
                     <span>${actionMessage}</span>
                     <button class="btn-close-msg" style="background:none; border:none; color: #166534; cursor: pointer; font-size: 1.1rem; line-height: 1;">&times;</button>
+                </div>
+            ` : ''}
+
+            ${behindScheduleModules.length > 0 ? `
+                <div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #92400e; font-size: 0.95rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.1rem;">⚠️</span>
+                        <span>Schedule Alert: Some Module(s) Are Behind Schedule</span>
+                    </div>
+                    <p style="margin: 0 0 0.75rem; font-size: 0.86rem; color: #78350f; line-height: 1.45;">
+                        The student hours logged on these modules exceed the planned task weights set by faculty:
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+                        ${behindScheduleModules.map(bm => `
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; background: #ffffff; padding: 0.65rem 1rem; border-radius: 8px; border: 1px solid #fef3c7; font-size: 0.86rem;">
+                                <div>
+                                    <strong style="color: #0f172a;">${bm.module_name || 'Module'}</strong>
+                                    <span style="color: #64748b; font-size: 0.82rem; margin-left: 0.5rem;">(${bm.reason || 'Actual hours exceed planned weight'})</span>
+                                </div>
+                                <div style="display: flex; gap: 0.75rem; font-size: 0.82rem;">
+                                    <span style="color: #0284c7; font-weight: 600;">Planned: ${bm.completed_weight || 0}/${bm.total_weight || 0} hrs</span>
+                                    <span style="color: #dc2626; font-weight: 700;">Logged: ${bm.total_hours || 0} hrs</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             ` : ''}
 
@@ -406,6 +433,9 @@ export function FacultyVerifyTasks() {
                                                     <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
                                                         <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${taskStatus === 'completed' ? '#ecfdf5' : '#f1f5f9'}; color: ${taskStatus === 'completed' ? '#059669' : '#475569'}; border: 1px solid ${taskStatus === 'completed' ? '#a7f3d0' : '#e2e8f0'}; text-transform: uppercase;">
                                                             TASK: ${taskStatus.replace('_', ' ')}
+                                                        </span>
+                                                        <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd;" title="Planned weight/estimated hours">
+                                                            Weight: ${l.task_weight || 1} hrs
                                                         </span>
                                                         ${isLate ? `
                                                             <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;" title="Submitted after task deadline of ${dueDate}">

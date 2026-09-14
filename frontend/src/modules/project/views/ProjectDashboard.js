@@ -71,11 +71,11 @@ export async function ProjectDashboard(route, router) {
         <table class="premium-table" style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr style="background: var(--bg-main, #f8fafc); border-bottom: 2px solid var(--border-color, #e2e8f0);">
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Project Title</th>
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Type</th>
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Client</th>
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status</th>
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Actions</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Project Title</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Client Name</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Type</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -86,11 +86,11 @@ export async function ProjectDashboard(route, router) {
       html += `
         <tr class="project-row-clickable" data-project-id="${p.id}" style="border-bottom: 1px solid var(--border-color, #e2e8f0); transition: background 0.15s ease;">
           <td style="padding: 1.15rem 1.5rem; font-weight: 700; color: var(--text-main); font-size: 0.95rem;">${p.title}</td>
-          <td style="padding: 1.15rem 1.5rem;"><span style="color: var(--text-muted); font-size: 0.9rem;">${p.project_type || 'N/A'}</span></td>
           <td style="padding: 1.15rem 1.5rem; color: var(--text-main); font-size: 0.92rem;">${p.client_name || 'N/A'}</td>
+          <td style="padding: 1.15rem 1.5rem;"><span style="color: var(--text-muted); font-size: 0.9rem;">${p.project_type || 'N/A'}</span></td>
           <td style="padding: 1.15rem 1.5rem;"><span class="status-badge ${pStatus.replace(' ', '_')}">${p.status || 'active'}</span></td>
           <td style="padding: 1.15rem 1.5rem; text-align: right;">
-            <button class="btn btn-sm btn-outline btn-view-project" data-id="${p.id}">View Details</button>
+            <button class="btn btn-sm btn-primary shadow-hover btn-view-project" data-id="${p.id}">View</button>
           </td>
         </tr>
       `;

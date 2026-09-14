@@ -571,7 +571,6 @@ class DashboardController extends Controller
                     'tasks.description',
                     'tasks.status',
                     'tasks.due_date',
-                    'tasks.review_status',
                     'tasks.reviewed_at',
                     'tasks.created_at',
                     'modules.module_name',
@@ -584,12 +583,14 @@ class DashboardController extends Controller
                 ->map(function ($t) {
                     $statusNormalized = strtolower($t->status ?: 'todo');
                     $progress = ($statusNormalized === 'completed') ? 100 : 
+                                (($statusNormalized === 'rework') ? 30 :
                                 (($statusNormalized === 'in_progress') ? 65 : 
-                                (($statusNormalized === 'under_review') ? 90 : 25));
+                                (($statusNormalized === 'under_review') ? 90 : 25)));
                     
                     $statusDisplay = ($statusNormalized === 'completed') ? 'Completed' : 
+                                     (($statusNormalized === 'rework') ? 'Rework' : 
                                      (($statusNormalized === 'in_progress') ? 'In Progress' : 
-                                     (($statusNormalized === 'under_review') ? 'Under Review' : 'To Do'));
+                                     (($statusNormalized === 'under_review') ? 'Under Review' : 'To Do')));
 
                     $priority = ($statusNormalized === 'completed') ? 'Critical' : 
                                 (($progress >= 60) ? 'High' : 'Medium');
@@ -606,7 +607,7 @@ class DashboardController extends Controller
                         'progress' => $progress,
                         'dueDate' => $t->due_date ? date('Y-m-d', strtotime($t->due_date)) : '2026-09-25',
                         'reviewer' => $t->reviewer_name ?: 'Faculty Mentor',
-                        'reviewNotes' => $t->review_status ? "Review state: {$t->review_status}" : 'Deliverable verified in repository branch.'
+                        'reviewNotes' => ($statusNormalized === 'rework') ? 'Rework requested by faculty supervisor.' : 'Deliverable verified in repository branch.'
                     ];
                 });
         }

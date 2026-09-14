@@ -17,9 +17,9 @@ class Task extends Model
         'weight',
         'assigned_to',
         'status',
+        'rating',
         'due_date',
         'reviewed_by',
-        'review_status',
         'reviewed_at',
         'created_by',
     ];

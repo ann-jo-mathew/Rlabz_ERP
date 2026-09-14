@@ -427,33 +427,30 @@ class StudentController extends Controller
 
         // Query tasks:
         // 1. MUST be assigned to this student (assigned_to = $studentId)
-        // 2. MUST NOT be completed UNLESS rework is needed (status != 'completed' OR review_status == 'rejected')
+        // 2. MUST NOT be completed (status != 'completed')
         $tasks = DB::table('tasks')
             ->join('modules', 'modules.id', '=', 'tasks.module_id')
             ->whereIn('tasks.module_id', $moduleIds)
             ->where('tasks.assigned_to', $studentId)
-            ->where(function ($q) {
-                $q->where('tasks.status', '!=', 'completed')
-                  ->orWhere('tasks.review_status', '=', 'rejected');
-            })
+            ->where('tasks.status', '!=', 'completed')
             ->select(
                 'tasks.id',
                 'tasks.title',
                 'tasks.description',
                 'tasks.status',
-                'tasks.review_status',
                 'tasks.due_date',
                 'modules.module_name'
             )
             ->orderBy('tasks.id', 'asc')
             ->get()
             ->map(function ($t) {
-                $isRework = ($t->review_status === 'rejected');
+                $isRework = (strtolower($t->status) === 'rework');
                 $statusMap = [
                     'todo' => 'Todo',
                     'in_progress' => 'In Progress',
                     'completed' => 'Completed',
                     'blocked' => 'Blocked',
+                    'rework' => 'Rework',
                 ];
                 return [
                     'id' => $t->id,
@@ -462,7 +459,6 @@ class StudentController extends Controller
                     'description' => $t->description ?: '',
                     'status' => $statusMap[strtolower($t->status ?: 'todo')] ?? ucfirst($t->status),
                     'rawStatus' => strtolower($t->status ?: 'todo'),
-                    'reviewStatus' => $t->review_status ?: 'pending',
                     'isRework' => $isRework,
                     'moduleName' => $t->module_name,
                     'dueDate' => $t->due_date ? date('M j, Y', strtotime($t->due_date)) : null,
@@ -588,7 +584,7 @@ class StudentController extends Controller
             return response()->json(['error' => 'You can only log reports for tasks assigned to you.'], 403);
         }
 
-        if ($task->status === 'completed' && $task->review_status !== 'rejected') {
+        if ($task->status === 'completed') {
             return response()->json(['error' => 'This task is already completed and cannot accept reports unless rework is requested.'], 422);
         }
 
@@ -1403,7 +1399,6 @@ class StudentController extends Controller
                         'tasks.assigned_to', 
                         'users.name as assignee', 
                         'tasks.status', 
-                        'tasks.review_status',
                         'tasks.due_date'
                     )
                     ->get();
@@ -1417,6 +1412,7 @@ class StudentController extends Controller
                     'todo' => 'Todo',
                     'blocked' => 'Blocked',
                     'not_started' => 'Todo',
+                    'rework' => 'Rework',
                 ];
 
                 $tasksByModule = [];
@@ -1429,8 +1425,7 @@ class StudentController extends Controller
                         'assignee' => $t->assignee ?: 'Unassigned',
                         'isMyTask' => ($t->assigned_to == $studentId),
                         'status' => $statusMap[strtolower($t->status ?: 'todo')] ?? 'Todo',
-                        'reviewStatus' => $t->review_status,
-                        'isRework' => ($t->review_status === 'rejected'),
+                        'isRework' => (strtolower($t->status ?: '') === 'rework'),
                         'dueDate' => $t->due_date ? date('M d, Y', strtotime($t->due_date)) : null,
                     ];
                 }
@@ -1553,7 +1548,6 @@ class StudentController extends Controller
                 'tasks.title',
                 'tasks.description',
                 'tasks.status',
-                'tasks.review_status',
                 'tasks.due_date',
                 'tasks.created_at',
                 'modules.id as module_id',
@@ -1571,6 +1565,7 @@ class StudentController extends Controller
                     'in_progress' => 'In Progress',
                     'completed' => 'Completed',
                     'blocked' => 'Blocked',
+                    'rework' => 'Rework',
                 ];
                 $assigner = $t->assigned_by_name ? ($t->assigned_by_name . ($t->assigned_by_role ? ' (' . ucfirst($t->assigned_by_role) . ')' : '')) : 'Faculty / Coordinator';
                 return [
@@ -1580,8 +1575,7 @@ class StudentController extends Controller
                     'description' => $t->description ?: '',
                     'status' => $statusMap[strtolower($t->status)] ?? ucfirst($t->status),
                     'rawStatus' => strtolower($t->status),
-                    'reviewStatus' => $t->review_status,
-                    'isRework' => ($t->review_status === 'rejected'),
+                    'isRework' => (strtolower($t->status) === 'rework'),
                     'dueDate' => $t->due_date ? date('M j, Y', strtotime($t->due_date)) : 'No deadline',
                     'createdAt' => $t->created_at ? (string)$t->created_at : null,
                     'isOverdue' => $t->due_date ? (strtotime($t->due_date) < time() && strtolower($t->status) !== 'completed') : false,

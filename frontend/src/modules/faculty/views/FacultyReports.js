@@ -27,7 +27,6 @@ export function FacultyReports() {
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
                 <div>
                     <h1>Project Reports</h1>
-                    <p>Executive project briefing packs and developmental reports for projects assigned to you.</p>
                 </div>
                 <div style="position: relative; width: 320px; max-width: 100%;">
                     <input 

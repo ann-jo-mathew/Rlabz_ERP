@@ -61,79 +61,82 @@ export function FacultyProfile() {
             .slice(0, 2);
 
         container.innerHTML = `
-            <div class="page-header">
+            <div class="page-header" style="margin-bottom: 22px;">
                 <h1>Faculty Profile</h1>
-                <p>Personal and academic profile retrieved from the database.</p>
+                <p>Personal and academic profile details.</p>
             </div>
 
-            <div class="faculty-profile-card" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 30px; display: flex; gap: 30px; align-items: flex-start; max-width: 800px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
-                
-                <div class="profile-photo" style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
-                    <div id="avatar-display" style="border-radius: 50%; width: 110px; height: 110px; background: #087f5b; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 700; border: 4px solid #e8f7f1; overflow: hidden; position: relative; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
-                        ${facultyPhoto ? `
-                            <img src="${facultyPhoto}" alt="${facultyData.name}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
-                        ` : `
-                            <span>${initials}</span>
-                        `}
-                    </div>
-
-                    <input type="file" id="faculty-photo-file-input" accept="image/*" style="display: none;" />
-
-                    <div style="display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center;">
-                        <button type="button" id="btn-upload-photo" class="btn btn-sm btn-outline shadow-hover" style="font-size: 0.76rem; padding: 0.35rem 0.75rem; border-color: #059669; color: #059669; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap;">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                            ${facultyPhoto ? 'Change Photo' : 'Add Photo'}
-                        </button>
-
-                        ${facultyPhoto ? `
-                            <button type="button" id="btn-remove-photo" style="background: none; border: none; font-size: 0.72rem; color: #dc2626; cursor: pointer; text-decoration: underline; padding: 0;">
-                                Remove Photo
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-
-                <div class="profile-details" style="flex-grow: 1;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-                        <h2 style="margin: 0; color: #172033; font-size: 24px;">${facultyData.name}</h2>
-                        <span style="background: #e8f7f1; color: #087f5b; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">
-                            ${facultyData.role}
-                        </span>
-                    </div>
+            <div class="simple-profile-container">
+                <div class="simple-profile-card">
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div style="background: #f7faf9; padding: 12px; border-radius: 8px;">
-                            <span style="display: block; font-size: 12px; color: #718096; margin-bottom: 5px;">Full Name</span>
-                            <strong style="color: #172033; font-size: 14px;">${facultyData.name}</strong>
+                    <div class="simple-profile-avatar-wrap">
+                        <div id="avatar-display" class="simple-profile-avatar">
+                            ${facultyPhoto ? `
+                                <img src="${facultyPhoto}" alt="${facultyData.name}" />
+                            ` : `
+                                <span>${initials}</span>
+                            `}
                         </div>
 
-                        <div style="background: #f7faf9; padding: 12px; border-radius: 8px;">
-                            <span style="display: block; font-size: 12px; color: #718096; margin-bottom: 5px;">Email Address</span>
-                            <strong style="color: #172033; font-size: 14px;">${facultyData.email}</strong>
-                        </div>
+                        <input type="file" id="faculty-photo-file-input" accept="image/*" style="display: none;" />
 
-                        <div style="background: #f7faf9; padding: 12px; border-radius: 8px;">
-                            <span style="display: block; font-size: 12px; color: #718096; margin-bottom: 5px;">Department</span>
-                            <strong style="color: #172033; font-size: 14px;">${facultyData.department}</strong>
-                        </div>
-                        
-                        <div style="background: #f7faf9; padding: 12px; border-radius: 8px;">
-                            <span style="display: block; font-size: 12px; color: #718096; margin-bottom: 5px;">Designation</span>
-                            <strong style="color: #172033; font-size: 14px;">${facultyData.designation}</strong>
-                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 5px; align-items: center; width: 100%;">
+                            <button type="button" id="btn-upload-photo" class="btn btn-sm" style="font-size: 0.75rem; padding: 0.32rem 0.7rem; background: #ffffff; border: 1px solid #059669; color: #059669; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                ${facultyPhoto ? 'Change Photo' : 'Upload Photo'}
+                            </button>
 
-                        <div style="background: #f7faf9; padding: 12px; border-radius: 8px;">
-                            <span style="display: block; font-size: 12px; color: #718096; margin-bottom: 5px;">Phone Number</span>
-                            <strong style="color: #172033; font-size: 14px;">${facultyData.phone || 'Not provided'}</strong>
-                        </div>
-
-                        <div style="background: #f7faf9; padding: 12px; border-radius: 8px;">
-                            <span style="display: block; font-size: 12px; color: #718096; margin-bottom: 5px;">Account Role</span>
-                            <strong style="color: #172033; font-size: 14px;">${facultyData.role}</strong>
+                            ${facultyPhoto ? `
+                                <button type="button" id="btn-remove-photo" style="background: none; border: none; font-size: 0.72rem; color: #dc2626; cursor: pointer; text-decoration: underline; padding: 0;">
+                                    Remove Photo
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
-                </div>
 
+                    <div class="simple-profile-details">
+                        <div class="simple-profile-header">
+                            <h2>${facultyData.name}</h2>
+                            <span class="simple-profile-badge">${facultyData.role}</span>
+                        </div>
+
+                        <div class="simple-profile-grid">
+                            <div class="simple-profile-field">
+                                <span class="label">Full Name</span>
+                                <div class="value">${facultyData.name}</div>
+                            </div>
+
+                            <div class="simple-profile-field">
+                                <span class="label">Email Address</span>
+                                <div class="value">${facultyData.email}</div>
+                            </div>
+
+                            <div class="simple-profile-field">
+                                <span class="label">Phone Number</span>
+                                <div class="value">${facultyData.phone || 'Not provided'}</div>
+                            </div>
+
+                            <div class="simple-profile-field">
+                                <span class="label">Department</span>
+                                <div class="value">${facultyData.department}</div>
+                            </div>
+
+                            <div class="simple-profile-field">
+                                <span class="label">Designation</span>
+                                <div class="value">${facultyData.designation}</div>
+                            </div>
+
+                            <div class="simple-profile-field">
+                                <span class="label">Account Status</span>
+                                <div class="value" style="color: #059669; display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                                    Active
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         `;
     }
@@ -172,7 +175,7 @@ export function FacultyProfile() {
                         localStorage.setItem('user', JSON.stringify(storedUser));
                     }
                     updateTopbarAvatar(dataUrl);
-                    showFacultySuccessPopup('Profile Photo Updated', 'Your profile photo has been updated successfully and replaced the default avatar.');
+                    showFacultySuccessPopup('Profile Photo Updated', 'Your profile photo has been updated successfully.');
                     renderUI();
                     setupListeners();
                 };

@@ -84,43 +84,49 @@ export function FacultyMeetings() {
     // ==========================================
     function renderScheduleMeetingTab() {
         return `
-            <div style="max-width: 720px; margin: 0 auto;">
-                <div class="faculty-card-panel">
-                    <h2 style="margin: 0 0 0.4rem; font-size: 1.15rem; font-weight: 700; color: var(--text-main, #0f172a);">Schedule New Meeting</h2>
-                    <p style="margin: 0 0 1.25rem; font-size: 0.85rem; color: var(--text-muted, #64748b);">
-                        Fill out the details below to schedule an official project meeting with students. Initial status will be set to <strong>scheduled</strong>.
-                    </p>
+            <div style="max-width: 820px; margin: 0 auto;">
+                <div class="faculty-card-panel" style="background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 1.75rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 1rem;">
+                        <h2 style="margin: 0 0 0.35rem; font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">Schedule Project Meeting</h2>
+                        <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted, #64748b);">
+                            Set up an official meeting with students working under your assigned projects. Initial status will be set to <strong>scheduled</strong>.
+                        </p>
+                    </div>
 
                     <form id="schedule-meeting-form">
-                        <div class="form-group" style="margin-bottom: 1rem;">
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
-                                Meeting Title *
-                            </label>
-                            <input
-                                type="text"
-                                id="meeting-title"
-                                class="premium-input"
-                                placeholder="e.g. Sprint 2 Architectural Sync"
-                                required
-                            />
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 1rem;">
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
-                                Project Assigned to You *
-                            </label>
-                            <select id="meeting-project" class="premium-input" required>
-                                <option value="">Select project...</option>
-                                ${assignedProjects.map(p => `
-                                    <option value="${p.id}">${p.title || p.name}</option>
-                                `).join('')}
-                            </select>
-                        </div>
-
-                        <div style="display: flex; gap: 0.85rem; margin-bottom: 1rem;">
-                            <div style="flex: 1;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+                            <!-- Meeting Title (Full Width) -->
+                            <div class="form-group" style="grid-column: 1 / -1;">
                                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
-                                    Date (Past dates deactivated) *
+                                    Meeting Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    id="meeting-title"
+                                    class="premium-input"
+                                    placeholder="e.g. Sprint 2 Architectural Sync & Progress Review"
+                                    style="width: 100%; box-sizing: border-box; height: 42px;"
+                                    required
+                                />
+                            </div>
+
+                            <!-- Project Selection (Full Width) -->
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                    Target Project *
+                                </label>
+                                <select id="meeting-project" class="premium-input" style="width: 100%; box-sizing: border-box; height: 42px;" required>
+                                    <option value="">-- Select a project assigned to you --</option>
+                                    ${assignedProjects.map(p => `
+                                        <option value="${p.id}">${p.title || p.name}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+
+                            <!-- Meeting Date -->
+                            <div class="form-group">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                    Date (Past dates disabled) *
                                 </label>
                                 <input
                                     type="date"
@@ -128,10 +134,13 @@ export function FacultyMeetings() {
                                     class="premium-input"
                                     min="${todayStr}"
                                     value="${todayStr}"
+                                    style="width: 100%; box-sizing: border-box; height: 42px;"
                                     required
                                 />
                             </div>
-                            <div style="flex: 1;">
+
+                            <!-- Meeting Time -->
+                            <div class="form-group">
                                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
                                     Time *
                                 </label>
@@ -140,53 +149,63 @@ export function FacultyMeetings() {
                                     id="meeting-time"
                                     class="premium-input"
                                     value="14:00"
+                                    style="width: 100%; box-sizing: border-box; height: 42px;"
                                     required
                                 />
                             </div>
+
+                            <!-- Location -->
+                            <div class="form-group">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                    Location
+                                </label>
+                                <input
+                                    type="text"
+                                    id="meeting-location"
+                                    class="premium-input"
+                                    placeholder="e.g. Google Meet or Lab 304"
+                                    value="Google Meet"
+                                    style="width: 100%; box-sizing: border-box; height: 42px;"
+                                />
+                            </div>
+
+                            <!-- Meeting Link (URL) -->
+                            <div class="form-group">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                    Meeting Link (URL)
+                                </label>
+                                <input
+                                    type="url"
+                                    id="meeting-link"
+                                    class="premium-input"
+                                    placeholder="https://meet.google.com/xyz-abc-def"
+                                    style="width: 100%; box-sizing: border-box; height: 42px;"
+                                />
+                            </div>
+
+                            <!-- Agenda / Notes (Full Width) -->
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                    Agenda & Discussion Items (Optional)
+                                </label>
+                                <textarea
+                                    id="meeting-agenda"
+                                    class="premium-input"
+                                    style="width: 100%; box-sizing: border-box; height: 95px; resize: vertical; padding: 0.75rem;"
+                                    placeholder="1. Review task progress&#10;2. Clarify module deliverables&#10;3. Next milestone plan..."
+                                ></textarea>
+                            </div>
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 1rem;">
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
-                                Location
-                            </label>
-                            <input
-                                type="text"
-                                id="meeting-location"
-                                class="premium-input"
-                                placeholder="e.g. Google Meet or CS Seminar Hall"
-                                value="Google Meet"
-                            />
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; pt-3; border-top: 1px solid var(--border-color, #e2e8f0); padding-top: 1.25rem;">
+                            <button type="reset" class="btn btn-outline btn-sm" style="padding: 0.55rem 1.25rem;">
+                                Clear
+                            </button>
+                            <button type="submit" id="schedule-submit-btn" class="btn btn-primary btn-sm shadow-hover" style="padding: 0.55rem 1.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span>Schedule Meeting</span>
+                            </button>
                         </div>
-
-                        <!-- MEETING LINK OPTION -->
-                        <div class="form-group" style="margin-bottom: 1rem;">
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
-                                Meeting Link (URL)
-                            </label>
-                            <input
-                                type="url"
-                                id="meeting-link"
-                                class="premium-input"
-                                placeholder="https://meet.google.com/abc-defg-hij"
-                            />
-                        </div>
-
-                        <!-- AGENDA OPTION -->
-                        <div class="form-group" style="margin-bottom: 1.5rem;">
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
-                                Agenda / Notes
-                            </label>
-                            <textarea
-                                id="meeting-agenda"
-                                class="premium-input"
-                                style="height: 75px; resize: vertical;"
-                                placeholder="1. Discuss API integration&#10;2. Review task assignments..."
-                            ></textarea>
-                        </div>
-
-                        <button type="submit" id="schedule-submit-btn" class="btn btn-primary shadow-hover" style="width: 100%;">
-                            Schedule Meeting
-                        </button>
                     </form>
                 </div>
             </div>

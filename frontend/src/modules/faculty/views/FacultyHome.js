@@ -62,7 +62,7 @@ export function FacultyHome(route, router) {
 
         container.innerHTML = `
             <!-- HEADER WITH FACULTY DETAILS & NOTIFICATION BELL -->
-            <div class="dashboard-header-container" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 2rem;">
+            <div class="dashboard-header-container" style="margin-bottom: 2rem;">
                 <div class="page-header" style="margin-bottom: 0;">
                     <h1 style="margin: 0 0 0.4rem; font-size: 1.65rem; font-weight: 700; color: var(--text-main, #0f172a);">Faculty Dashboard</h1>
                     <p style="margin: 0; font-size: 0.92rem; color: var(--text-muted, #64748b); line-height: 1.5;">
@@ -70,42 +70,6 @@ export function FacultyHome(route, router) {
                         &bull; <span style="color: var(--primary, #059669); font-weight: 600;">${faculty.designation}</span> 
                         &bull; ${faculty.department} (${faculty.email})
                     </p>
-                </div>
-
-                <!-- Notifications Bell Dropdown -->
-                <div class="notification-container" style="position: relative;">
-                    <button id="noti-bell-btn" class="noti-bell-btn" title="Notifications" style="background: white; border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; cursor: pointer; position: relative; padding: 0.6rem 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 0.4rem; color: var(--text-main, #334155);">
-                        ${iconBell}
-                        ${unreadNotiCount > 0 ? `
-                            <span class="noti-badge" style="background: #ef4444; color: white; border-radius: 9999px; font-size: 0.72rem; padding: 2px 6px; font-weight: 700;">
-                                ${unreadNotiCount}
-                            </span>
-                        ` : ''}
-                    </button>
-
-                    <div id="noti-dropdown" class="noti-dropdown" style="display: none; position: absolute; right: 0; top: 48px; width: 340px; background: white; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1)); z-index: 1000; padding: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
-                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-main, #0f172a);">Recent Notifications</h4>
-                            <span style="font-size: 0.75rem; color: var(--text-muted, #64748b);">${notifications.length} total</span>
-                        </div>
-
-                        ${notifications.length === 0 ? `
-                            <p style="font-size: 0.85rem; color: var(--text-muted, #64748b); margin: 1.5rem 0; text-align: center;">No new notifications.</p>
-                        ` : `
-                            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem; max-height: 250px; overflow-y: auto;">
-                                ${notifications.map(n => `
-                                    <li style="font-size: 0.82rem; color: var(--text-main, #334155); padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border-color, #f1f5f9); text-align: left;">
-                                        ${n.message}
-                                        <span style="font-size: 0.72rem; color: var(--text-muted, #94a3b8); display: block; margin-top: 2px;">${n.created_at || 'Recently'}</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        `}
-
-                        <div style="margin-top: 0.75rem; text-align: center; border-top: 1px solid var(--border-color, #e2e8f0); padding-top: 0.5rem;">
-                            <a href="/faculty/notifications" id="noti-view-all" style="font-size: 0.82rem; color: var(--primary, #059669); font-weight: 600; text-decoration: none;">View All Notifications →</a>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -283,22 +247,6 @@ export function FacultyHome(route, router) {
     }
 
     function setupInteractiveListeners() {
-        // Notification bell dropdown toggle
-        const bellBtn = container.querySelector('#noti-bell-btn');
-        const dropdown = container.querySelector('#noti-dropdown');
-        
-        bellBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isShown = dropdown.style.display === 'block';
-            dropdown.style.display = isShown ? 'none' : 'block';
-        });
-
-        document.addEventListener('click', (e) => {
-            if (dropdown && !dropdown.contains(e.target) && e.target !== bellBtn) {
-                dropdown.style.display = 'none';
-            }
-        });
-
         // KPI Cards Click Redirection
         container.querySelectorAll('.faculty-kpi-card-clickable').forEach(card => {
             card.addEventListener('click', () => {

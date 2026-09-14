@@ -607,14 +607,15 @@
     text-align: left;
 }
 
+.faculty-student-table thead,
 .faculty-student-table th {
-    background: #f8fafc;
-    padding: 16px 20px;
+    background: #e8f7f1;
+    padding: 14px 20px;
     font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
+    font-weight: 700;
+    color: #065f46;
     text-transform: uppercase;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 2px solid #a7f3d0;
 }
 
 .faculty-student-table td {
@@ -1309,13 +1310,46 @@
     cursor: pointer;
     transition: background 0.15s ease;
 }
+
+/* Table header styling with greenish tint matching the overall ERP design */
+.premium-table thead,
+.premium-table thead th,
+.faculty-student-table thead,
+.faculty-student-table thead th,
+.project-table-container table thead,
+.project-table-container table thead th {
+    background: #e8f7f1 !important;
+    color: #065f46 !important;
+    border-bottom: 2px solid #a7f3d0 !important;
+    font-weight: 700 !important;
+}
+
+/* Reset table body rows to clean background without green striping */
+.premium-table tbody tr,
+.faculty-student-table tbody tr,
+.project-table-container table tbody tr {
+    background: #ffffff !important;
+}
+.premium-table tbody tr:nth-child(even),
+.faculty-student-table tbody tr:nth-child(even),
+.project-table-container table tbody tr:nth-child(even) {
+    background: #ffffff !important;
+}
+.premium-table tbody tr:nth-child(odd),
+.faculty-student-table tbody tr:nth-child(odd),
+.project-table-container table tbody tr:nth-child(odd) {
+    background: #ffffff !important;
+}
+
 .premium-table tbody tr.project-row-clickable:hover,
 .premium-table tbody tr:hover,
+.faculty-student-table tbody tr:hover,
 .project-table-container table tbody tr:hover {
     background: #f8fafc !important;
 }
 .premium-table tbody tr.project-row-clickable:hover td,
 .premium-table tbody tr:hover td,
+.faculty-student-table tbody tr:hover td,
 .project-table-container table tbody tr:hover td {
     background: transparent !important;
 }
@@ -1327,4 +1361,127 @@
     color: #059669 !important;
     background: transparent !important;
     transition: color 0.15s ease;
+}
+
+/* =========================================
+   SIMPLE COMPACT FACULTY PROFILE
+   ========================================= */
+.simple-profile-container {
+    max-width: 720px;
+}
+
+.simple-profile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 640px) {
+    .simple-profile-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+.simple-profile-avatar-wrap {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.simple-profile-avatar {
+    width: 95px;
+    height: 95px;
+    border-radius: 50%;
+    background: #059669;
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #e8f7f1;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.simple-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.simple-profile-details {
+    flex-grow: 1;
+    width: 100%;
+}
+
+.simple-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.simple-profile-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.simple-profile-badge {
+    background: #e8f7f1;
+    color: #065f46;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #a7f3d0;
+}
+
+.simple-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+@media (max-width: 500px) {
+    .simple-profile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.simple-profile-field {
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.simple-profile-field .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 3px;
+}
+
+.simple-profile-field .value {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1e293b;
+    word-break: break-word;
 }

@@ -92,6 +92,8 @@ class ProjectController extends Controller
 
         $githubRepo = DB::table('github_repositories')->where('project_id', $id)->first();
         $project->github_repository = $githubRepo;
+        $project->client_email = $project->contact_email ?? $project->client_email ?? null;
+        $project->client_phone = $project->contact_phone ?? $project->client_phone ?? null;
 
         return response()->json(['status' => 'success', 'data' => $project]);
     }

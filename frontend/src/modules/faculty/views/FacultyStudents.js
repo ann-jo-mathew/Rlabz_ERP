@@ -16,6 +16,29 @@ export function FacultyStudents() {
     let students = [];
     let isLoading = true;
 
+    function renderStars(rating) {
+        if (!rating || rating <= 0) {
+            return `
+                <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.25rem 0.65rem; border-radius: 8px;">
+                    <span style="color: #cbd5e1; font-size: 0.9rem; letter-spacing: 1px;">☆☆☆☆☆</span>
+                    <span style="font-size: 0.76rem; color: #94a3b8; font-style: italic;">Unrated</span>
+                </div>
+            `;
+        }
+        const fullStars = Math.min(5, Math.floor(rating));
+        const emptyStars = Math.max(0, 5 - fullStars);
+        let starsHtml = '';
+        for (let i = 0; i < fullStars; i++) starsHtml += '<span style="color: #eab308;">★</span>';
+        for (let i = 0; i < emptyStars; i++) starsHtml += '<span style="color: #cbd5e1;">☆</span>';
+
+        return `
+            <div style="display: inline-flex; align-items: center; gap: 0.45rem; background: #fffdf5; border: 1px solid #fef08a; padding: 0.25rem 0.65rem; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                <span style="font-size: 0.95rem; letter-spacing: 1px; display: inline-flex;">${starsHtml}</span>
+                <strong style="font-size: 0.82rem; color: #854d0e;">${Number(rating).toFixed(1)}</strong>
+            </div>
+        `;
+    }
+
     function renderUI() {
         container.innerHTML = `
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
@@ -43,6 +66,7 @@ export function FacultyStudents() {
                             <th>Email</th>
                             <th>Project Name</th>
                             <th>Designation</th>
+                            <th style="min-width: 180px;">Ratings</th>
                         </tr>
                     </thead>
                     <tbody id="faculty-student-table-body">
@@ -59,47 +83,119 @@ export function FacultyStudents() {
             const searchValue = searchInput.value.toLowerCase().trim();
 
             const filteredStudents = students.filter(student =>
-                (student.student_name || student.name || '').toLowerCase().includes(searchValue) ||
-                (student.student_email || student.email || '').toLowerCase().includes(searchValue) ||
-                (student.project_name || student.project || '').toLowerCase().includes(searchValue) ||
-                (student.designation || '').toLowerCase().includes(searchValue)
+                (student.student_name || '').toLowerCase().includes(searchValue) ||
+                (student.student_email || '').toLowerCase().includes(searchValue) ||
+                (student.projects || []).some(p => p.toLowerCase().includes(searchValue)) ||
+                (student.designations || []).some(d => d.toLowerCase().includes(searchValue))
             );
 
             tableBody.innerHTML = renderTableBody(filteredStudents);
         });
     }
 
+    function groupStudents(rawList) {
+        const studentMap = new Map();
+
+        (rawList || []).forEach(item => {
+            const email = (item.student_email || item.email || '').trim();
+            const name = (item.student_name || item.name || '').trim();
+            const id = item.student_id || item.id || null;
+            const key = id ? `id_${id}` : (email ? `email_${email.toLowerCase()}` : `name_${name}`);
+
+            const projectName = (item.project_name || item.project || '').trim();
+            const projectId = item.project_id || null;
+            const designation = (item.designation || 'Nova').trim();
+            const rating = item.avg_rating !== undefined && item.avg_rating !== null ? parseFloat(item.avg_rating) : (item.rating !== undefined && item.rating !== null ? parseFloat(item.rating) : null);
+            const ratedCount = item.rated_tasks_count || 0;
+
+            if (!studentMap.has(key)) {
+                studentMap.set(key, {
+                    student_id: id,
+                    student_name: name || 'Unknown Student',
+                    student_email: email || 'No email',
+                    projects: projectName ? [projectName] : [],
+                    designations: designation ? [designation] : [],
+                    project_ratings: projectName ? [{
+                        project_id: projectId,
+                        project_name: projectName,
+                        rating: rating,
+                        rated_count: ratedCount
+                    }] : []
+                });
+            } else {
+                const existing = studentMap.get(key);
+                if (projectName && !existing.projects.includes(projectName)) {
+                    existing.projects.push(projectName);
+                    existing.project_ratings.push({
+                        project_id: projectId,
+                        project_name: projectName,
+                        rating: rating,
+                        rated_count: ratedCount
+                    });
+                }
+                if (designation && !existing.designations.includes(designation)) {
+                    existing.designations.push(designation);
+                }
+            }
+        });
+
+        return Array.from(studentMap.values());
+    }
+
     function renderTableBody(data) {
         if (isLoading) {
-            return `<tr><td colspan="4" style="text-align: center; color: #64748b; padding: 25px;">Loading students under your assigned projects...</td></tr>`;
+            return `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 25px;">Loading students under your assigned projects...</td></tr>`;
         }
 
         if (!data || data.length === 0) {
-            return `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 30px;">No students found under your assigned projects.</td></tr>`;
+            return `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 30px;">No students found under your assigned projects.</td></tr>`;
         }
 
         return data.map(student => {
-            const name = student.student_name || student.name || 'Unknown Student';
-            const email = student.student_email || student.email || 'No email';
-            const project = student.project_name || student.project || 'Unassigned Project';
-            const designation = student.designation || 'Nova';
-            const designationClass = designation.toLowerCase();
+            const name = student.student_name || 'Unknown Student';
+            const email = student.student_email || 'No email';
+            const projects = student.projects && student.projects.length > 0 ? student.projects : ['Unassigned Project'];
+            const designations = student.designations && student.designations.length > 0 ? student.designations : ['Nova'];
+            const pRatings = student.project_ratings && student.project_ratings.length > 0 ? student.project_ratings : [{ rating: null, project_name: '' }];
 
             return `
                 <tr>
-                    <td style="font-weight: 600; color: #1e293b;">
+                    <td style="font-weight: 600; color: #1e293b; vertical-align: middle;">
                         ${name}
                     </td>
-                    <td style="color: #475569;">
+                    <td style="color: #475569; vertical-align: middle;">
                         ${email}
                     </td>
-                    <td style="color: #1e293b; font-weight: 500;">
-                        ${project}
+                    <td style="color: #1e293b; font-weight: 500; vertical-align: middle;">
+                        <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                            ${projects.map(p => `
+                                <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--primary, #059669); flex-shrink: 0;"></span>
+                                    <span>${p}</span>
+                                </div>
+                            `).join('')}
+                        </div>
                     </td>
-                    <td>
-                        <span class="faculty-designation ${designationClass}">
-                            ${designation}
-                        </span>
+                    <td style="vertical-align: middle;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+                            ${designations.map(des => `
+                                <span class="faculty-designation ${des.toLowerCase()}">
+                                    ${des}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+                            ${pRatings.map(pr => `
+                                <div>
+                                    ${renderStars(pr.rating)}
+                                    ${student.projects.length > 1 && pr.project_name ? `
+                                        <span style="display: block; font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">${pr.project_name}</span>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
                     </td>
                 </tr>
             `;
@@ -118,22 +214,22 @@ export function FacultyStudents() {
 
             if (res.ok) {
                 const data = await res.json();
-                students = Array.isArray(data) ? data : [];
+                students = groupStudents(Array.isArray(data) ? data : []);
             } else {
                 // Fallback default sample for assigned projects
-                students = [
+                students = groupStudents([
                     { student_name: 'Student Nova', student_email: 'nova@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Nova' },
                     { student_name: 'Student Orbit', student_email: 'orbit@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Orbit' },
                     { student_name: 'Student Spark', student_email: 'spark@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Spark' }
-                ];
+                ]);
             }
         } catch (err) {
             console.warn('Could not fetch students from API, using fallback data:', err);
-            students = [
+            students = groupStudents([
                 { student_name: 'Student Nova', student_email: 'nova@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Nova' },
                 { student_name: 'Student Orbit', student_email: 'orbit@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Orbit' },
                 { student_name: 'Student Spark', student_email: 'spark@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Spark' }
-            ];
+            ]);
         } finally {
             isLoading = false;
             const tableBody = container.querySelector('#faculty-student-table-body');

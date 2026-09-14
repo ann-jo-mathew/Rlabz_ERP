@@ -305,7 +305,7 @@ class FacultyController extends Controller
             $query->whereIn('project_student.project_id', $projectIds);
         }
 
-        $students = $query->select(
+        $studentRecords = $query->select(
             'users.id as student_id',
             'users.name as student_name',
             'users.name',
@@ -323,8 +323,33 @@ class FacultyController extends Controller
             'project_student.assigned_date'
         )
         ->distinct()
-        ->get()
-        ->map(function ($s) {
+        ->get();
+
+        // Calculate average ratings from tasks table for each student per project
+        $taskRatings = DB::table('tasks')
+            ->join('modules', 'modules.id', '=', 'tasks.module_id')
+            ->whereNotNull('tasks.assigned_to')
+            ->where(function ($q) {
+                $q->whereNotNull('tasks.rating');
+            })
+            ->select(
+                'tasks.assigned_to as student_id',
+                'modules.project_id',
+                DB::raw('ROUND(AVG(tasks.rating), 1) as avg_rating'),
+                DB::raw('COUNT(tasks.id) as rated_tasks_count')
+            )
+            ->groupBy('tasks.assigned_to', 'modules.project_id')
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->student_id . '_' . $item->project_id;
+            });
+
+        $students = $studentRecords->map(function ($s) use ($taskRatings) {
+            $key = $s->student_id . '_' . $s->project_id;
+            $ratingObj = $taskRatings->get($key);
+            $avgRating = $ratingObj ? (float) $ratingObj->avg_rating : null;
+            $ratedTasksCount = $ratingObj ? (int) $ratingObj->rated_tasks_count : 0;
+
             return [
                 'student_id' => $s->student_id,
                 'student_name' => $s->student_name,
@@ -339,6 +364,9 @@ class FacultyController extends Controller
                 'course' => $s->course ?: 'MCA',
                 'batch' => $s->batch ?: '2025-2027',
                 'semester' => $s->semester ?: '3',
+                'rating' => $avgRating,
+                'avg_rating' => $avgRating,
+                'rated_tasks_count' => $ratedTasksCount,
             ];
         });
 
@@ -810,7 +838,21 @@ class FacultyController extends Controller
             ->where('user_id', $facultyId)
             ->select('id', 'user_id', 'type', 'message', 'is_read', 'created_at')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($n) {
+                return [
+                    'id' => $n->id,
+                    'user_id' => $n->user_id,
+                    'type' => $n->type,
+                    'title' => $n->type ? ucwords(str_replace('_', ' ', $n->type)) : 'Notification',
+                    'description' => $n->message,
+                    'message' => $n->message,
+                    'is_read' => (bool) $n->is_read,
+                    'unread' => empty($n->is_read) || $n->is_read == 0,
+                    'time' => $n->created_at ? date('M d, Y h:i A', strtotime($n->created_at)) : 'Recently',
+                    'created_at' => $n->created_at
+                ];
+            });
 
         return response()->json($notifications);
     }
@@ -899,7 +941,7 @@ class FacultyController extends Controller
                 'modules.module_name',
                 'tasks.title',
                 'tasks.description',
-                // 'tasks.weight',
+                'tasks.weight',
                 'tasks.status',
                 'tasks.due_date',
                 'tasks.assigned_to',
@@ -978,11 +1020,10 @@ class FacultyController extends Controller
                 'modules.module_name',
                 'tasks.title',
                 'tasks.description',
-                // 'tasks.weight',
+                'tasks.weight',
                 'tasks.status',
                 'tasks.due_date',
                 'tasks.assigned_to',
-                'tasks.review_status',
                 'tasks.reviewed_by',
                 'tasks.reviewed_at',
                 'assigned_user.name as assigned_to_name',
@@ -991,11 +1032,118 @@ class FacultyController extends Controller
             ->orderBy('tasks.id', 'desc')
             ->get();
 
+        // Calculate hours worked per task from student_work_logs
+        $taskIds = $tasks->pluck('id');
+        $taskWorkLogs = DB::table('student_work_logs')
+            ->whereIn('task_id', $taskIds)
+            ->select('task_id', 'hours_worked', 'approval_status')
+            ->get();
+
+        $taskHoursMap = [];
+        foreach ($taskWorkLogs as $wl) {
+            $tid = $wl->task_id;
+            $h = (float) ($wl->hours_worked ?? 0);
+            if (!isset($taskHoursMap[$tid])) {
+                $taskHoursMap[$tid] = 0;
+            }
+            $taskHoursMap[$tid] += $h;
+        }
+
+        // Attach hours_worked to each task
+        foreach ($tasks as $t) {
+            $t->hours_worked = round($taskHoursMap[$t->id] ?? 0, 1);
+            $t->weight = (int) ($t->weight ?? 1);
+        }
+
+        // Group tasks by module to calculate module weights, completed weight, and total hours worked
+        $behindScheduleModules = [];
+        foreach ($modules as $m) {
+            $mTasks = $tasks->where('module_id', $m->id);
+            $totalWeight = 0;
+            $completedWeight = 0;
+            $totalHours = 0;
+            $completedCount = 0;
+            $totalCount = $mTasks->count();
+
+            foreach ($mTasks as $t) {
+                $w = (int) ($t->weight ?? 1);
+                $totalWeight += $w;
+                $totalHours += ($t->hours_worked ?? 0);
+
+                if (strtolower($t->status ?? '') === 'completed') {
+                    $completedWeight += $w;
+                    $completedCount++;
+                }
+            }
+
+            $m->total_tasks = $totalCount;
+            $m->completed_tasks = $completedCount;
+            $m->total_weight = $totalWeight;
+            $m->completed_weight = $completedWeight;
+            $m->total_hours_worked = round($totalHours, 1);
+
+            // Check if module is behind schedule:
+            // If total hours spent exceeds expected weight for completed tasks
+            // or if total hours spent exceeds total planned weight while tasks remain incomplete.
+            $isBehind = false;
+            $behindReason = null;
+
+            if ($totalCount > 0 && strtolower($m->status ?? '') !== 'completed') {
+                if ($completedCount < $totalCount) {
+                    if ($totalWeight > 0 && $completedWeight > 0 && $totalHours > $completedWeight) {
+                        $isBehind = true;
+                        $behindReason = "Actual time logged ({$totalHours} hrs) exceeds the planned weight of completed tasks ({$completedWeight} hrs).";
+                    } elseif ($totalWeight > 0 && $completedWeight === 0 && $totalHours > ($totalWeight * 0.5)) {
+                        $isBehind = true;
+                        $behindReason = "Students have logged {$totalHours} hrs without any tasks completed yet (total module weight: {$totalWeight} hrs).";
+                    } elseif ($totalWeight > 0 && $totalHours > $totalWeight) {
+                        $isBehind = true;
+                        $behindReason = "Actual time logged ({$totalHours} hrs) has exceeded the entire module planned weight ({$totalWeight} hrs).";
+                    }
+                }
+            }
+
+            $m->is_behind_schedule = $isBehind;
+            $m->behind_reason = $behindReason;
+
+            if ($isBehind) {
+                $behindScheduleModules[] = [
+                    'module_id' => $m->id,
+                    'module_name' => $m->module_name,
+                    'total_weight' => $totalWeight,
+                    'completed_weight' => $completedWeight,
+                    'total_hours' => $totalHours,
+                    'reason' => $behindReason
+                ];
+
+                // Auto-create or refresh a notification for the faculty (deduplicated by reference)
+                $notifMsg = "Module \"{$m->module_name}\" in project \"{$project->title}\" is behind schedule. Total hours worked ({$totalHours} hrs) exceeds planned task time ({$completedWeight}/{$totalWeight} hrs).";
+                
+                $existingNotif = DB::table('notifications')
+                    ->where('user_id', $facultyId)
+                    ->where('type', 'module_behind_schedule')
+                    ->where('message', 'like', "%Module \"{$m->module_name}\"%")
+                    ->first();
+
+                if (!$existingNotif) {
+                    DB::table('notifications')->insert([
+                        'user_id' => $facultyId,
+                        'type' => 'module_behind_schedule',
+                        'message' => $notifMsg,
+                        'is_read' => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        }
+
         return response()->json([
             'project' => $project,
             'project_students' => $projectStudents,
             'modules' => $modules,
-            'tasks' => $tasks
+            'tasks' => $tasks,
+            'behind_schedule_modules' => $behindScheduleModules
         ]);
     }
 
@@ -1297,7 +1445,8 @@ class FacultyController extends Controller
         $facultyId = $this->getFacultyId($request);
 
         $validated = $request->validate([
-            'review_status' => 'required|in:verified,approved,changes_requested,rejected,pending',
+            'review_status' => 'nullable|string',
+            'status' => 'nullable|string|in:completed,rework,todo,in_progress',
             'remarks' => 'nullable|string'
         ]);
 
@@ -1319,34 +1468,34 @@ class FacultyController extends Controller
             }
         }
 
-        $inputStatus = $validated['review_status'];
-        // Map to MySQL tasks.review_status ENUM('pending','approved','rejected')
-        $dbStatus = 'pending';
-        if ($inputStatus === 'verified' || $inputStatus === 'approved') {
-            $dbStatus = 'approved';
-        } elseif ($inputStatus === 'changes_requested' || $inputStatus === 'rejected') {
-            $dbStatus = 'rejected';
+        $inputStatus = $validated['status'] ?? $validated['review_status'] ?? 'completed';
+        $newStatus = 'todo';
+        if (in_array($inputStatus, ['verified', 'approved', 'completed'])) {
+            $newStatus = 'completed';
+        } elseif (in_array($inputStatus, ['changes_requested', 'rejected', 'rework'])) {
+            $newStatus = 'rework';
         }
 
         $now = now();
 
         $taskUpdate = [
-            'review_status' => $dbStatus,
+            'status' => $newStatus,
             'reviewed_by' => $facultyId,
             'reviewed_at' => $now,
             'updated_at' => $now
         ];
 
-        // Rule: when review_status of a task in task table is approved then change the status of task table to 'completed'
-        if ($dbStatus === 'approved') {
-            $taskUpdate['status'] = 'completed';
-        }
-
         DB::table('tasks')->where('id', $id)->update($taskUpdate);
 
         // Rule: if the status of all the task of a module is 'completed' then change the status of module table to 'completed'
-        if ($dbStatus === 'approved' && $task->module_id) {
+        if ($newStatus === 'completed' && $task->module_id) {
             $this->checkAndUpdateModuleCompletion($task->module_id);
+        } elseif ($newStatus === 'rework' && $task->module_id) {
+            // If task is rework, mark module as rework if it was completed
+            $mod = DB::table('modules')->where('id', $task->module_id)->first();
+            if ($mod && $mod->status === 'completed') {
+                DB::table('modules')->where('id', $task->module_id)->update(['status' => 'rework', 'updated_at' => $now]);
+            }
         }
 
         // Send notification to the assigned student
@@ -1373,11 +1522,10 @@ class FacultyController extends Controller
                 'modules.module_name',
                 'tasks.title',
                 'tasks.description',
-                // 'tasks.weight',
+                'tasks.weight',
                 'tasks.status',
                 'tasks.due_date',
                 'tasks.assigned_to',
-                'tasks.review_status',
                 'tasks.reviewed_by',
                 'tasks.reviewed_at',
                 'assigned_user.name as assigned_to_name',
@@ -1387,7 +1535,7 @@ class FacultyController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Task review status updated to ' . $dbStatus . '.',
+            'message' => 'Task status updated to ' . $newStatus . '.',
             'task' => $updatedTask
         ], 200);
     }
@@ -1440,6 +1588,7 @@ class FacultyController extends Controller
                 'student.email as student_email',
                 'student_profiles.designation as student_designation',
                 'tasks.title as task_title',
+                'tasks.weight as task_weight',
                 'tasks.status as task_status',
                 'tasks.due_date as task_due_date',
                 'modules.id as module_id',
@@ -1464,12 +1613,73 @@ class FacultyController extends Controller
             }
             $log->is_late = $isLate;
             $log->days_late = $daysLate;
+            $log->task_weight = (int) ($log->task_weight ?? 1);
             return $log;
         });
 
+        // Compute module pace summary for this project
+        $projectModules = DB::table('modules')->where('project_id', $id)->get();
+        $moduleIds = $projectModules->pluck('id');
+        $allProjectTasks = DB::table('tasks')->whereIn('module_id', $moduleIds)->get();
+
+        $behindScheduleModules = [];
+        foreach ($projectModules as $pm) {
+            $mTasks = $allProjectTasks->where('module_id', $pm->id);
+            $totalW = 0;
+            $completedW = 0;
+            $totalCount = $mTasks->count();
+            $completedCount = 0;
+
+            foreach ($mTasks as $pt) {
+                $w = (int) ($pt->weight ?? 1);
+                $totalW += $w;
+                if (strtolower($pt->status ?? '') === 'completed') {
+                    $completedW += $w;
+                    $completedCount++;
+                }
+            }
+
+            // Sum student work logs hours for this module
+            $taskIdsInModule = $mTasks->pluck('id');
+            $hoursInModule = DB::table('student_work_logs')
+                ->whereIn('task_id', $taskIdsInModule)
+                ->sum('hours_worked');
+            $hoursInModule = round((float) $hoursInModule, 1);
+
+            $isBehind = false;
+            $reason = null;
+
+            if ($totalCount > 0 && strtolower($pm->status ?? '') !== 'completed') {
+                if ($completedCount < $totalCount) {
+                    if ($totalW > 0 && $completedW > 0 && $hoursInModule > $completedW) {
+                        $isBehind = true;
+                        $reason = "Actual time logged ({$hoursInModule} hrs) exceeds the planned weight of completed tasks ({$completedW} hrs).";
+                    } elseif ($totalW > 0 && $completedW === 0 && $hoursInModule > ($totalW * 0.5)) {
+                        $isBehind = true;
+                        $reason = "Students logged {$hoursInModule} hrs without any tasks completed yet (planned module weight: {$totalW} hrs).";
+                    } elseif ($totalW > 0 && $hoursInModule > $totalW) {
+                        $isBehind = true;
+                        $reason = "Actual time logged ({$hoursInModule} hrs) has exceeded the entire module planned weight ({$totalW} hrs).";
+                    }
+                }
+            }
+
+            if ($isBehind) {
+                $behindScheduleModules[] = [
+                    'module_id' => $pm->id,
+                    'module_name' => $pm->module_name,
+                    'total_weight' => $totalW,
+                    'completed_weight' => $completedW,
+                    'total_hours' => $hoursInModule,
+                    'reason' => $reason
+                ];
+            }
+        }
+
         return response()->json([
             'project' => $project,
-            'work_logs' => $workLogs
+            'work_logs' => $workLogs,
+            'behind_schedule_modules' => $behindScheduleModules
         ]);
     }
 
@@ -1525,7 +1735,11 @@ class FacultyController extends Controller
         // Save rating in stars into student_work_logs
         if ($request->filled('rating') || $request->filled('ratings')) {
             $starVal = $request->input('rating') ?? $request->input('ratings');
-            $updateData['ratings'] = (string) round((float) $starVal);
+            $starInt = (int) round((float) $starVal);
+            $updateData['ratings'] = (string) $starInt;
+            if (Schema::hasColumn('student_work_logs', 'rating')) {
+                $updateData['rating'] = $starInt;
+            }
         }
 
         // 1. Update student_work_logs
@@ -1534,13 +1748,16 @@ class FacultyController extends Controller
         // 2. If approved, update status in tasks table as 'completed'
         $updatedTask = null;
         if ($newStatus === 'approved' && $workLog->task_id) {
-            DB::table('tasks')->where('id', $workLog->task_id)->update([
+            $taskUpdateData = [
                 'status' => 'completed',
-                'review_status' => 'approved',
                 'reviewed_by' => $facultyId,
                 'reviewed_at' => $now,
                 'updated_at' => $now
-            ]);
+            ];
+            if (isset($starInt) && $starInt > 0) {
+                $taskUpdateData['rating'] = $starInt;
+            }
+            DB::table('tasks')->where('id', $workLog->task_id)->update($taskUpdateData);
 
             $updatedTask = DB::table('tasks')->where('id', $workLog->task_id)->first();
             if ($updatedTask && $updatedTask->module_id) {
@@ -1619,18 +1836,24 @@ class FacultyController extends Controller
             return response()->json(['error' => 'Work log not found.'], 404);
         }
 
-        $ratingVal = (string) round((float) $validated['rating']);
+        $ratingInt = (int) round((float) $validated['rating']);
+        $ratingStr = (string) $ratingInt;
 
-        DB::table('student_work_logs')->where('id', $id)->update([
-            'ratings' => $ratingVal,
+        $updatePayload = [
+            'ratings' => $ratingStr,
             'updated_at' => now()
-        ]);
+        ];
+        if (Schema::hasColumn('student_work_logs', 'rating')) {
+            $updatePayload['rating'] = $ratingInt;
+        }
+
+        DB::table('student_work_logs')->where('id', $id)->update($updatePayload);
 
         return response()->json([
             'success' => true,
-            'message' => "Rating of {$ratingVal} star(s) saved successfully.",
-            'rating' => (int) $ratingVal,
-            'ratings' => $ratingVal
+            'message' => "Rating of {$ratingInt} star(s) saved successfully.",
+            'rating' => $ratingInt,
+            'ratings' => $ratingStr
         ]);
     }
 
@@ -1717,10 +1940,7 @@ class FacultyController extends Controller
         ], 200);
     }
 
-    /**
-     * Check if all tasks under a module are completed.
-     * If all are completed, update the module status to 'completed'.
-     */
+
     private function checkAndUpdateModuleCompletion($moduleId)
     {
         if (!$moduleId) {

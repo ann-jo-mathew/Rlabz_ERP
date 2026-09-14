@@ -77,7 +77,7 @@ export function FacultySprints() {
                         <tr style="background: var(--bg-main, #f8fafc); border-bottom: 2px solid var(--border-color, #e2e8f0);">
                             <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Project Title</th>
                             <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Client Name</th>
-                            <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Project Type</th>
+                            <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Type</th>
                             <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
                             <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
                         </tr>
@@ -138,7 +138,7 @@ export function FacultySprints() {
                     </td>
                     <td style="padding: 1.1rem 1.5rem; text-align: right;">
                         <button class="btn btn-sm btn-primary shadow-hover view-project-btn" data-id="${p.id}">
-                            👁 View
+                            View
                         </button>
                     </td>
                 </tr>
@@ -194,7 +194,7 @@ export function FacultySprints() {
 
         const rawTitle = project.title || 'Project Details';
         const projectTitle = rawTitle.replace(/\s*[-–—]\s*Student Portal/gi, '').replace(/Student Portal/gi, '').trim() || 'Project Details';
-        const projectDesc = project.requirements || project.deliverables || 'Academic project under faculty supervision.';
+        const projectDesc = project.requirements || project.deliverables || '';
         const clientName = project.client_name || 'Rajagiri College';
         const status = (project.status || 'in_progress').toLowerCase();
         const isClosed = status === 'closed';
@@ -210,9 +210,11 @@ export function FacultySprints() {
                                 ${status.toUpperCase()}
                             </span>
                         </div>
+                        ${projectDesc ? `
                         <p style="margin: 0.5rem 0 0; color: var(--text-muted, #475569); font-size: 0.92rem; line-height: 1.5; max-width: 850px;">
                             ${projectDesc}
                         </p>
+                        ` : ''}
                         <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-muted, #64748b);">
                             Client: <strong style="color: var(--text-main, #0f172a);">${clientName}</strong> &nbsp;|&nbsp; 
                             Project Students: <strong style="color: var(--primary, #059669);">${students.length}</strong> &nbsp;|&nbsp; 
@@ -627,14 +629,27 @@ export function FacultySprints() {
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.15rem;">
                         ${modules.map(m => {
                             const assigned = m.assigned_students || [];
+                            const modStatus = (m.status || (assigned.length > 0 ? 'in_progress' : 'todo')).toLowerCase();
+                            const isModCompleted = modStatus === 'completed';
+                            const isModRework = modStatus === 'rework';
                             return `
                                 <div class="module-card" style="background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 1.25rem; box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.04)); display: flex; flex-direction: column; justify-content: space-between;">
                                     <div>
-                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.65rem;">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.65rem; flex-wrap: wrap;">
                                             <h4 style="margin: 0; font-size: 1.08rem; font-weight: 700; color: var(--text-main, #0f172a);">${m.module_name}</h4>
-                                            <span class="status-badge ${assigned.length > 0 ? 'completed' : 'todo'}" style="font-size: 0.72rem; flex-shrink: 0;">
-                                                ${assigned.length} Student${assigned.length === 1 ? '' : 's'}
-                                            </span>
+                                            <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                                <span class="status-badge ${isModCompleted ? 'completed' : (isModRework ? 'pending' : (assigned.length > 0 ? 'in_progress' : 'todo'))}" style="font-size: 0.72rem; flex-shrink: 0; ${isModRework ? 'background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5;' : ''}">
+                                                    ${isModRework ? 'REWORK' : (isModCompleted ? 'COMPLETED' : (assigned.length > 0 ? 'IN PROGRESS' : 'TODO'))}
+                                                </span>
+                                                ${isModCompleted && !isClosed ? `
+                                                    <button type="button" class="btn btn-sm btn-outline btn-rework-module" data-module-id="${m.id}" title="Mark module for rework" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-color: #ea580c; color: #ea580c; font-weight: 600;">
+                                                        Rework
+                                                    </button>
+                                                ` : ''}
+                                                <span class="status-badge todo" style="font-size: 0.72rem; flex-shrink: 0;">
+                                                    ${assigned.length} Student${assigned.length === 1 ? '' : 's'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <p style="margin: 0 0 1rem; font-size: 0.86rem; color: var(--text-muted, #64748b); line-height: 1.45;">
                                             ${m.description || 'No description provided.'}
@@ -747,10 +762,17 @@ export function FacultySprints() {
                                             <td style="padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--text-muted, #64748b); white-space: nowrap;">
                                                 ${t.due_date ? `${iconCalendar} ${t.due_date}` : '—'}
                                             </td>
-                                            <td style="padding: 1rem 1.25rem; text-align: right;">
-                                                <span class="status-badge ${status.replace(' ', '_')}">
-                                                    ${status.replace('_', ' ').toUpperCase()}
-                                                </span>
+                                            <td style="padding: 1rem 1.25rem; text-align: right; white-space: nowrap;">
+                                                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.4rem;">
+                                                    <span class="status-badge ${status === 'rework' ? 'pending' : status.replace(' ', '_')}" style="${status === 'rework' ? 'background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5;' : ''}">
+                                                        ${status.replace('_', ' ').toUpperCase()}
+                                                    </span>
+                                                    ${status === 'completed' && !isClosed ? `
+                                                        <button type="button" class="btn btn-sm btn-outline btn-rework-task" data-task-id="${t.id}" title="Mark task for rework" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-color: #ea580c; color: #ea580c; font-weight: 600;">
+                                                            Rework
+                                                        </button>
+                                                    ` : ''}
+                                                </div>
                                             </td>
                                         </tr>
                                     `;
@@ -1516,6 +1538,70 @@ export function FacultySprints() {
                 }
             });
         }
+
+        // Bind Rework buttons on existing modules
+        container.querySelectorAll('.btn-rework-module').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const moduleId = btn.getAttribute('data-module-id');
+                if (!confirm('Are you sure you want to mark this completed module for Rework?')) return;
+                btn.disabled = true;
+                try {
+                    const res = await fetch(`${apiBase}/projects/modules/${moduleId}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        },
+                        body: JSON.stringify({ status: 'rework' })
+                    });
+                    const data = await res.json();
+                    if (res.ok && (data.status === 'success' || data.success)) {
+                        showFacultySuccessPopup('Module Marked for Rework', 'Module has been updated to Rework status.');
+                        await loadProjectDetail(selectedProjectId);
+                    } else {
+                        showFacultyErrorPopup('Error', data.error || data.message || 'Failed to update module status.');
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showFacultyErrorPopup('Error', 'Failed to update module status.');
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        // Bind Rework buttons on existing tasks
+        container.querySelectorAll('.btn-rework-task').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const taskId = btn.getAttribute('data-task-id');
+                if (!confirm('Are you sure you want to mark this completed task for Rework?')) return;
+                btn.disabled = true;
+                try {
+                    const res = await fetch(`${apiBase}/projects/tasks/${taskId}/status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        },
+                        body: JSON.stringify({ status: 'rework' })
+                    });
+                    const data = await res.json();
+                    if (res.ok && (data.status === 'success' || data.success)) {
+                        showFacultySuccessPopup('Task Marked for Rework', 'Task has been reopened with Rework status.');
+                        await loadProjectDetail(selectedProjectId);
+                    } else {
+                        showFacultyErrorPopup('Error', data.error || data.message || 'Failed to update task status.');
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showFacultyErrorPopup('Error', 'Failed to update task status.');
+                    btn.disabled = false;
+                }
+            });
+        });
     }
 
     // ==========================================
