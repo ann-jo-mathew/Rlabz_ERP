@@ -62,8 +62,8 @@ export async function FinanceDashboard(route, router) {
 
         if (type === 'ssl') {
           const message = isOverdue
-            ? `SSL Certificate for project ${projName} expired ${absDays} ${absDays === 1 ? 'day' : 'days'} ago (${dateStr})`
-            : `SSL Certificate for project ${projName} is expiring in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} (${dateStr})`;
+            ? `SSL Certificate for project ${projName} expired ${absDays} ${absDays === 1 ? 'day' : 'days'}`
+            : `SSL Certificate for project ${projName} is expiring in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`;
 
           alerts.push({
             id: `ssl-${hc.id}`,
@@ -78,8 +78,8 @@ export async function FinanceDashboard(route, router) {
           });
         } else if (type === 'domain') {
           const message = isOverdue
-            ? `Domain Registration for project ${projName} expired ${absDays} ${absDays === 1 ? 'day' : 'days'} ago (${dateStr})`
-            : `Domain Registration for project ${projName} is expiring in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} (${dateStr})`;
+            ? `Domain Registration for project ${projName} expired ${absDays} ${absDays === 1 ? 'day' : 'days'}`
+            : `Domain Registration for project ${projName} is expiring in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`;
 
           alerts.push({
             id: `domain-${hc.id}`,
@@ -110,13 +110,13 @@ export async function FinanceDashboard(route, router) {
 
     const amountBeforeGst = Number(inv.amount_before_gst || 0);
     const gstPct = Number(inv.gst_percentage || 0);
-    const totalBilled = inv.grand_total !== undefined 
-      ? Number(inv.grand_total) 
+    const totalBilled = inv.grand_total !== undefined
+      ? Number(inv.grand_total)
       : amountBeforeGst * (1 + gstPct / 100);
 
     const clientPayments = inv.client_payments || inv.clientPayments || [];
-    const totalPaid = inv.total_paid !== undefined 
-      ? Number(inv.total_paid) 
+    const totalPaid = inv.total_paid !== undefined
+      ? Number(inv.total_paid)
       : clientPayments.reduce((sum, cp) => sum + Number(cp.amount || 0), 0);
 
     const balanceDue = totalBilled - totalPaid;
@@ -148,8 +148,8 @@ export async function FinanceDashboard(route, router) {
       }
 
       const message = isOverdue
-        ? `Incomplete bill of \u20B9${formattedBalance} Overdue by ${absDays} ${absDays === 1 ? 'day' : 'days'} for project ${projName} (Due: ${dateStr})`
-        : `Incomplete bill of \u20B9${formattedBalance} due in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} for project ${projName} (Due: ${dateStr})`;
+        ? `Incomplete bill of \u20B9${formattedBalance} Overdue by ${absDays} ${absDays === 1 ? 'day' : 'days'}`
+        : `Incomplete bill of \u20B9${formattedBalance} due in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`;
 
       alerts.push({
         id: `invoice-${inv.id}`,
@@ -198,8 +198,8 @@ export async function FinanceDashboard(route, router) {
         </button>
       </div>
       <div class="fin-drawer-body">
-        ${alerts.length > 0 
-          ? alerts.map(a => `
+        ${alerts.length > 0
+      ? alerts.map(a => `
             <div class="fin-action-card ${a.daysLeft <= 0 ? 'card-overdue' : 'card-upcoming'}">
               <div class="fin-card-header-row">
                 <span class="fin-cat-badge fin-cat-${a.type}">${a.category}</span>
@@ -213,8 +213,8 @@ export async function FinanceDashboard(route, router) {
               </div>
             </div>
           `).join('')
-          : `<div style="text-align:center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem;">No pending action items.</div>`
-        }
+      : `<div style="text-align:center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem;">No pending action items.</div>`
+    }
       </div>
     </div>
   `;
@@ -507,7 +507,7 @@ export async function FinanceDashboard(route, router) {
       datasets: [
         { label: 'Received', data: projReceived, backgroundColor: COLORS.primary, borderRadius: 4, borderSkipped: false },
         { label: 'Outstanding', data: projOutstanding, backgroundColor: COLORS.warning, borderRadius: 4, borderSkipped: false },
-        { label: 'Unbilled', data: projUnbilled, backgroundColor: '#c30707', borderRadius: 4, borderSkipped: false },
+        { label: 'Unbilled', data: projUnbilled, backgroundColor: '#dc2626', borderRadius: 4, borderSkipped: false },
       ],
     },
     options: {
