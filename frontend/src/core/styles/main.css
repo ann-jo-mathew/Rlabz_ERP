@@ -7,7 +7,7 @@
   /* New Design Tokens */
   --bg-canvas-dark: #001220;
   --bg-canvas-light: #F5F7FA;
-  --surface-card: var(--surface-card);
+  --surface-card: #FFFFFF;
   --surface-panel: #E3E9ED;
   --border-subtle: #D6DEE4;
   --text-primary: #2A2A2A;
