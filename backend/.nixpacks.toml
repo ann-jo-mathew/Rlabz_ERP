@@ -1,24 +1,18 @@
 [phases.setup]
 nixPkgs = [
-  "php81",
-  "php81Extensions.pdo_mysql",
-  "php81Extensions.mbstring",
-  "php81Extensions.xml",
-  "php81Extensions.curl",
-  "php81Extensions.gd",
-  "php81Extensions.zip",
-  "php81Extensions.tokenizer",
-  "php81Extensions.bcmath",
-  "php81Extensions.fileinfo",
-  "php81Extensions.openssl"
+  "php82",
+  "php82Extensions.pdo_mysql",
+  "php82Extensions.mbstring",
+  "php82Extensions.xml",
+  "php82Extensions.curl",
+  "php82Extensions.gd",
+  "php82Extensions.zip",
+  "php82Extensions.tokenizer",
+  "php82Extensions.bcmath",
+  "php82Extensions.fileinfo",
+  "php82Extensions.openssl"
 ]
 
 [phases.install]
 cmds = ["composer install --no-dev --optimize-autoloader --no-interaction"]
 
-[phases.build]
-cmds = [
-  "php artisan config:cache",
-  "php artisan route:cache",
-  "php artisan view:cache"
-]
