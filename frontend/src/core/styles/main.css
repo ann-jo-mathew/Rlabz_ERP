@@ -9,18 +9,30 @@
   --primary-hover: #047857;
   --primary-light: #ecfdf5;
   --primary-accent: #10b981;
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
-  --border-color: #e2e8f0;
+  
+  /* New Tokens */
+  --bg-canvas-dark: #001220;
+  --bg-canvas-light: #F5F7FA;
+  --surface-card: #FFFFFF;
+  --surface-panel: #E3E9ED;
+  --border-subtle: #D6DEE4;
+  --text-primary: #2A2A2A;
+  --text-secondary: #3E4B55;
+  --text-muted-token: #687A87;
+
+  /* Existing Variables Mapped to Tokens */
+  --bg-main: var(--bg-canvas-light);
+  --bg-card: var(--surface-card);
+  --text-main: var(--text-primary);
+  --text-muted: var(--text-muted-token);
+  --text-light: var(--text-secondary);
+  --border-color: var(--border-subtle);
   
   /* Sidebar */
-  --sidebar-bg: #064e3b;
-  --sidebar-hover: #047857;
-  --sidebar-active: #059669;
-  --sidebar-text: #e2e8f0;
+  --sidebar-bg: var(--bg-canvas-dark);
+  --sidebar-hover: rgba(255, 255, 255, 0.1);
+  --sidebar-active: rgba(255, 255, 255, 0.2);
+  --sidebar-text: #FFFFFF;
   
   /* Status Colors */
   --danger: #ef4444;
@@ -257,7 +269,7 @@ body {
   letter-spacing: 0.05em;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .sidebar-watermark {

@@ -58,7 +58,7 @@ export async function FinanceLayout(contentChild, route, router) {
     <aside class="sidebar finance-sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
-          <img src="/assets/RlabZ_Watermark.png" alt="RLabZ" class="sidebar-watermark" />
+          <img src="/favicon.png" alt="RLabZ" class="sidebar-watermark" />
           <span>RLABZ ERP</span>
         </div>
       </div>

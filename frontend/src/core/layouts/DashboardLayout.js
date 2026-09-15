@@ -176,9 +176,9 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
   sidebarNav.querySelectorAll('a').forEach(a => {
     const href = a.getAttribute('href');
     if (href) {
-      const isActive = (href === '/student' || href === '/')
+      const isActive = (href === '/student' || href === '/' || href === '/dashboard')
         ? currentPath === href
-        : currentPath.startsWith(href);
+        : (currentPath === href || currentPath.startsWith(href + '/'));
       if (isActive) {
         a.classList.add('active');
       } else {
@@ -218,8 +218,8 @@ export async function DashboardLayout(contentChild, route, router) {
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
-          <img src="/assets/RlabZ_Watermark.png" alt="RLabZ" class="sidebar-watermark" />
-          <span>RLABZ ERP</span>
+          <img src="/favicon.png" alt="RLabZ" class="sidebar-watermark" />
+          <span>RLabZ-ERP</span>
         </div>
       </div>
       <nav class="sidebar-nav">
