@@ -5,13 +5,7 @@ export function LoginView(route, router) {
   const container = document.createElement('div');
   container.className = 'login-container';
 
-  const demoAccounts = [
-    { label: 'Director', email: 'director@rajagiri.edu', pass: 'director123' },
-    { label: 'Coordinator', email: 'coordinator@rajagiri.edu', pass: 'password123' },
-    { label: 'Finance Head', email: 'finance@rajagiri.edu', pass: 'finance123' },
-    { label: 'Faculty', email: 'faculty@rajagiri.edu', pass: 'faculty123' },
-    { label: 'Student (Nova)', email: 'nova@rajagiri.edu', pass: 'student123' }
-  ];
+
 
   container.innerHTML = `
     <div class="login-box animate-fade-in" style="max-width: 480px;">
@@ -40,16 +34,7 @@ export function LoginView(route, router) {
           <span id="btn-text">Login to ERP</span>
         </button>
 
-        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color, var(--border-subtle));">
-          <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted, var(--text-muted)); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;">Quick Demo Logins</div>
-          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-            ${demoAccounts.map(a => `
-              <button type="button" class="btn-demo" data-email="${a.email}" data-pass="${a.pass}" style="font-size: 0.78rem; padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, var(--bg-canvas-light)); cursor: pointer; color: var(--text-main, #334155); transition: all 0.15s ease;">
-                ${a.label}
-              </button>
-            `).join('')}
-          </div>
-        </div>
+
       </form>
     </div>
   `;
@@ -59,13 +44,7 @@ export function LoginView(route, router) {
   const passwordInput = container.querySelector('#password');
   const submitBtn = container.querySelector('#submit-btn');
 
-  container.querySelectorAll('.btn-demo').forEach(btn => {
-    btn.addEventListener('click', () => {
-      emailInput.value = btn.dataset.email;
-      passwordInput.value = btn.dataset.pass;
-      errorBox.style.display = 'none';
-    });
-  });
+
   const btnText = container.querySelector('#btn-text');
   const errorBox = container.querySelector('#error-box');
   const togglePasswordBtn = container.querySelector('#toggle-password');
