@@ -81,7 +81,7 @@ export function DirectorHome(route, router) {
       <!-- Top Executive 5-KPI Strip -->
       <div class="director-kpi-grid">
         <!-- 1. Active Projects -->
-        <div class="director-kpi-card kpi-sidebar-primary">
+        <div class="director-kpi-card kpi-sidebar-primary" id="kpi-card-projects" role="button" tabindex="0" title="Click to view Active Projects">
           <div class="director-kpi-top">
             <span class="director-kpi-title">Active Projects</span>
             <div class="director-kpi-icon">
@@ -101,7 +101,7 @@ export function DirectorHome(route, router) {
         </div>
 
         <!-- 2. Pending Proposals -->
-        <div class="director-kpi-card kpi-teal">
+        <div class="director-kpi-card kpi-teal" id="kpi-card-proposals" role="button" tabindex="0" title="Click to view Project Proposals">
           <div class="director-kpi-top">
             <span class="director-kpi-title">Pending Proposals</span>
             <div class="director-kpi-icon">
@@ -115,7 +115,7 @@ export function DirectorHome(route, router) {
         </div>
 
         <!-- 3. Student Talent Pool -->
-        <div class="director-kpi-card kpi-indigo">
+        <div class="director-kpi-card kpi-indigo" id="kpi-card-students" role="button" tabindex="0" title="Click to view Student Track Roster">
           <div class="director-kpi-top">
             <span class="director-kpi-title">Student Talent Pool</span>
             <div class="director-kpi-icon">
@@ -138,7 +138,7 @@ export function DirectorHome(route, router) {
         </div>
 
         <!-- 4. Capital & Financial Budget -->
-        <div class="director-kpi-card kpi-amber">
+        <div class="director-kpi-card kpi-amber" id="kpi-card-finance" role="button" tabindex="0" title="Click to view Financial Budget & Payroll">
           <div class="director-kpi-top">
             <span class="director-kpi-title">Sanctioned Capital</span>
             <div class="director-kpi-icon">₹</div>
@@ -160,7 +160,7 @@ export function DirectorHome(route, router) {
         </div>
 
         <!-- 5. Faculty Leadership Load -->
-        <div class="director-kpi-card kpi-crimson">
+        <div class="director-kpi-card kpi-crimson" id="kpi-card-faculty" role="button" tabindex="0" title="Click to view Faculty Leadership & Mentorship">
           <div class="director-kpi-top">
             <span class="director-kpi-title">Faculty Mentorship</span>
             <div class="director-kpi-icon">
@@ -333,7 +333,7 @@ export function DirectorHome(route, router) {
       <!-- ══════════════════════════════════════════════════════ -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.25rem;">
         <!-- Faculty Leadership & Mentorship Load -->
-        <div class="director-panel">
+        <div class="director-panel" id="director-faculty-section">
           <div class="director-panel-header">
             <h2>👥 Faculty Leadership & Project Assignments (${faculties.length})</h2>
             <span style="font-size:0.8rem; color:#6b7280;">Click to inspect active projects</span>
@@ -500,8 +500,95 @@ export function DirectorHome(route, router) {
     // ══════════════════════════════════════════════════════
     // ATTACH DOM EVENT LISTENERS
     // ══════════════════════════════════════════════════════
-    container.querySelector('.btn-goto-projects')?.addEventListener('click', () => router.push('/dashboard/projects'));
-    container.querySelector('.btn-goto-audit')?.addEventListener('click', () => router.push('/dashboard/audit'));
+    container.querySelector('.btn-goto-projects')?.addEventListener('click', () => {
+      if (router) router.push('/dashboard/projects');
+      else window.location.href = '/dashboard/projects';
+    });
+    container.querySelector('.btn-goto-audit')?.addEventListener('click', () => {
+      if (router) router.push('/dashboard/audit');
+      else window.location.href = '/dashboard/audit';
+    });
+
+    // ── TOP 5 EXECUTIVE KPI CARDS CLICK & KEYBOARD NAVIGATION ──
+    // 1. Active Projects -> /dashboard/projects?tab=active
+    const kpiProjects = container.querySelector('#kpi-card-projects');
+    const navigateToActiveProjects = () => {
+      if (router) router.push('/dashboard/projects?tab=active');
+      else window.location.href = '/dashboard/projects?tab=active';
+    };
+    kpiProjects?.addEventListener('click', navigateToActiveProjects);
+    kpiProjects?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigateToActiveProjects();
+      }
+    });
+
+    // 2. Pending Proposals -> /dashboard/projects?tab=proposals
+    const kpiProposals = container.querySelector('#kpi-card-proposals');
+    const navigateToProposals = () => {
+      if (router) router.push('/dashboard/projects?tab=proposals');
+      else window.location.href = '/dashboard/projects?tab=proposals';
+    };
+    kpiProposals?.addEventListener('click', navigateToProposals);
+    kpiProposals?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigateToProposals();
+      }
+    });
+
+    // 3. Student Talent Pool -> /dashboard/students
+    const kpiStudents = container.querySelector('#kpi-card-students');
+    const navigateToStudents = (e) => {
+      if (e && e.target && e.target.closest('.track-badge-micro')) return;
+      if (router) router.push('/dashboard/students');
+      else window.location.href = '/dashboard/students';
+    };
+    kpiStudents?.addEventListener('click', navigateToStudents);
+    kpiStudents?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigateToStudents();
+      }
+    });
+
+    // 4. Sanctioned Capital -> /dashboard/finance
+    const kpiFinance = container.querySelector('#kpi-card-finance');
+    const navigateToFinance = () => {
+      if (router) router.push('/dashboard/finance');
+      else window.location.href = '/dashboard/finance';
+    };
+    kpiFinance?.addEventListener('click', navigateToFinance);
+    kpiFinance?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigateToFinance();
+      }
+    });
+
+    // 5. Faculty Mentorship -> Smooth scroll to Faculty Leadership section with pulse animation
+    const kpiFaculty = container.querySelector('#kpi-card-faculty');
+    const navigateToFaculty = () => {
+      const facSection = container.querySelector('#director-faculty-section');
+      if (facSection) {
+        facSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        facSection.classList.remove('panel-highlight-pulse');
+        // Force reflow for restart if clicked repeatedly
+        void facSection.offsetWidth;
+        facSection.classList.add('panel-highlight-pulse');
+        setTimeout(() => {
+          facSection.classList.remove('panel-highlight-pulse');
+        }, 2300);
+      }
+    };
+    kpiFaculty?.addEventListener('click', navigateToFaculty);
+    kpiFaculty?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigateToFaculty();
+      }
+    });
 
     // Faculty Card click popup
     container.querySelectorAll('.btn-view-faculty-card').forEach(card => {
@@ -526,8 +613,9 @@ export function DirectorHome(route, router) {
     container.querySelectorAll('.chart-legend-item').forEach(item => {
       item.addEventListener('click', () => {
         const track = item.getAttribute('data-track');
-        if (track && router) {
-          router.push(`/dashboard/students?track=${track}`);
+        if (track) {
+          if (router) router.push(`/dashboard/students?track=${track}`);
+          else window.location.href = `/dashboard/students?track=${track}`;
         }
       });
     });
@@ -535,17 +623,22 @@ export function DirectorHome(route, router) {
     // Doughnut chart center metric click navigation
     container.querySelector('.director-donut-center-metric')?.addEventListener('click', () => {
       if (router) router.push('/dashboard/students');
+      else window.location.href = '/dashboard/students';
     });
 
     // KPI Card 3 track badges navigation
     container.querySelectorAll('.track-badge-micro').forEach(badge => {
       badge.style.cursor = 'pointer';
       badge.setAttribute('title', 'Click to view students in this track');
-      badge.addEventListener('click', () => {
-        if (!router) return;
-        if (badge.classList.contains('nova')) router.push('/dashboard/students?track=Nova');
-        else if (badge.classList.contains('orbit')) router.push('/dashboard/students?track=Orbit');
-        else if (badge.classList.contains('spark')) router.push('/dashboard/students?track=Spark');
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        let track = 'All';
+        if (badge.classList.contains('nova')) track = 'Nova';
+        else if (badge.classList.contains('orbit')) track = 'Orbit';
+        else if (badge.classList.contains('spark')) track = 'Spark';
+
+        if (router) router.push(`/dashboard/students?track=${track}`);
+        else window.location.href = `/dashboard/students?track=${track}`;
       });
     });
   }
