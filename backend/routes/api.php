@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Health check endpoint for Railway deployment
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok', 'app' => config('app.name')]);
+});
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
