@@ -176,23 +176,23 @@ export async function StudentMeetings(route, router) {
           </div>
 
           <!-- Meeting Title -->
-          <h2 style="font-size: 1.45rem; font-weight: 800; color: #0f172a; margin-bottom: 14px; letter-spacing: -0.02em;">
+          <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-primary); margin-bottom: 14px; letter-spacing: -0.02em;">
             ${selectedMeeting.title}
           </h2>
 
           <!-- Meta Strip -->
-          <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0; font-size: 0.88rem; color: #475569;">
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border-subtle); font-size: 0.88rem; color: #475569;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              <span>Date: <strong style="color: #0f172a;">${selectedMeeting.date}</strong></span>
+              <span>Date: <strong style="color: var(--text-primary);">${selectedMeeting.date}</strong></span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <span>Time: <strong style="color: #0f172a;">${selectedMeeting.time}</strong></span>
+              <span>Time: <strong style="color: var(--text-primary);">${selectedMeeting.time}</strong></span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              <span>Supervisor: <strong style="color: #0f172a;">Faculty Supervisor</strong></span>
+              <span>Supervisor: <strong style="color: var(--text-primary);">Faculty Supervisor</strong></span>
             </div>
           </div>
 
@@ -225,11 +225,11 @@ export async function StudentMeetings(route, router) {
               </div>
             </div>
           ` : `
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <div style="background: var(--bg-canvas-light); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
               <div>
-                <div style="font-weight: 700; font-size: 0.925rem; color: #0f172a;">Location &amp; Venue</div>
-                <div style="font-size: 0.825rem; color: #64748b; margin-top: 2px;">${selectedMeeting.location || 'In-Person Academy Conference Room'}</div>
+                <div style="font-weight: 700; font-size: 0.925rem; color: var(--text-primary);">Location &amp; Venue</div>
+                <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 2px;">${selectedMeeting.location || 'In-Person Academy Conference Room'}</div>
               </div>
             </div>
           `}
@@ -237,7 +237,7 @@ export async function StudentMeetings(route, router) {
           <!-- Notes & Minutes Section -->
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <div style="font-weight: 700; font-size: 1rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+              <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
                 <span>📝</span> Meeting Minutes &amp; Discussion Notes
               </div>
               <span class="student-badge student-badge-info" style="font-size: 0.72rem;">Official Record</span>
@@ -251,10 +251,10 @@ export async function StudentMeetings(route, router) {
       `;
     } else {
       detailsHtml = `
-        <div class="student-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:380px; color:#64748b; text-align:center; padding:40px 20px;">
+        <div class="student-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:380px; color:var(--text-muted); text-align:center; padding:40px 20px;">
           <div style="font-size: 2.5rem; margin-bottom: 12px;">📅</div>
           <div style="font-weight: 700; font-size: 1.05rem; color: #1e293b; margin-bottom: 6px;">No Session Selected</div>
-          <div style="font-size: 0.85rem; color: #94a3b8; max-width: 320px;">
+          <div style="font-size: 0.85rem; color: var(--text-secondary); max-width: 320px;">
             Choose a date from the calendar or click a scheduled meeting from the list to inspect its agenda, call link, and discussion minutes.
           </div>
         </div>
@@ -323,7 +323,7 @@ export async function StudentMeetings(route, router) {
               ${dayCells}
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:#64748b; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-muted); margin-top:8px; border-top:1px solid #f1f5f9; padding-top:8px;">
               <div style="display:flex; align-items:center; gap:6px;">
                 <div class="student-calendar-day-dot" style="margin:0;"></div>
                 <span>Session Scheduled</span>
@@ -338,7 +338,7 @@ export async function StudentMeetings(route, router) {
           <!-- Scheduled Sessions List Card -->
           <div class="student-card" style="padding: 18px 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-              <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a;">
+              <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">
                 Scheduled Sessions
               </div>
               <span class="student-badge student-badge-info" style="font-size: 0.72rem;">

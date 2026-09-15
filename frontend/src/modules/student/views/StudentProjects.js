@@ -143,7 +143,7 @@ export async function StudentProjects(route, router) {
               </div>
             </div>
           `;
-        }).join('') : `<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic; padding: 4px 0;">No modules assigned yet</div>`;
+        }).join('') : `<div style="font-size: 0.75rem; color: var(--text-secondary); font-style: italic; padding: 4px 0;">No modules assigned yet</div>`;
 
         return `
         <div class="student-card project-summary-card" 
@@ -188,7 +188,7 @@ export async function StudentProjects(route, router) {
             </div>
 
             <div class="project-team-cards-grid">
-              ${teamChipsHtml || '<div style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No team members assigned yet</div>'}
+              ${teamChipsHtml || '<div style="font-size: 0.75rem; color: var(--text-secondary); font-style: italic;">No team members assigned yet</div>'}
             </div>
           </div>
 
@@ -522,8 +522,8 @@ export async function StudentProjects(route, router) {
           const taskRowsHtml = allTasks.map(t => `
             <tr style="${t.isMyTask ? 'background: var(--bg-main);' : ''}">
               <td>
-                <div style="font-weight: 600; font-size: 0.9rem; color: #0f172a;">${t.name}</div>
-                <div style="font-size: 0.75rem; color: #64748b; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+                <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">${t.name}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 4px;">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                   ${t.moduleName}
                 </div>
@@ -571,8 +571,8 @@ export async function StudentProjects(route, router) {
               <div class="github-integration-card">
                 <div class="github-card-header">
                   <div style="display: flex; align-items: center; gap: 10px;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #0f172a;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-                    <span style="font-weight: 700; font-size: 1rem; color: #0f172a;">Repository Status</span>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-primary);"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                    <span style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">Repository Status</span>
                   </div>
                   ${projectGithub ? `
                     <span class="student-badge student-badge-success" style="padding: 6px 14px; font-weight: 700; font-size: 0.8rem;">
@@ -601,7 +601,7 @@ export async function StudentProjects(route, router) {
                   </div>
                 ` : `
                   <div class="github-empty-state">
-                    <p style="color: #64748b; font-size: 0.9rem; margin: 0;">
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">
                       No GitHub repository link has been set for this project yet. Please coordinate with your faculty supervisor to bind the repository.
                     </p>
                   </div>

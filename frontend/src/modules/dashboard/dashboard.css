@@ -87,7 +87,7 @@
 .director-tab-btn.active {
   background: linear-gradient(135deg, var(--primary-accent), var(--primary));
   color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(62, 75, 85, 0.3);
 }
 
 .director-tab-badge {
@@ -133,7 +133,7 @@
 }
 
 .director-kpi-card:focus-visible {
-  outline: 2px solid #10b981;
+  outline: 2px solid var(--text-secondary);
   outline-offset: 3px;
 }
 
@@ -149,12 +149,12 @@
 
 @keyframes panelPulseGlow {
   0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
-    outline: 2px solid rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 0 0 rgba(62, 75, 85, 0.6);
+    outline: 2px solid rgba(62, 75, 85, 0.8);
   }
   50% {
-    box-shadow: 0 0 25px 6px rgba(16, 185, 129, 0.35);
-    outline: 2px solid rgba(16, 185, 129, 1);
+    box-shadow: 0 0 25px 6px rgba(62, 75, 85, 0.35);
+    outline: 2px solid rgba(62, 75, 85, 1);
   }
   100% {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -164,7 +164,7 @@
 
 .panel-highlight-pulse {
   animation: panelPulseGlow 2.2s ease-in-out !important;
-  border-color: #10b981 !important;
+  border-color: var(--text-secondary) !important;
 }
 
 /* Watermark hidden */
@@ -557,7 +557,7 @@
 }
 
 :is(.director-kpi-grid > .director-kpi-card:first-child, .director-kpi-card[class*="kpi-"]) .kpi-meter-fill {
-  background: #ffffff !important;
+  background: var(--surface-card) !important;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.85) !important;
   height: 100% !important;
   border-radius: 9999px !important;
@@ -701,7 +701,7 @@
 .btn-director-primary {
   background: linear-gradient(135deg, var(--primary-accent), var(--primary));
   color: white;
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 18, 32, 0.25);
 }
 
 .btn-director-primary:hover {
@@ -886,7 +886,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--primary-accent);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 0 2px rgba(62, 75, 85, 0.25);
   animation: pulseDot 2s infinite ease-in-out;
 }
 
@@ -900,7 +900,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.85rem;
-  background: #ffffff;
+  background: var(--surface-card);
   color: #374151;
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -935,7 +935,7 @@
 }
 
 .director-chart-card {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 14px;
   border: 1px solid #e5e7eb;
   padding: 1.25rem 1.4rem;
@@ -1078,9 +1078,9 @@
 }
 
 .faculty-load-card:hover {
-  background: #ffffff;
+  background: var(--surface-card);
   border-color: var(--primary-accent);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+  box-shadow: 0 4px 12px rgba(62, 75, 85, 0.08);
 }
 
 .faculty-load-header {
@@ -1194,7 +1194,7 @@
 }
 
 .student-row-clickable:hover {
-  background-color: #f8fafc !important;
+  background-color: var(--bg-canvas-light) !important;
 }
 
 .student-row-clickable:hover .student-row-arrow {
@@ -1266,7 +1266,7 @@
   align-items: center;
   padding: 0.25rem 0.65rem;
   background: #f1f5f9;
-  color: #0f172a;
+  color: var(--text-primary);
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font-size: 0.75rem;
@@ -1279,8 +1279,8 @@
 }
 
 .student-project-chip:hover {
-  background: #e2e8f0;
-  border-color: #94a3b8;
+  background: var(--border-subtle);
+  border-color: var(--text-secondary);
 }
 
 .student-project-more-btn {
@@ -1362,7 +1362,7 @@
 
 .student-hero-card {
   padding: 1.5rem 1.75rem;
-  background: #ffffff;
+  background: var(--surface-card);
 }
 
 .student-hero-content {
@@ -1580,7 +1580,7 @@
 }
 
 .student-project-card:hover {
-  background: #ffffff;
+  background: var(--surface-card);
   border-color: #3b82f6;
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.09);
   transform: translateY(-2px);
@@ -1693,7 +1693,7 @@
 }
 
 .task-priority-pill.low {
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
   color: #475569;
   border: 1px solid #cbd5e1;
 }

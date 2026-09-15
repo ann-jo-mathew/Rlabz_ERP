@@ -213,7 +213,7 @@ export async function StudentReports(route, router) {
                       </div>
 
                       <div class="weekly-week-label">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted);"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         <span>Week: ${weekDisplay}</span>
                       </div>
 
@@ -272,7 +272,7 @@ export async function StudentReports(route, router) {
                         </div>
                       `;
                     }).join('') : `
-                      <div style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px;">
+                      <div style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; background: var(--bg-canvas-light); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px 14px;">
                         ${r.workDone}
                       </div>
                     `}
@@ -301,7 +301,7 @@ export async function StudentReports(route, router) {
       const statusClass = status === 'approved' ? 'student-badge-success' : status === 'rejected' ? 'student-badge-danger' : 'student-badge-warning';
 
       return `
-        <tr style="vertical-align: top; border-bottom: 1px solid var(--border-color, #e2e8f0);">
+        <tr style="vertical-align: top; border-bottom: 1px solid var(--border-color, var(--border-subtle));">
           <td style="padding: 12px 14px;">
             <div style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">${r.date}</div>
             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">${r.projectTitle || ''}</div>
@@ -311,7 +311,7 @@ export async function StudentReports(route, router) {
               <span class="daily-task-code-badge">${r.taskCode}</span>
               <div style="font-weight: 600; font-size: 0.84rem; color: var(--text-main);">${r.taskTitle || 'Assigned Task'}</div>
             ` : `
-              <span style="color: #94a3b8; font-size: 0.8rem;">${r.taskId ? 'Task #' + r.taskId : 'Task'}</span>
+              <span style="color: var(--text-secondary); font-size: 0.8rem;">${r.taskId ? 'Task #' + r.taskId : 'Task'}</span>
             `}
           </td>
           <td style="padding: 12px 14px;">

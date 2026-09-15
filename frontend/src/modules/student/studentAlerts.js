@@ -7,7 +7,7 @@ import 'sweetalert2/dist/sweetalert2.min.css';
  */
 export const StudentSwal = Swal.mixin({
   confirmButtonColor: 'var(--primary)',
-  cancelButtonColor: '#94a3b8',
+  cancelButtonColor: 'var(--text-secondary)',
   buttonsStyling: true,
   customClass: {
     popup: 'student-swal-modal',

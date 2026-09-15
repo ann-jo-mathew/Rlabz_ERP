@@ -51,20 +51,20 @@
 }
 
 .premium-table tbody tr {
-  background: #ffffff;
+  background: var(--surface-card);
   transition: var(--transition);
 }
 
 .premium-table tbody tr:nth-child(even) {
-  background: #ffffff;
+  background: var(--surface-card);
 }
 
 .premium-table tbody tr:nth-child(odd) {
-  background: #ffffff;
+  background: var(--surface-card);
 }
 
 .premium-table tbody tr:hover {
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
 }
 
 .premium-table tbody tr:last-child td {
@@ -122,9 +122,9 @@
   padding: 0.5rem 1.1rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-main, #0f172a);
-  background: var(--bg-card, #ffffff);
-  border: 1px solid var(--border-color, #e2e8f0);
+  color: var(--text-main, var(--text-primary));
+  background: var(--bg-card, var(--surface-card));
+  border: 1px solid var(--border-color, var(--border-subtle));
   border-radius: var(--radius-md, 8px);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   cursor: pointer;
@@ -136,7 +136,7 @@
   color: var(--primary, var(--primary));
   border-color: var(--primary, var(--primary));
   background: var(--primary-light, var(--primary-light));
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 18, 32, 0.15);
   transform: translateX(-3px);
 }
 
@@ -183,8 +183,8 @@
 .premium-input:focus {
   outline: none;
   border-color: var(--primary);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  background: var(--surface-card);
+  box-shadow: 0 0 0 3px rgba(62, 75, 85, 0.15);
 }
 
 .form-group label {
@@ -249,7 +249,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  border-bottom: 1px solid var(--border-color, var(--border-subtle));
   margin-bottom: 1.75rem;
   overflow-x: auto;
   padding-bottom: 0.5rem;
@@ -265,15 +265,15 @@
   border-radius: 9999px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted, var(--text-muted));
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
 }
 
 .project-tab-btn:hover {
-  color: var(--text-main, #0f172a);
-  background: var(--bg-surface, #f8fafc);
+  color: var(--text-main, var(--text-primary));
+  background: var(--bg-surface, var(--bg-canvas-light));
 }
 
 .project-tab-btn.active {
@@ -292,8 +292,8 @@
 }
 
 .project-info-tile {
-  background: #ffffff;
-  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--surface-card);
+  border: 1px solid var(--border-color, var(--border-subtle));
   border-radius: 12px;
   padding: 1.15rem 1.35rem;
   display: flex;
@@ -337,14 +337,14 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted, var(--text-muted));
   font-weight: 700;
 }
 
 .project-info-val {
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--text-main, #0f172a);
+  color: var(--text-main, var(--text-primary));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -352,8 +352,8 @@
 
 /* Scope & Requirements Cards matching Dashboard effect */
 .project-section-card {
-  background: #ffffff;
-  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--surface-card);
+  border: 1px solid var(--border-color, var(--border-subtle));
   border-radius: 12px;
   padding: 1.35rem 1.6rem;
   margin-bottom: 1.5rem;
@@ -392,7 +392,7 @@
   margin-bottom: 0.75rem;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-main, #0f172a);
+  color: var(--text-main, var(--text-primary));
 }
 
 .project-section-text {
@@ -415,13 +415,13 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text-main, #0f172a);
+  color: var(--text-main, var(--text-primary));
 }
 
 .section-title-box p {
   margin: 0.25rem 0 0;
   font-size: 0.88rem;
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted, var(--text-muted));
 }
 
 .project-modules-pane {
@@ -444,8 +444,8 @@
 }
 
 .module-item-card {
-  background: #ffffff;
-  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--surface-card);
+  border: 1px solid var(--border-color, var(--border-subtle));
   border-radius: 12px;
   padding: 1rem 1.15rem;
   display: flex;
@@ -459,14 +459,14 @@
 
 .module-item-card:hover {
   border-color: #cbd5e1;
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
   transform: translateX(3px);
 }
 
 .module-item-card.active {
-  background: #ffffff;
+  background: var(--surface-card);
   border: 1.5px solid var(--primary);
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.1);
+  box-shadow: 0 4px 14px rgba(0, 18, 32, 0.1);
 }
 
 .module-icon-box {
@@ -474,7 +474,7 @@
   height: 36px;
   border-radius: 8px;
   background: #f1f5f9;
-  color: #64748b;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -496,20 +496,20 @@
   display: block;
   font-weight: 600;
   font-size: 0.92rem;
-  color: var(--text-main, #0f172a);
+  color: var(--text-main, var(--text-primary));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .module-item-card.active .module-item-name {
-  color: #0f172a;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
 .module-item-sub {
   font-size: 0.75rem;
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted, var(--text-muted));
   margin-top: 2px;
   display: flex;
   align-items: center;
@@ -517,7 +517,7 @@
 }
 
 .module-item-arrow {
-  color: #94a3b8;
+  color: var(--text-secondary);
   transition: transform 0.2s ease;
   flex-shrink: 0;
 }
@@ -529,8 +529,8 @@
 
 /* Tasks Column under Modules */
 .module-tasks-card {
-  background: #ffffff;
-  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--surface-card);
+  border: 1px solid var(--border-color, var(--border-subtle));
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
@@ -570,12 +570,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
   transition: all 0.2s ease;
 }
 
 .student-task-item:hover {
-  background: #ffffff;
+  background: var(--surface-card);
   border-color: #cbd5e1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
@@ -592,12 +592,12 @@
 .student-task-title {
   font-weight: 600;
   font-size: 0.92rem;
-  color: var(--text-main, #0f172a);
+  color: var(--text-main, var(--text-primary));
 }
 
 .student-task-assignee {
   font-size: 0.78rem;
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted, var(--text-muted));
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -641,7 +641,7 @@
 .student-badge-secondary {
   background: #f1f5f9;
   color: #475569;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-subtle);
 }
 
 /* Two-column horizontal layout for Project Requirements & Requirement Changes */

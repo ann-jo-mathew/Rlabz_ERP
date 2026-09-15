@@ -378,9 +378,9 @@ export async function StudentCertificates(route, router) {
 
       // Build certificate element matching the exact format shown in the UI modal
       const certElement = document.createElement('div');
-      certElement.style.cssText = 'width: 820px; padding: 12px; background: #ffffff; box-sizing: border-box; margin: 0 auto; font-family: "Times New Roman", Times, Georgia, serif; color: #1e293b;';
+      certElement.style.cssText = 'width: 820px; padding: 12px; background: var(--surface-card); box-sizing: border-box; margin: 0 auto; font-family: "Times New Roman", Times, Georgia, serif; color: #1e293b;';
       certElement.innerHTML = `
-        <div style="width: 100%; background: #fdfdfa; border: 1px solid #e2e8f0; padding: 8px; box-sizing: border-box;">
+        <div style="width: 100%; background: #fdfdfa; border: 1px solid var(--border-subtle); padding: 8px; box-sizing: border-box;">
           <div style="border: 6px solid #1e293b; padding: 4px; box-sizing: border-box;">
             <div style="border: 2px solid #b45309; padding: 36px 24px; text-align: center; box-sizing: border-box; background: #fffdf9;">
               
@@ -392,7 +392,7 @@ export async function StudentCertificates(route, router) {
                 CERTIFICATE OF COMPLETION
               </div>
 
-              <div style="font-size: 11px; letter-spacing: 3px; color: #64748b; margin-bottom: 16px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              <div style="font-size: 11px; letter-spacing: 3px; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                 PROUDLY PRESENTED TO
               </div>
 
@@ -412,7 +412,7 @@ export async function StudentCertificates(route, router) {
                 under the supervision of CS Faculty and Co-ordinators.
               </div>
 
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                 Certificate No: <strong style="color: #1e293b;">${certNumber}</strong> &nbsp;|&nbsp; 
                 Issued Date: <strong style="color: #1e293b;">${issuedDate}</strong> &nbsp;|&nbsp; 
                 Status: <strong style="color: var(--primary);">Issued &amp; Verified</strong>
@@ -420,15 +420,15 @@ export async function StudentCertificates(route, router) {
 
               <div style="display: flex; justify-content: space-between; width: 100%; max-width: 540px; margin: 20px auto 0;">
                 <div style="display: flex; flex-direction: column; align-items: center; width: 200px;">
-                  <div style="width: 100%; border-top: 1px solid #94a3b8; margin-bottom: 6px;"></div>
+                  <div style="width: 100%; border-top: 1px solid var(--text-secondary); margin-bottom: 6px;"></div>
                   <span style="font-size: 13px; font-weight: 700; color: #1e293b;">${supervisorName}</span>
-                  <label style="font-size: 11px; color: #64748b; margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Project Supervisor</label>
+                  <label style="font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Project Supervisor</label>
                 </div>
 
                 <div style="display: flex; flex-direction: column; align-items: center; width: 200px;">
-                  <div style="width: 100%; border-top: 1px solid #94a3b8; margin-bottom: 6px;"></div>
+                  <div style="width: 100%; border-top: 1px solid var(--text-secondary); margin-bottom: 6px;"></div>
                   <span style="font-size: 13px; font-weight: 700; color: #1e293b;">Director, RLabZ ERP</span>
-                  <label style="font-size: 11px; color: #64748b; margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Issuing Authority</label>
+                  <label style="font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Issuing Authority</label>
                 </div>
               </div>
 

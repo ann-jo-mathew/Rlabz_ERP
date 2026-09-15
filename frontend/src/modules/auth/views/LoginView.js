@@ -40,11 +40,11 @@ export function LoginView(route, router) {
           <span id="btn-text">Login to ERP</span>
         </button>
 
-        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color, #e2e8f0);">
-          <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted, #64748b); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;">Quick Demo Logins</div>
+        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color, var(--border-subtle));">
+          <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted, var(--text-muted)); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;">Quick Demo Logins</div>
           <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
             ${demoAccounts.map(a => `
-              <button type="button" class="btn-demo" data-email="${a.email}" data-pass="${a.pass}" style="font-size: 0.78rem; padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, #f8fafc); cursor: pointer; color: var(--text-main, #334155); transition: all 0.15s ease;">
+              <button type="button" class="btn-demo" data-email="${a.email}" data-pass="${a.pass}" style="font-size: 0.78rem; padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, var(--bg-canvas-light)); cursor: pointer; color: var(--text-main, #334155); transition: all 0.15s ease;">
                 ${a.label}
               </button>
             `).join('')}

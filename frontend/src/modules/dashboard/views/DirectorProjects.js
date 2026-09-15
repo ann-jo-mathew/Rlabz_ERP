@@ -323,7 +323,7 @@ export function DirectorProjects(route, router) {
                 const count = f.activeProjectsCount !== undefined ? f.activeProjectsCount : projectsList.length;
                 const isSelected = String(f.id) === String(defaultFacId);
                 return `
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? 'var(--primary-accent)' : '#e5e7eb'}; border-radius:6px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:var(--surface-card); border:1px solid ${isSelected ? 'var(--primary-accent)' : '#e5e7eb'}; border-radius:6px;">
                     <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; margin:0;">
                       <input type="radio" name="proposal_faculty_choice" value="${f.id}" ${isSelected ? 'checked' : ''} />
                       <div>
@@ -406,7 +406,7 @@ export function DirectorProjects(route, router) {
                 const count = f.activeProjectsCount !== undefined ? f.activeProjectsCount : projectsList.length;
                 const isSelected = String(f.id) === String(defaultFacId);
                 return `
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? 'var(--primary-accent)' : '#e5e7eb'}; border-radius:6px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:var(--surface-card); border:1px solid ${isSelected ? 'var(--primary-accent)' : '#e5e7eb'}; border-radius:6px;">
                     <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; margin:0;">
                       <input type="radio" name="project_faculty_choice" value="${f.id}" ${isSelected ? 'checked' : ''} />
                       <div>

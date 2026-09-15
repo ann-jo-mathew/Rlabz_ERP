@@ -171,7 +171,7 @@ async function downloadReportPdf(project, btn) {
       <div style="font-size:12px;color:#888;margin-top:4px;">Generated: ${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
     </div>
     ${buildReportBodyHtml(project)}
-    <div style="margin-top:30px;text-align:center;font-size:10px;color:#bbb;border-top:1px solid #e2e8f0;padding-top:12px;">
+    <div style="margin-top:30px;text-align:center;font-size:10px;color:#bbb;border-top:1px solid var(--border-subtle);padding-top:12px;">
       This is a system-generated report from RLabZ ERP. Data is indicative and subject to final verification.
     </div>
   `;

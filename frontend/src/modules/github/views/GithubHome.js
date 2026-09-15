@@ -65,7 +65,7 @@ export function FacultyGithub(route, router) {
                     placeholder="Search project by name..."
                     style="padding-left: 2.25rem; font-size: 0.88rem; height: 40px; border-radius: 8px;"
                 />
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 13px; color: #94a3b8;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 13px; color: var(--text-secondary);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </div>
         </div>
 
@@ -177,11 +177,11 @@ export function FacultyGithub(route, router) {
                             <div class="git-log-entries-list">
                                 ${(gitLogs[repo.projectName] || []).map(log => `
                                     <div class="git-log-entry">
-                                        <div style="display: flex; justify-content: space-between; font-weight: bold; color: #f8fafc;">
+                                        <div style="display: flex; justify-content: space-between; font-weight: bold; color: var(--bg-canvas-light);">
                                             <span>${log.message}</span>
-                                            <span style="color: #64748b; font-family: monospace;">[${log.hash}]</span>
+                                            <span style="color: var(--text-muted); font-family: monospace;">[${log.hash}]</span>
                                         </div>
-                                        <div style="font-size: 11px; color: #94a3b8; margin-top: 3px;">
+                                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px;">
                                             Author: <strong>${log.author}</strong> | Date: ${log.date}
                                         </div>
                                     </div>
@@ -197,7 +197,7 @@ export function FacultyGithub(route, router) {
                                 <span style="font-weight: 700; font-size: 11px; color: #087f5b; display: block; margin-bottom: 4px;">Sent Instructions:</span>
                                 <div id="messages-list-${index}" style="display: flex; flex-direction: column; gap: 5px;">
                                     ${repo.messages.map(m => `
-                                        <div style="font-size: 12px; color: #334155; padding: 6px 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 5px;">
+                                        <div style="font-size: 12px; color: #334155; padding: 6px 10px; background: #fff; border: 1px solid var(--border-subtle); border-radius: 5px;">
                                             ${m}
                                         </div>
                                     `).join('')}
@@ -293,7 +293,7 @@ export function FacultyGithub(route, router) {
                     const list = container.querySelector(`#messages-list-${index}`);
                     if (displayBox && list) {
                         list.innerHTML = repositories[index].messages.map(m => `
-                            <div style="font-size: 12px; color: #334155; padding: 6px 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 5px;">
+                            <div style="font-size: 12px; color: #334155; padding: 6px 10px; background: #fff; border: 1px solid var(--border-subtle); border-radius: 5px;">
                                 ${m}
                             </div>
                         `).join('');

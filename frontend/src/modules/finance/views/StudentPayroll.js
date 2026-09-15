@@ -61,24 +61,24 @@ export async function StudentPayroll(route, router) {
         <table style="width:100%; border-collapse:collapse; margin-bottom:24px; font-size:13px;">
           <thead>
             <tr style="background:#f1f5f9;">
-              <th style="padding:10px 14px; text-align:left; color:#555; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #e2e8f0;">Description</th>
-              <th style="padding:10px 14px; text-align:right; color:#555; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #e2e8f0;">Value</th>
+              <th style="padding:10px 14px; text-align:left; color:#555; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid var(--border-subtle);">Description</th>
+              <th style="padding:10px 14px; text-align:right; color:#555; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid var(--border-subtle);">Value</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom:1px solid #e2e8f0;">
+            <tr style="border-bottom:1px solid var(--border-subtle);">
               <td style="padding:10px 14px;">Payroll Period</td>
               <td style="padding:10px 14px; text-align:right; font-weight:600;">${pr.period}</td>
             </tr>
-            <tr style="border-bottom:1px solid #e2e8f0;">
+            <tr style="border-bottom:1px solid var(--border-subtle);">
               <td style="padding:10px 14px;">Logged Hours</td>
               <td style="padding:10px 14px; text-align:right; color:#666;">${pr.loggedHours} hrs</td>
             </tr>
-            <tr style="border-bottom:1px solid #e2e8f0;">
+            <tr style="border-bottom:1px solid var(--border-subtle);">
               <td style="padding:10px 14px; font-weight:600;">Approved Hours</td>
               <td style="padding:10px 14px; text-align:right; font-weight:600;">${pr.approvedHours} hrs</td>
             </tr>
-            <tr style="border-bottom:1px solid #e2e8f0;">
+            <tr style="border-bottom:1px solid var(--border-subtle);">
               <td style="padding:10px 14px;">Applicable Rate (${pr.designation})</td>
               <td style="padding:10px 14px; text-align:right; font-weight:600;">₹${pr.rate}/hr</td>
             </tr>
@@ -445,7 +445,7 @@ export async function StudentPayroll(route, router) {
           
           <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
             <div style="flex:1; min-width:200px;">
-              <div style="background:#f8fafb; border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem;">
+              <div style="background:#f8fafb; border:1px solid var(--border-subtle); border-radius:6px; padding:1rem; margin-bottom:1rem;">
                 <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.25rem;">Current Rate</div>
                 <div style="font-size:1.5rem; font-weight:700; color:var(--primary);" id="modal-current-rate">₹${currentGlobalRate}/hour</div>
               </div>

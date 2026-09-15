@@ -32,7 +32,7 @@ export function FacultyHome(route, router) {
     function render() {
         if (isLoading) {
             container.innerHTML = `
-                <div style="padding: 5rem 2rem; text-align: center; color: var(--text-muted, #64748b);">
+                <div style="padding: 5rem 2rem; text-align: center; color: var(--text-muted, var(--text-muted));">
                     <div class="spinner" style="border-top-color: var(--primary, var(--primary)); margin: 0 auto 1rem; width: 36px; height: 36px;"></div>
                     <p style="font-size: 0.95rem;">Loading faculty dashboard...</p>
                 </div>
@@ -64,9 +64,9 @@ export function FacultyHome(route, router) {
             <!-- HEADER WITH FACULTY DETAILS & NOTIFICATION BELL -->
             <div class="dashboard-header-container" style="margin-bottom: 2rem;">
                 <div class="page-header" style="margin-bottom: 0;">
-                    <h1 style="margin: 0 0 0.4rem; font-size: 1.65rem; font-weight: 700; color: var(--text-main, #0f172a);">Faculty Dashboard</h1>
-                    <p style="margin: 0; font-size: 0.92rem; color: var(--text-muted, #64748b); line-height: 1.5;">
-                        Welcome back, <strong style="color: var(--text-main, #0f172a); font-weight: 600;">${faculty.name}</strong> 
+                    <h1 style="margin: 0 0 0.4rem; font-size: 1.65rem; font-weight: 700; color: var(--text-main, var(--text-primary));">Faculty Dashboard</h1>
+                    <p style="margin: 0; font-size: 0.92rem; color: var(--text-muted, var(--text-muted)); line-height: 1.5;">
+                        Welcome back, <strong style="color: var(--text-main, var(--text-primary)); font-weight: 600;">${faculty.name}</strong> 
                         &bull; <span style="color: var(--primary, var(--primary)); font-weight: 600;">${faculty.designation}</span> 
                         &bull; ${faculty.department} (${faculty.email})
                     </p>
@@ -76,46 +76,46 @@ export function FacultyHome(route, router) {
             <!-- LIVE STATS OF THE LOGGED-IN FACULTY (INTERACTIVE CARDS) -->
             <div class="faculty-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2.25rem;">
                 
-                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/projects" role="button" tabindex="0" title="Click to view Assigned Projects" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
+                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/projects" role="button" tabindex="0" title="Click to view Assigned Projects" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: var(--surface-card); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
                     <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--primary-light); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--primary, var(--primary)); flex-shrink: 0;">
                         ${iconProjects}
                     </div>
                     <div style="flex-grow: 1;">
-                        <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.projects_count}</h3>
-                        <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Projects Assigned</p>
+                        <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, var(--text-primary)); line-height: 1.2;">${stats.projects_count}</h3>
+                        <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, var(--text-muted)); font-weight: 500;">Projects Assigned</p>
                     </div>
                     <span style="color: var(--primary, var(--primary)); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
-                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/students" role="button" tabindex="0" title="Click to view Students Mentored" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
+                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/students" role="button" tabindex="0" title="Click to view Students Mentored" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: var(--surface-card); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
                     <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--bg-main); border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; color: #166534; flex-shrink: 0;">
                         ${iconStudents}
                     </div>
                     <div style="flex-grow: 1;">
-                        <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.students_count}</h3>
-                        <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Students Mentored</p>
+                        <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, var(--text-primary)); line-height: 1.2;">${stats.students_count}</h3>
+                        <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, var(--text-muted)); font-weight: 500;">Students Mentored</p>
                     </div>
                     <span style="color: var(--primary, var(--primary)); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
-                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/meetings" role="button" tabindex="0" title="Click to view Meetings" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
+                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/meetings" role="button" tabindex="0" title="Click to view Meetings" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: var(--surface-card); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
                     <div style="width: 44px; height: 44px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; color: #1d4ed8; flex-shrink: 0;">
                         ${iconCalendar}
                     </div>
                     <div style="flex-grow: 1;">
-                        <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.meetings_today_count}</h3>
-                        <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Meetings Today</p>
+                        <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, var(--text-primary)); line-height: 1.2;">${stats.meetings_today_count}</h3>
+                        <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, var(--text-muted)); font-weight: 500;">Meetings Today</p>
                     </div>
                     <span style="color: var(--primary, var(--primary)); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
-                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/github" role="button" tabindex="0" title="Click to view Linked Repositories" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
-                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #f8fafc; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; color: #334155; flex-shrink: 0;">
+                <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/github" role="button" tabindex="0" title="Click to view Linked Repositories" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: var(--surface-card); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--bg-canvas-light); border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; color: #334155; flex-shrink: 0;">
                         ${iconGit}
                     </div>
                     <div style="flex-grow: 1;">
-                        <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.github_repos_count}</h3>
-                        <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Linked Repositories</p>
+                        <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, var(--text-primary)); line-height: 1.2;">${stats.github_repos_count}</h3>
+                        <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, var(--text-muted)); font-weight: 500;">Linked Repositories</p>
                     </div>
                     <span style="color: var(--primary, var(--primary)); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
@@ -128,7 +128,7 @@ export function FacultyHome(route, router) {
                 <!-- 1. ASSIGNED PROJECTS -->
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
-                        <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">
+                        <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main, var(--text-primary));">
                             Assigned Projects (${projects.length})
                         </h2>
                         <a href="/faculty/projects" class="nav-link-btn" style="font-size: 0.84rem; color: var(--primary, var(--primary)); font-weight: 600; text-decoration: none;">
@@ -137,7 +137,7 @@ export function FacultyHome(route, router) {
                     </div>
 
                     ${projects.length === 0 ? `
-                        <div class="faculty-card-panel" style="text-align: center; color: var(--text-muted, #94a3b8); padding: 3rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px;">
+                        <div class="faculty-card-panel" style="text-align: center; color: var(--text-muted, var(--text-secondary)); padding: 3rem; background: var(--surface-card); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 12px;">
                             No projects currently assigned to your account.
                         </div>
                     ` : `
@@ -147,11 +147,11 @@ export function FacultyHome(route, router) {
                                 const progress = p.progress || 0;
 
                                 return `
-                                    <div class="faculty-card-panel" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+                                    <div class="faculty-card-panel" style="padding: 1.5rem; background: var(--surface-card); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
                                             <div>
-                                                <h3 style="margin: 0 0 0.35rem; font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">${p.title}</h3>
-                                                <p style="margin: 0; font-size: 0.86rem; color: var(--text-muted, #64748b);">
+                                                <h3 style="margin: 0 0 0.35rem; font-size: 1.1rem; font-weight: 700; color: var(--text-main, var(--text-primary));">${p.title}</h3>
+                                                <p style="margin: 0; font-size: 0.86rem; color: var(--text-muted, var(--text-muted));">
                                                     Client: <strong style="color: var(--text-main, #334155);">${p.client_name || 'Rajagiri College'}</strong>
                                                     &nbsp;&bull;&nbsp; Type: ${p.project_type || 'Web App'}
                                                 </p>
@@ -163,8 +163,8 @@ export function FacultyHome(route, router) {
 
                                         <div style="margin-top: 1.25rem;">
                                             <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.4rem;">
-                                                <span style="color: var(--text-muted, #64748b); font-weight: 500;">
-                                                    Tasks Completion: <strong style="color: var(--text-main, #0f172a);">${p.completed_tasks || 0} / ${p.total_tasks || 0}</strong> Tasks
+                                                <span style="color: var(--text-muted, var(--text-muted)); font-weight: 500;">
+                                                    Tasks Completion: <strong style="color: var(--text-main, var(--text-primary));">${p.completed_tasks || 0} / ${p.total_tasks || 0}</strong> Tasks
                                                 </span>
                                                 <strong style="color: var(--primary, var(--primary)); font-weight: 700;">${progress}%</strong>
                                             </div>
@@ -174,7 +174,7 @@ export function FacultyHome(route, router) {
                                         </div>
 
                                         <div style="margin-top: 1.25rem; padding-top: 0.85rem; border-top: 1px solid var(--border-color, #f1f5f9); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-                                            <span style="font-size: 0.84rem; color: var(--text-muted, #64748b); display: inline-flex; align-items: center; gap: 0.35rem;">
+                                            <span style="font-size: 0.84rem; color: var(--text-muted, var(--text-muted)); display: inline-flex; align-items: center; gap: 0.35rem;">
                                                 ${iconMiniUsers} <strong style="color: var(--text-main, #334155);">${p.students_count || 0}</strong> Students Assigned
                                             </span>
                                             <div style="display: flex; gap: 0.5rem;">
@@ -196,9 +196,9 @@ export function FacultyHome(route, router) {
                 <!-- 2. UPCOMING MEETINGS -->
                 <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                     
-                    <div class="faculty-card-panel" style="padding: 1.5rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <div class="faculty-card-panel" style="padding: 1.5rem; background: var(--surface-card); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-color, #f1f5f9); padding-bottom: 0.75rem;">
-                            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a);">
+                            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main, var(--text-primary));">
                                 Upcoming Meetings
                             </h3>
                             <a href="/faculty/meetings" class="nav-link-btn" style="font-size: 0.82rem; color: var(--primary, var(--primary)); font-weight: 600; text-decoration: none;">
@@ -207,7 +207,7 @@ export function FacultyHome(route, router) {
                         </div>
 
                         ${upcomingMeetings.length === 0 ? `
-                            <p style="font-size: 0.88rem; color: var(--text-muted, #64748b); margin: 0; text-align: center; padding: 2rem 1rem;">
+                            <p style="font-size: 0.88rem; color: var(--text-muted, var(--text-muted)); margin: 0; text-align: center; padding: 2rem 1rem;">
                                 No upcoming meetings scheduled.
                             </p>
                         ` : `
@@ -219,10 +219,10 @@ export function FacultyHome(route, router) {
                                     });
 
                                     return `
-                                        <div style="padding: 0.9rem 1rem; background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px;">
-                                            <strong style="font-size: 0.9rem; color: var(--text-main, #0f172a); display: block; margin-bottom: 0.2rem;">${m.title}</strong>
+                                        <div style="padding: 0.9rem 1rem; background: var(--bg-main, var(--bg-canvas-light)); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 9px;">
+                                            <strong style="font-size: 0.9rem; color: var(--text-main, var(--text-primary)); display: block; margin-bottom: 0.2rem;">${m.title}</strong>
                                             <div style="font-size: 0.8rem; color: var(--primary, var(--primary)); font-weight: 600; margin-bottom: 0.35rem;">${m.project_name}</div>
-                                            <div style="display: flex; gap: 0.75rem; font-size: 0.78rem; color: var(--text-muted, #64748b); flex-wrap: wrap; align-items: center;">
+                                            <div style="display: flex; gap: 0.75rem; font-size: 0.78rem; color: var(--text-muted, var(--text-muted)); flex-wrap: wrap; align-items: center;">
                                                 <span>${iconMiniCalendar} ${dateFormatted}</span>
                                                 <span>${iconMapPin} ${m.location || 'Google Meet'}</span>
                                                 ${m.meeting_link ? `

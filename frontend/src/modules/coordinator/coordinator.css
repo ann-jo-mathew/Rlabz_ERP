@@ -180,7 +180,7 @@
 .coordinator-table th {
   text-align: left;
   padding: 0.75rem 1rem;
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
   color: #475569;
   font-weight: 600;
   border-bottom: 1px solid #e5e7eb;
@@ -193,7 +193,7 @@
 }
 
 .coordinator-table tbody tr:hover {
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
 }
 
 .designation-badge {
@@ -321,7 +321,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 1.25rem;
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
 }
 
 .coordinator-detail-card h2,
@@ -391,7 +391,7 @@
 }
 
 .coordinator-project-summary div {
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 1rem;
@@ -425,7 +425,7 @@
   border-radius: 10px;
   padding: 0.9rem 1rem;
   margin-bottom: 0.7rem;
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
 }
 
 .coordinator-requirement-item strong {
@@ -526,7 +526,7 @@
 .coordinator-table th {
   text-align: left;
   padding: 0.8rem;
-  background: #f8fafc;
+  background: var(--bg-canvas-light);
   color: #6b7280;
   font-weight: 600;
   border-bottom: 1px solid #e5e7eb;

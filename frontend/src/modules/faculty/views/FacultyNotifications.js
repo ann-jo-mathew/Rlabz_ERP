@@ -49,9 +49,9 @@ export function FacultyNotifications() {
     function renderLoading() {
         if (listContainer) {
             listContainer.innerHTML = `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; text-align: center;">
+                <div style="background: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 30px; text-align: center;">
                     <div class="spinner" style="border-top-color: var(--primary, var(--primary)); margin: 0 auto 0.75rem; width: 24px; height: 24px;"></div>
-                    <p style="margin: 0; color: #64748b; font-size: 13px;">Loading notifications...</p>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 13px;">Loading notifications...</p>
                 </div>
             `;
         }
@@ -77,9 +77,9 @@ export function FacultyNotifications() {
     function renderNotifications() {
         if (notifications.length === 0) {
             listContainer.innerHTML = `
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; text-align: center;">
-                    <h3 style="margin: 0; color: #64748b; font-size: 15px;">No notifications</h3>
-                    <p style="margin: 5px 0 0; color: #94a3b8; font-size: 13px;">You are completely caught up!</p>
+                <div style="background: white; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 30px; text-align: center;">
+                    <h3 style="margin: 0; color: var(--text-muted); font-size: 15px;">No notifications</h3>
+                    <p style="margin: 5px 0 0; color: var(--text-secondary); font-size: 13px;">You are completely caught up!</p>
                 </div>
             `;
             return;
@@ -99,7 +99,7 @@ export function FacultyNotifications() {
                                 Mark as Read
                             </button>
                         ` : `
-                            <span style="font-size: 12px; color: #94a3b8; font-weight: 600; padding: 6px 12px; display: inline-block;">Read</span>
+                            <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600; padding: 6px 12px; display: inline-block;">Read</span>
                         `}
                     </div>
                 </div>

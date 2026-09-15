@@ -62,7 +62,7 @@ export async function CostDistribution(route, router) {
         <div class="fin-panel-title">Project Allocations</div>
         <div id="results-count" style="font-size:0.8rem;color:var(--text-muted)"></div>
       </div>
-      <div class="fin-filters" style="padding:1.5rem; border-bottom:1px solid #e2e8f0; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+      <div class="fin-filters" style="padding:1.5rem; border-bottom:1px solid var(--border-subtle); display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
         <input type="text" class="fin-input" id="search-filter" placeholder="Search project or client..." style="max-width:300px;">
         <select class="fin-input" id="project-filter" style="max-width:300px;">
           <option value="All">All Projects</option>
@@ -178,7 +178,7 @@ export async function CostDistribution(route, router) {
           </td>
           <td style="font-weight:700">${fmt(total)}</td>
           <td style="min-width:140px">
-            <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:#e2e8f0">
+            <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--border-subtle)">
               <div style="width:${sPct}%;background:${lock.locked ? '#9ca3af' : 'var(--primary)'}" title="Student ${sPct}%"></div>
               <div style="width:${fPct}%;background:${lock.locked ? '#c4c9d4' : '#0891b2'}" title="Faculty ${fPct}%"></div>
               <div style="width:${rPct}%;background:${lock.locked ? '#d1d5db' : '#6366f1'}" title="RLabZ ${rPct}%"></div>

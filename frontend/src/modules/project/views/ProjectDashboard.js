@@ -29,7 +29,7 @@ export async function ProjectDashboard(route, router) {
             value="${searchQuery}" 
             style="padding-left: 2.25rem; font-size: 0.88rem; height: 40px; border-radius: 8px;"
           />
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 13px; color: #94a3b8;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 13px; color: var(--text-secondary);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </div>
         ${permissions.includes('project.create') ? '<button class="btn btn-primary shadow-hover" id="btn-create-project" style="width: auto; padding: 0 1.25rem; height: 40px; font-size: 0.88rem; font-family: var(--font-family); display: inline-flex; align-items: center; gap: 0.4rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>Create Project</span></button>' : ''}
       </div>
@@ -43,7 +43,7 @@ export async function ProjectDashboard(route, router) {
         transition: background 0.15s;
       }
       .project-row-clickable:hover {
-        background: var(--bg-surface, #f8fafc);
+        background: var(--bg-surface, var(--bg-canvas-light));
       }
       .project-row-clickable td:first-child {
         color: var(--primary);
@@ -57,7 +57,7 @@ export async function ProjectDashboard(route, router) {
 
     if (projectsToRender.length === 0) {
       listContainer.innerHTML = `
-        <div class="card-panel" style="text-align: center; padding: 3rem; background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px;">
+        <div class="card-panel" style="text-align: center; padding: 3rem; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px;">
           <p style="color: var(--text-muted); font-size: 1.05rem; margin: 0;">
             ${searchQuery ? `No projects found matching "${searchQuery}".` : 'No projects found. Create one to get started!'}
           </p>
@@ -67,15 +67,15 @@ export async function ProjectDashboard(route, router) {
     }
 
     let html = `
-      <div class="project-table-container animate-fade-in" style="margin-top: 0; background: #ffffff; border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0); overflow: hidden;">
+      <div class="project-table-container animate-fade-in" style="margin-top: 0; background: var(--surface-card); border-radius: 12px; border: 1px solid var(--border-color, var(--border-subtle)); overflow: hidden;">
         <table class="premium-table" style="width: 100%; border-collapse: collapse;">
           <thead>
-            <tr style="background: var(--bg-main, #f8fafc); border-bottom: 2px solid var(--border-color, #e2e8f0);">
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Project Title</th>
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Client Name</th>
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Type</th>
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
-              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
+            <tr style="background: var(--bg-main, var(--bg-canvas-light)); border-bottom: 2px solid var(--border-color, var(--border-subtle));">
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, var(--text-muted)); text-transform: uppercase; letter-spacing: 0.05em;">Project Title</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, var(--text-muted)); text-transform: uppercase; letter-spacing: 0.05em;">Client Name</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, var(--text-muted)); text-transform: uppercase; letter-spacing: 0.05em;">Type</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, var(--text-muted)); text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
+              <th style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: var(--text-muted, var(--text-muted)); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -84,7 +84,7 @@ export async function ProjectDashboard(route, router) {
     projectsToRender.forEach(p => {
       const pStatus = (p.status || 'active').toLowerCase();
       html += `
-        <tr class="project-row-clickable" data-project-id="${p.id}" style="border-bottom: 1px solid var(--border-color, #e2e8f0); transition: background 0.15s ease;">
+        <tr class="project-row-clickable" data-project-id="${p.id}" style="border-bottom: 1px solid var(--border-color, var(--border-subtle)); transition: background 0.15s ease;">
           <td style="padding: 1.15rem 1.5rem; font-weight: 700; color: var(--text-main); font-size: 0.95rem;">${p.title}</td>
           <td style="padding: 1.15rem 1.5rem; color: var(--text-main); font-size: 0.92rem;">${p.client_name || 'N/A'}</td>
           <td style="padding: 1.15rem 1.5rem;"><span style="color: var(--text-muted); font-size: 0.9rem;">${p.project_type || 'N/A'}</span></td>

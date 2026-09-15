@@ -198,7 +198,7 @@ export async function CoordinatorMeetings(route, router) {
 
   function renderMinutesForm(meetingId, { withCancel = true } = {}) {
     return `
-      <form class="minutes-form" data-id="${meetingId}" style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px;">
+      <form class="minutes-form" data-id="${meetingId}" style="margin-top: 1rem; padding: 1rem; background: var(--bg-canvas-light); border: 1px solid #e5e7eb; border-radius: 8px;">
         <div class="coordinator-form-group" style="margin-bottom: 0.75rem;">
           <label>Minutes of Meeting *</label>
           <textarea class="minutes-input" rows="3" placeholder="Discussion summary, topics covered..." required></textarea>
@@ -231,7 +231,7 @@ export async function CoordinatorMeetings(route, router) {
           <div>Scheduled: <strong style="color:#111827;">${escapeHtml(meeting.date)} at ${escapeHtml(meeting.time)}</strong> <span style="color:#dc2626; font-weight:600;">(date passed)</span></div>
           ${meeting.location ? `<div>Location: <strong style="color:#111827;">${escapeHtml(meeting.location)}</strong></div>` : ''}
           ${meeting.meeting_link ? `<div>Meeting Link: <a href="${escapeHtml(meeting.meeting_link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(meeting.meeting_link)}</a></div>` : ''}
-          ${meeting.agenda ? `<div style="margin-top:0.25rem; padding:0.5rem 0.75rem; background:#f8fafc; border:1px solid #e5e7eb; border-radius:6px;"><strong>Agenda:</strong> ${escapeHtml(meeting.agenda)}</div>` : ''}
+          ${meeting.agenda ? `<div style="margin-top:0.25rem; padding:0.5rem 0.75rem; background:var(--bg-canvas-light); border:1px solid #e5e7eb; border-radius:6px;"><strong>Agenda:</strong> ${escapeHtml(meeting.agenda)}</div>` : ''}
         </div>
 
         <div style="margin-top:1rem; padding-top:0.85rem; border-top:1px dashed #e5e7eb; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
@@ -270,7 +270,7 @@ export async function CoordinatorMeetings(route, router) {
       </tr>
       ${isEditing ? `
         <tr>
-          <td colspan="5" style="background:#f8fafc;">
+          <td colspan="5" style="background:var(--bg-canvas-light);">
             <div style="font-size:0.8rem; color:#6b7280; margin-bottom:0.5rem;">
               Note: the current meetings list does not return previously saved minutes, so this form starts blank. Submitting will overwrite the saved minutes and important decisions for this meeting.
             </div>

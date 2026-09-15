@@ -419,8 +419,8 @@ export async function FinanceDashboard(route, router) {
     indigo: '#6366f1',
     warning: '#f59e0b',
     danger: '#ef4444',
-    grid: '#e2e8f0',
-    text: '#64748b',
+    grid: 'var(--border-subtle)',
+    text: 'var(--text-muted)',
   };
 
   const tooltipDefaults = {

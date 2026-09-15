@@ -43,7 +43,7 @@ export function DirectorClients(route, router) {
               </div>
 
               ${req.requirements ? `
-                <div style="margin-top:0.5rem; margin-bottom:0.75rem; font-size:0.875rem; color:#374151; background:#ffffff; padding:0.65rem 0.85rem; border-radius:6px; border:1px solid #f3f4f6;">
+                <div style="margin-top:0.5rem; margin-bottom:0.75rem; font-size:0.875rem; color:#374151; background:var(--surface-card); padding:0.65rem 0.85rem; border-radius:6px; border:1px solid #f3f4f6;">
                   <strong>Requirements:</strong> ${req.requirements}
                 </div>
               ` : ''}

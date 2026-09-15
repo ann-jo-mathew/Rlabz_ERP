@@ -73,11 +73,11 @@ export async function InvoicesBills(route, router) {
 
     const itemsHtml = items.map((item, idx) => `
       <tr>
-        <td style="padding:8px 10px; border-bottom:1px solid #e2e8f0; font-size:11px; text-align:center; color:#555;">${idx + 1}</td>
-        <td style="padding:8px 10px; border-bottom:1px solid #e2e8f0; font-size:12px; font-weight:600; color:#1e293b;">${item.description || '-'}</td>
-        <td style="padding:8px 10px; border-bottom:1px solid #e2e8f0; font-size:12px; text-align:right;">${fmt(item.rate)}</td>
-        <td style="padding:8px 10px; border-bottom:1px solid #e2e8f0; font-size:12px; text-align:center;">${item.quantity}</td>
-        <td style="padding:8px 10px; border-bottom:1px solid #e2e8f0; font-size:12px; text-align:right; font-weight:700;">${fmt(item.amount)}</td>
+        <td style="padding:8px 10px; border-bottom:1px solid var(--border-subtle); font-size:11px; text-align:center; color:#555;">${idx + 1}</td>
+        <td style="padding:8px 10px; border-bottom:1px solid var(--border-subtle); font-size:12px; font-weight:600; color:#1e293b;">${item.description || '-'}</td>
+        <td style="padding:8px 10px; border-bottom:1px solid var(--border-subtle); font-size:12px; text-align:right;">${fmt(item.rate)}</td>
+        <td style="padding:8px 10px; border-bottom:1px solid var(--border-subtle); font-size:12px; text-align:center;">${item.quantity}</td>
+        <td style="padding:8px 10px; border-bottom:1px solid var(--border-subtle); font-size:12px; text-align:right; font-weight:700;">${fmt(item.amount)}</td>
       </tr>
     `).join('');
 
@@ -86,22 +86,22 @@ export async function InvoicesBills(route, router) {
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-bottom:20px;">
           <thead>
             <tr style="background:#f1f5f9;">
-              <th colspan="4" style="padding:8px 12px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; border-bottom:2px solid #e2e8f0; font-weight:700;">Payment History</th>
+              <th colspan="4" style="padding:8px 12px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); border-bottom:2px solid var(--border-subtle); font-weight:700;">Payment History</th>
             </tr>
-            <tr style="background:#f8fafc;">
-              <th style="padding:6px 12px; text-align:left; font-size:10px; color:#64748b; border-bottom:1px solid #e2e8f0;">Date</th>
-              <th style="padding:6px 12px; text-align:left; font-size:10px; color:#64748b; border-bottom:1px solid #e2e8f0;">Method</th>
-              <th style="padding:6px 12px; text-align:left; font-size:10px; color:#64748b; border-bottom:1px solid #e2e8f0;">Ref</th>
-              <th style="padding:6px 12px; text-align:right; font-size:10px; color:#64748b; border-bottom:1px solid #e2e8f0;">Amount</th>
+            <tr style="background:var(--bg-canvas-light);">
+              <th style="padding:6px 12px; text-align:left; font-size:10px; color:var(--text-muted); border-bottom:1px solid var(--border-subtle);">Date</th>
+              <th style="padding:6px 12px; text-align:left; font-size:10px; color:var(--text-muted); border-bottom:1px solid var(--border-subtle);">Method</th>
+              <th style="padding:6px 12px; text-align:left; font-size:10px; color:var(--text-muted); border-bottom:1px solid var(--border-subtle);">Ref</th>
+              <th style="padding:6px 12px; text-align:right; font-size:10px; color:var(--text-muted); border-bottom:1px solid var(--border-subtle);">Amount</th>
             </tr>
           </thead>
           <tbody>
             ${inv.client_payments.map(pay => `
             <tr>
-              <td style="padding:6px 12px; border-bottom:1px solid #e2e8f0; font-size:11px;">${fmtDate(pay.payment_date)}</td>
-              <td style="padding:6px 12px; border-bottom:1px solid #e2e8f0; font-size:11px;">${pay.payment_method || '-'}</td>
-              <td style="padding:6px 12px; border-bottom:1px solid #e2e8f0; font-size:11px;">${pay.payment_reference || '-'}</td>
-              <td style="padding:6px 12px; border-bottom:1px solid #e2e8f0; text-align:right; font-weight:600; font-size:11px;">${fmt(pay.amount)}</td>
+              <td style="padding:6px 12px; border-bottom:1px solid var(--border-subtle); font-size:11px;">${fmtDate(pay.payment_date)}</td>
+              <td style="padding:6px 12px; border-bottom:1px solid var(--border-subtle); font-size:11px;">${pay.payment_method || '-'}</td>
+              <td style="padding:6px 12px; border-bottom:1px solid var(--border-subtle); font-size:11px;">${pay.payment_reference || '-'}</td>
+              <td style="padding:6px 12px; border-bottom:1px solid var(--border-subtle); text-align:right; font-weight:600; font-size:11px;">${fmt(pay.amount)}</td>
             </tr>
             `).join('')}
           </tbody>
@@ -162,7 +162,7 @@ export async function InvoicesBills(route, router) {
                 />
                
               </div>
-              <div style="font-size:11px; color:#64748b; line-height:1.5;">
+              <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">
                 Modular Enterprise Resource Planning<br>
                 Rajagiri College of Social Sciences, Kalamassery<br>
                 Kochi, Kerala – India | GSTIN: 32AAAAA0000A1Z5
@@ -174,15 +174,15 @@ export async function InvoicesBills(route, router) {
               </div>
               <table cellpadding="0" cellspacing="0" style="margin-left:auto; font-size:11px;">
                 <tr>
-                  <td style="color:#64748b; padding-right:10px; text-align:right; padding-bottom:2px;">Invoice No:</td>
+                  <td style="color:var(--text-muted); padding-right:10px; text-align:right; padding-bottom:2px;">Invoice No:</td>
                   <td style="font-weight:700; font-family:monospace; padding-bottom:2px;">${inv.invoice_number}</td>
                 </tr>
                 <tr>
-                  <td style="color:#64748b; padding-right:10px; text-align:right; padding-bottom:2px;">Invoice Date:</td>
+                  <td style="color:var(--text-muted); padding-right:10px; text-align:right; padding-bottom:2px;">Invoice Date:</td>
                   <td style="font-weight:600; padding-bottom:2px;">${fmtDate(inv.invoice_date)}</td>
                 </tr>
                 <tr>
-                  <td style="color:#64748b; padding-right:10px; text-align:right; padding-bottom:2px;">Due Date:</td>
+                  <td style="color:var(--text-muted); padding-right:10px; text-align:right; padding-bottom:2px;">Due Date:</td>
                   <td style="font-weight:600; padding-bottom:2px;">${fmtDate(inv.due_date)}</td>
                 </tr>
               </table>
@@ -191,11 +191,11 @@ export async function InvoicesBills(route, router) {
         </table>
 
         <!-- ADDRESSES: FROM & BILL TO -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:12px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px; background:var(--bg-canvas-light); border:1px solid var(--border-subtle); border-radius:6px; padding:12px;">
           <tr>
-            <td style="vertical-align:top; width:50%; border-right:1px solid #e2e8f0; padding-right:12px;">
-              <div style="font-size:9px; text-transform:uppercase; color:#64748b; letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">FROM ADDRESS</div>
-              <div style="font-size:13px; font-weight:700; color:#0f172a;">RLabZ Division</div>
+            <td style="vertical-align:top; width:50%; border-right:1px solid var(--border-subtle); padding-right:12px;">
+              <div style="font-size:9px; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">FROM ADDRESS</div>
+              <div style="font-size:13px; font-weight:700; color:var(--text-primary);">RLabZ Division</div>
               <div style="font-size:11px; color:#475569; line-height:1.4; margin-top:2px;">
                 Rajagiri College of Social Sciences<br>
                 Kalamassery, Kochi - 683104<br>
@@ -203,8 +203,8 @@ export async function InvoicesBills(route, router) {
               </div>
             </td>
             <td style="vertical-align:top; width:50%; padding-left:12px;">
-              <div style="font-size:9px; text-transform:uppercase; color:#64748b; letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">BILL TO</div>
-              <div style="font-size:13px; font-weight:700; color:#0f172a;">${proj.client_name || 'Client Name N/A'}</div>
+              <div style="font-size:9px; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">BILL TO</div>
+              <div style="font-size:13px; font-weight:700; color:var(--text-primary);">${proj.client_name || 'Client Name N/A'}</div>
               <div style="font-size:11px; color:#475569; line-height:1.4; margin-top:2px;">
                 <strong>Project:</strong> ${proj.title || '-'}<br>
                 ${proj.client_email ? `Email: ${proj.client_email}<br>` : ''}
@@ -217,7 +217,7 @@ export async function InvoicesBills(route, router) {
         <!-- ITEMIZED TABLE -->
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-bottom:20px;">
           <thead>
-            <tr style="background:var(--primary); color:#ffffff;">
+            <tr style="background:var(--primary); color: #ffffff;">
               <th style="padding:8px 10px; font-size:10px; font-weight:700; text-align:center; width:35px;">SL</th>
               <th style="padding:8px 10px; font-size:10px; font-weight:700; text-align:left;">PARTICULARS</th>
               <th style="padding:8px 10px; font-size:10px; font-weight:700; text-align:right; width:100px;">RATE (₹)</th>
@@ -236,26 +236,26 @@ export async function InvoicesBills(route, router) {
             <td style="vertical-align:top; padding-right:15px;">
               <!-- TOTAL IN WORDS BOX -->
               <div style="padding:10px 14px;">
-                <div style="font-size:9px; text-transform:uppercase; color:#64748b; letter-spacing:0.06em; font-weight:800; margin-bottom:4px;">Total Amount In Words</div>
+                <div style="font-size:9px; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.06em; font-weight:800; margin-bottom:4px;">Total Amount In Words</div>
                 <div style="font-size:13px; font-weight:900; color:var(--primary);">${wordsTotal}</div>
               </div>
             </td>
             <td style="width:280px; vertical-align:top;">
               <table width="100%" cellpadding="0" cellspacing="0" style="font-size:12px;">
                 <tr>
-                  <td style="padding:5px 8px; color:#64748b;">Subtotal (Ex. GST):</td>
+                  <td style="padding:5px 8px; color:var(--text-muted);">Subtotal (Ex. GST):</td>
                   <td style="padding:5px 8px; text-align:right; font-weight:600;">${fmt(amountBeforeGst)}</td>
                 </tr>
                 <tr>
-                  <td style="padding:5px 8px; color:#64748b;">GST (${inv.gst_percentage || 18}%):</td>
+                  <td style="padding:5px 8px; color:var(--text-muted);">GST (${inv.gst_percentage || 18}%):</td>
                   <td style="padding:5px 8px; text-align:right; font-weight:600;">${fmt(gstAmt)}</td>
                 </tr>
                 <tr style="border-top:2px solid var(--primary);">
-                  <td style="padding:8px 8px; font-size:14px; font-weight:800; color:#0f172a;">Grand Total:</td>
+                  <td style="padding:8px 8px; font-size:14px; font-weight:800; color:var(--text-primary);">Grand Total:</td>
                   <td style="padding:8px 8px; text-align:right; font-size:15px; font-weight:800; color:var(--primary);">${fmt(grandTotal)}</td>
                 </tr>
-                <tr style="border-top:1px solid #e2e8f0;">
-                  <td style="padding:5px 8px; color:#64748b;">Amount Received:</td>
+                <tr style="border-top:1px solid var(--border-subtle);">
+                  <td style="padding:5px 8px; color:var(--text-muted);">Amount Received:</td>
                   <td style="padding:5px 8px; text-align:right; font-weight:600; color:var(--primary);">${fmt(collected)}</td>
                 </tr>
                 ${outstanding > 0 ? `
@@ -284,7 +284,7 @@ export async function InvoicesBills(route, router) {
               </div>
             </td>
             <td style="vertical-align:top; width:50%; text-align:right;">
-              <div style="font-size:9px; text-transform:uppercase; color:#64748b; letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">STATUS</div>
+              <div style="font-size:9px; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">STATUS</div>
               <div style="display:inline-block; padding:4px 12px; border-radius:999px; font-weight:800; font-size:12px; background:${inv.status === 'Paid' ? 'var(--border-color)' : '#fef3c7'}; color:${inv.status === 'Paid' ? 'var(--primary)' : '#92400e'};">
                 ${(inv.status || 'Pending').toUpperCase()}
               </div>
@@ -293,7 +293,7 @@ export async function InvoicesBills(route, router) {
         </table>
 
         <!-- FOOTER -->
-        <div style="text-align:center; font-size:9px; color:#94a3b8; border-top:1px solid #e2e8f0; padding-top:10px;">
+        <div style="text-align:center; font-size:9px; color:var(--text-secondary); border-top:1px solid var(--border-subtle); padding-top:10px;">
           This is a computer-generated tax invoice from RLabZ ERP. For billing questions contact finance@rlabz.in
         </div>
 
@@ -495,7 +495,7 @@ export async function InvoicesBills(route, router) {
               </div>
 
               <!-- FINANCIAL BREAKDOWN -->
-              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem">
+              <div style="background:var(--bg-canvas-light); border:1px solid var(--border-subtle); border-radius:6px; padding:1rem; margin-bottom:1rem">
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem; font-size:0.88rem">
                   <span style="color:var(--text-muted)">Subtotal (Ex. GST)</span>
                   <span id="ci-calc-subtotal" style="font-weight:600">₹0</span>
@@ -504,7 +504,7 @@ export async function InvoicesBills(route, router) {
                   <span style="color:var(--text-muted)">GST Amount</span>
                   <span id="ci-calc-gst" style="font-weight:600">₹0</span>
                 </div>
-                <div style="display:flex; justify-content:space-between; font-size:1.05rem; border-top:1px solid #e2e8f0; padding-top:0.5rem">
+                <div style="display:flex; justify-content:space-between; font-size:1.05rem; border-top:1px solid var(--border-subtle); padding-top:0.5rem">
                   <span style="font-weight:700">Grand Total</span>
                   <span id="ci-calc-total" style="font-weight:700; color:var(--primary)">₹0</span>
                 </div>

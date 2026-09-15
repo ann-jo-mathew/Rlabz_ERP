@@ -57,7 +57,7 @@ export async function FinancialReports(route, router) {
 
         ${reportHTML}
 
-        <div style="margin-top:30px; text-align:center; font-size:10px; color:#bbb; border-top:1px solid #e2e8f0; padding-top:12px;">
+        <div style="margin-top:30px; text-align:center; font-size:10px; color:#bbb; border-top:1px solid var(--border-subtle); padding-top:12px;">
           This is a system-generated report from RLabZ ERP. Data is indicative and subject to final verification.
         </div>
       </div>
@@ -65,8 +65,8 @@ export async function FinancialReports(route, router) {
   `;
 
   const tableStyle = 'width:100%; border-collapse:collapse; margin-bottom:20px; font-size:12px;';
-  const thStyle = 'padding:9px 12px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; border-bottom:2px solid #e2e8f0; font-weight:700; background:#f8fafc;';
-  const tdStyle = 'padding:9px 12px; border-bottom:1px solid #e2e8f0;';
+  const thStyle = 'padding:9px 12px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); border-bottom:2px solid var(--border-subtle); font-weight:700; background:var(--bg-canvas-light);';
+  const tdStyle = 'padding:9px 12px; border-bottom:1px solid var(--border-subtle);';
 
   const renderReport = () => {
     const reportContent = container.querySelector('#report-content');
@@ -206,7 +206,7 @@ export async function FinancialReports(route, router) {
 
     const fullHTML = buildPDFHTML(type, typeLabel, projectLabel, reportHTML
       .replace(/var\(--primary\)/g, 'var(--primary)')
-      .replace(/var\(--text-muted\)/g, '#64748b')
+      .replace(/var\(--text-muted\)/g, 'var(--text-muted)')
       .replace(/var\(--text-main\)/g, '#1a1a1a')
     );
 

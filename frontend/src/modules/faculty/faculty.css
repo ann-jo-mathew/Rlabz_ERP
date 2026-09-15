@@ -81,7 +81,7 @@
 }
 
 .faculty-stat-card {
-    background: #ffffff;
+    background: var(--surface-card);
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 22px;
@@ -161,7 +161,7 @@
 }
 
 .faculty-project-card {
-    background: #ffffff;
+    background: var(--surface-card);
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 22px;
@@ -256,7 +256,7 @@
 }
 
 .faculty-project-detail-card {
-    background: #ffffff;
+    background: var(--surface-card);
     border: 1px solid #e5e7eb;
     border-radius: 14px;
     padding: 22px;
@@ -340,7 +340,7 @@
 
 .faculty-project-details {
     margin-top: 30px;
-    background: #ffffff;
+    background: var(--surface-card);
     border: 1px solid #e5e7eb;
     border-radius: 14px;
     padding: 25px;
@@ -435,7 +435,7 @@
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 20px;
-    background: #ffffff;
+    background: var(--surface-card);
 }
 
 .faculty-assignment-card h3 {
@@ -580,7 +580,7 @@
     width: 100%;
     max-width: 400px;
     padding: 12px 16px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-subtle);
     border-radius: 8px;
     font-size: 14px;
     outline: none;
@@ -590,12 +590,12 @@
 
 #faculty-student-search:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 18, 32, 0.1);
 }
 
 .faculty-student-table-container {
     background: #fff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -620,7 +620,7 @@
 
 .faculty-student-table td {
     padding: 16px 20px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-subtle);
     font-size: 14px;
     color: #334155;
 }
@@ -630,7 +630,7 @@
 }
 
 .faculty-student-table tbody tr:hover {
-    background: #f8fafc;
+    background: var(--bg-canvas-light);
 }
 
 .faculty-designation {
@@ -668,7 +668,7 @@
 }
 
 .faculty-student-view:hover {
-    background: #e2e8f0;
+    background: var(--border-subtle);
     color: #1e293b;
 }
 
@@ -706,8 +706,8 @@
 
 /* Calendar Styles */
 .calendar-wrapper {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 14px;
     padding: 20px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -726,7 +726,7 @@
 }
 .calendar-day-label {
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 13px;
     padding: 8px 0;
 }
@@ -761,7 +761,7 @@
     background: #ef4444;
 }
 .calendar-day.selected.has-meeting::after {
-    background: #ffffff;
+    background: var(--surface-card);
 }
 
 /* Meeting Schedule Form & List */
@@ -777,8 +777,8 @@
     }
 }
 .meeting-form-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 14px;
     padding: 24px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -806,8 +806,8 @@
     border-color: #087f5b;
 }
 .meeting-team-preview {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-canvas-light);
+    border: 1px solid var(--border-subtle);
     border-radius: 8px;
     padding: 12px;
     font-size: 13px;
@@ -828,8 +828,8 @@
     background: #066b4d;
 }
 .meetings-list-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 14px;
     padding: 24px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -848,7 +848,7 @@
 }
 .meeting-item-meta {
     font-size: 12px;
-    color: #64748b;
+    color: var(--text-muted);
     margin-top: 4px;
     display: flex;
     gap: 15px;
@@ -859,8 +859,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 14px;
     padding: 20px;
     margin-bottom: 25px;
@@ -874,8 +874,8 @@
     }
 }
 .sprints-project-progress-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 14px;
     padding: 20px;
     margin-bottom: 25px;
@@ -887,8 +887,8 @@
     gap: 20px;
 }
 .sprint-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 14px;
     padding: 24px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -934,12 +934,12 @@
 }
 .sprint-info-row span {
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-muted);
     display: inline-block;
     width: 120px;
 }
 .sprint-feedback-box {
-    background: #f8fafc;
+    background: var(--bg-canvas-light);
     border-left: 4px solid #087f5b;
     padding: 12px;
     border-radius: 0 8px 8px 0;
@@ -973,7 +973,7 @@
     cursor: pointer;
 }
 .btn-edit:hover {
-    background: #e2e8f0;
+    background: var(--border-subtle);
 }
 
 /* Modal and Form overlay style */
@@ -1000,8 +1000,8 @@
 
 /* Reports and Notifications page styles */
 .report-table-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 14px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     overflow: hidden;
@@ -1022,8 +1022,8 @@
     background: #066b4d;
 }
 .notification-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     padding: 18px;
     margin-bottom: 14px;
@@ -1049,7 +1049,7 @@
 }
 .notification-card-time {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 /* Github integration style additions */
@@ -1071,9 +1071,9 @@
 .git-message-box {
     margin-top: 15px;
     padding: 12px;
-    background: #f8fafc;
+    background: var(--bg-canvas-light);
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-subtle);
 }
 .git-message-box textarea {
     width: 100%;
@@ -1106,9 +1106,9 @@
     max-height: 250px;
     overflow-y: auto;
     margin-top: 15px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-subtle);
     border-radius: 8px;
-    background: #0f172a;
+    background: var(--text-primary);
     color: #cbd5e1;
     font-family: monospace;
     padding: 12px;
@@ -1138,7 +1138,7 @@
 .faculty-sprints,
 .faculty-meetings {
     font-family: var(--font-family, 'Plus Jakarta Sans', sans-serif);
-    color: var(--text-main, #0f172a);
+    color: var(--text-main, var(--text-primary));
     max-width: 1280px;
     margin: 0 auto;
     padding: 24px;
@@ -1148,21 +1148,21 @@
 .faculty-meetings .page-header h1 {
     font-size: 1.6rem;
     font-weight: 700;
-    color: var(--text-main, #0f172a);
+    color: var(--text-main, var(--text-primary));
     margin: 0 0 0.4rem;
 }
 
 .faculty-sprints .page-header p,
 .faculty-meetings .page-header p {
     font-size: 0.92rem;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--text-muted));
     margin: 0;
 }
 
 /* Card panels matching My Project */
 .faculty-card-panel {
-    background: var(--bg-card, #ffffff);
-    border: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-card, var(--surface-card));
+    border: 1px solid var(--border-color, var(--border-subtle));
     border-radius: var(--radius-lg, 12px);
     box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
     padding: 1.5rem;
@@ -1175,10 +1175,10 @@
     padding: 0.7rem 0.95rem;
     font-size: 0.92rem;
     font-family: inherit;
-    border: 1px solid var(--border-color, #e2e8f0);
+    border: 1px solid var(--border-color, var(--border-subtle));
     border-radius: var(--radius-md, 8px);
-    background: var(--bg-main, #f8fafc);
-    color: var(--text-main, #0f172a);
+    background: var(--bg-main, var(--bg-canvas-light));
+    color: var(--text-main, var(--text-primary));
     transition: var(--transition, all 0.2s ease);
 }
 
@@ -1186,8 +1186,8 @@
 .faculty-meetings .premium-input:focus {
     outline: none;
     border-color: var(--primary, var(--primary));
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+    background: var(--surface-card);
+    box-shadow: 0 0 0 3px rgba(0, 18, 32, 0.15);
 }
 
 /* Buttons matching My Project */
@@ -1240,8 +1240,8 @@
 .faculty-meetings .btn-outline,
 .faculty-verify-tasks .btn-outline {
     background: transparent;
-    border: 1px solid var(--border-color, #e2e8f0);
-    color: var(--text-main, #0f172a);
+    border: 1px solid var(--border-color, var(--border-subtle));
+    color: var(--text-main, var(--text-primary));
 }
 
 .faculty-sprints .btn-outline:hover,
@@ -1304,7 +1304,7 @@
     transform: translateY(-1px) !important;
 }
 
-/* My Projects Table Hover: Make project name green like Assign Module & Task, keep background neutral #f8fafc */
+/* My Projects Table Hover: Make project name green like Assign Module & Task, keep background neutral var(--bg-canvas-light) */
 .premium-table tbody tr.project-row-clickable,
 .project-table-container table tbody tr {
     cursor: pointer;
@@ -1328,24 +1328,24 @@
 .premium-table tbody tr,
 .faculty-student-table tbody tr,
 .project-table-container table tbody tr {
-    background: #ffffff !important;
+    background: var(--surface-card) !important;
 }
 .premium-table tbody tr:nth-child(even),
 .faculty-student-table tbody tr:nth-child(even),
 .project-table-container table tbody tr:nth-child(even) {
-    background: #ffffff !important;
+    background: var(--surface-card) !important;
 }
 .premium-table tbody tr:nth-child(odd),
 .faculty-student-table tbody tr:nth-child(odd),
 .project-table-container table tbody tr:nth-child(odd) {
-    background: #ffffff !important;
+    background: var(--surface-card) !important;
 }
 
 .premium-table tbody tr.project-row-clickable:hover,
 .premium-table tbody tr:hover,
 .faculty-student-table tbody tr:hover,
 .project-table-container table tbody tr:hover {
-    background: #f8fafc !important;
+    background: var(--bg-canvas-light) !important;
 }
 .premium-table tbody tr.project-row-clickable:hover td,
 .premium-table tbody tr:hover td,
@@ -1371,8 +1371,8 @@
 }
 
 .simple-profile-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     padding: 24px;
     display: flex;
@@ -1437,7 +1437,7 @@
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
 }
 
 .simple-profile-badge {
@@ -1463,7 +1463,7 @@
 }
 
 .simple-profile-field {
-    background: #f8fafc;
+    background: var(--bg-canvas-light);
     border: 1px solid #f1f5f9;
     border-radius: 8px;
     padding: 10px 14px;
@@ -1473,7 +1473,7 @@
     display: block;
     font-size: 11px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.03em;
     margin-bottom: 3px;

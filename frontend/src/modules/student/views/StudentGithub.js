@@ -67,8 +67,8 @@ export async function StudentGithub(route, router) {
       return `
         <tr>
           <td>
-            <div style="font-weight: 700; color: #0f172a;">${r.project}</div>
-            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Supervisor: ${r.faculty || 'Unassigned'}</div>
+            <div style="font-weight: 700; color: var(--text-primary);">${r.project}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Supervisor: ${r.faculty || 'Unassigned'}</div>
           </td>
           <td>
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -86,7 +86,7 @@ export async function StudentGithub(route, router) {
             </span>
           </td>
           <td>
-            <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
               ${isVerified ? r.faculty : 'Under review'}
             </span>
           </td>
@@ -156,7 +156,7 @@ export async function StudentGithub(route, router) {
             <div class="student-form-group">
               <label for="git-url">GitHub Repository URL</label>
               <input type="url" id="git-url" class="student-input" placeholder="https://github.com/organization/repo" required>
-              <span style="font-size:0.75rem; color:#64748b; margin-top:4px; display:block;">
+              <span style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; display:block;">
                 Must start with <code>https://</code> (e.g. GitHub, GitLab, or Bitbucket).
               </span>
             </div>

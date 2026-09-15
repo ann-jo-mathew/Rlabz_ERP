@@ -19,9 +19,9 @@ export function FacultyStudents() {
     function renderStars(rating) {
         if (!rating || rating <= 0) {
             return `
-                <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.25rem 0.65rem; border-radius: 8px;">
+                <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: var(--bg-canvas-light); border: 1px solid var(--border-subtle); padding: 0.25rem 0.65rem; border-radius: 8px;">
                     <span style="color: #cbd5e1; font-size: 0.9rem; letter-spacing: 1px;">☆☆☆☆☆</span>
-                    <span style="font-size: 0.76rem; color: #94a3b8; font-style: italic;">Unrated</span>
+                    <span style="font-size: 0.76rem; color: var(--text-secondary); font-style: italic;">Unrated</span>
                 </div>
             `;
         }
@@ -54,7 +54,7 @@ export function FacultyStudents() {
                         placeholder="Search student, email, project, designation..." 
                         style="padding-left: 2.25rem; font-size: 0.88rem; height: 40px; border-radius: 8px;"
                     />
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 13px; color: #94a3b8;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 13px; color: var(--text-secondary);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </div>
             </div>
 
@@ -144,11 +144,11 @@ export function FacultyStudents() {
 
     function renderTableBody(data) {
         if (isLoading) {
-            return `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 25px;">Loading students under your assigned projects...</td></tr>`;
+            return `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">Loading students under your assigned projects...</td></tr>`;
         }
 
         if (!data || data.length === 0) {
-            return `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 30px;">No students found under your assigned projects.</td></tr>`;
+            return `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 30px;">No students found under your assigned projects.</td></tr>`;
         }
 
         return data.map(student => {
@@ -191,7 +191,7 @@ export function FacultyStudents() {
                                 <div>
                                     ${renderStars(pr.rating)}
                                     ${student.projects.length > 1 && pr.project_name ? `
-                                        <span style="display: block; font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">${pr.project_name}</span>
+                                        <span style="display: block; font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">${pr.project_name}</span>
                                     ` : ''}
                                 </div>
                             `).join('')}

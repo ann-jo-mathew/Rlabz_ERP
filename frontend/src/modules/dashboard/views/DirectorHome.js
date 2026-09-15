@@ -429,7 +429,7 @@ export function DirectorHome(route, router) {
           ` : `
             <div style="display:flex; flex-direction:column; gap:0.75rem;">
               ${pendingProposals.slice(0, 4).map(p => `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:0.85rem 1rem; background:#ffffff; border-radius:10px; border:1px solid #e5e7eb; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:0.85rem 1rem; background:var(--surface-card); border-radius:10px; border:1px solid #e5e7eb; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                   <div>
                     <strong style="color:#111827; font-size:0.92rem;">${p.title}</strong>
                     <div style="color:#6b7280; font-size:0.8rem; margin-top:3px;">

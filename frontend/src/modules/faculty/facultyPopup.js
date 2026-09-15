@@ -27,7 +27,7 @@ export function showFacultySuccessPopup(title, message, duration = 4200) {
     popup.className = 'faculty-popup-toast';
     popup.style.cssText = `
         pointer-events: auto;
-        background: #ffffff;
+        background: var(--surface-card);
         border: 1px solid var(--primary-accent);
         border-left: 5px solid var(--primary);
         border-radius: 10px;
@@ -53,7 +53,7 @@ export function showFacultySuccessPopup(title, message, duration = 4200) {
 
     // Clean close button
     const closeBtnHtml = `
-        <button class="faculty-popup-close" type="button" aria-label="Close notification" style="background: none; border: none; padding: 2px 6px; cursor: pointer; color: #94a3b8; font-size: 16px; line-height: 1; border-radius: 4px; transition: color 0.15s ease;">
+        <button class="faculty-popup-close" type="button" aria-label="Close notification" style="background: none; border: none; padding: 2px 6px; cursor: pointer; color: var(--text-secondary); font-size: 16px; line-height: 1; border-radius: 4px; transition: color 0.15s ease;">
             &times;
         </button>
     `;
@@ -61,7 +61,7 @@ export function showFacultySuccessPopup(title, message, duration = 4200) {
     popup.innerHTML = `
         ${checkmarkSvg}
         <div style="flex: 1; min-width: 0;">
-            <div style="font-weight: 700; font-size: 0.92rem; color: #0f172a; margin-bottom: 2px;">
+            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-primary); margin-bottom: 2px;">
                 ${title}
             </div>
             <div style="font-size: 0.83rem; color: #475569; line-height: 1.45;">
@@ -103,7 +103,7 @@ export function showFacultySuccessPopup(title, message, duration = 4200) {
             dismiss();
         });
         closeBtn.addEventListener('mouseenter', () => { closeBtn.style.color = '#1e293b'; });
-        closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = '#94a3b8'; });
+        closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = 'var(--text-secondary)'; });
     }
 
     timerId = setTimeout(dismiss, duration);
@@ -133,7 +133,7 @@ export function showFacultyErrorPopup(title, message, duration = 4500) {
     popup.className = 'faculty-popup-toast';
     popup.style.cssText = `
         pointer-events: auto;
-        background: #ffffff;
+        background: var(--surface-card);
         border: 1px solid #f87171;
         border-left: 5px solid #dc2626;
         border-radius: 10px;
@@ -159,7 +159,7 @@ export function showFacultyErrorPopup(title, message, duration = 4500) {
     `;
 
     const closeBtnHtml = `
-        <button class="faculty-popup-close" type="button" aria-label="Close notification" style="background: none; border: none; padding: 2px 6px; cursor: pointer; color: #94a3b8; font-size: 16px; line-height: 1; border-radius: 4px; transition: color 0.15s ease;">
+        <button class="faculty-popup-close" type="button" aria-label="Close notification" style="background: none; border: none; padding: 2px 6px; cursor: pointer; color: var(--text-secondary); font-size: 16px; line-height: 1; border-radius: 4px; transition: color 0.15s ease;">
             &times;
         </button>
     `;
@@ -208,7 +208,7 @@ export function showFacultyErrorPopup(title, message, duration = 4500) {
             dismiss();
         });
         closeBtn.addEventListener('mouseenter', () => { closeBtn.style.color = '#1e293b'; });
-        closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = '#94a3b8'; });
+        closeBtn.addEventListener('mouseleave', () => { closeBtn.style.color = 'var(--text-secondary)'; });
     }
 
     timerId = setTimeout(dismiss, duration);
@@ -248,8 +248,8 @@ export function showCustomConfirmModal({
 
     const dialog = document.createElement('div');
     dialog.style.cssText = `
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
+        background: var(--surface-card);
+        border: 1px solid var(--border-subtle);
         border-radius: 12px;
         width: 100%;
         max-width: 490px;
@@ -274,11 +274,11 @@ export function showCustomConfirmModal({
     dialog.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             ${alertIcon}
-            <button class="confirm-modal-close" type="button" aria-label="Close" style="background: none; border: none; font-size: 1.4rem; line-height: 1; color: #94a3b8; cursor: pointer; padding: 2px 6px;">&times;</button>
+            <button class="confirm-modal-close" type="button" aria-label="Close" style="background: none; border: none; font-size: 1.4rem; line-height: 1; color: var(--text-secondary); cursor: pointer; padding: 2px 6px;">&times;</button>
         </div>
-        <h3 style="margin: 0 0 0.5rem; font-size: 1.2rem; font-weight: 700; color: #0f172a;">${title}</h3>
+        <h3 style="margin: 0 0 0.5rem; font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">${title}</h3>
         <p style="margin: 0 0 1rem; font-size: 0.92rem; color: #475569; line-height: 1.5;">${message}</p>
-        ${detailsHtml ? `<div style="margin-bottom: 1.25rem; padding: 0.85rem 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.86rem; color: #334155;">${detailsHtml}</div>` : ''}
+        ${detailsHtml ? `<div style="margin-bottom: 1.25rem; padding: 0.85rem 1rem; background: var(--bg-canvas-light); border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 0.86rem; color: #334155;">${detailsHtml}</div>` : ''}
         <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
             <button type="button" class="btn btn-outline btn-sm confirm-modal-cancel" style="padding: 0.5rem 1.15rem; font-size: 0.88rem; font-weight: 600; cursor: pointer;">${cancelText}</button>
             <button type="button" class="btn btn-primary btn-sm confirm-modal-confirm shadow-hover" style="padding: 0.5rem 1.25rem; font-size: 0.88rem; font-weight: 600; background: var(--primary); border-color: var(--primary); cursor: pointer;">${confirmText}</button>

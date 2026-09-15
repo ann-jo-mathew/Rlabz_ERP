@@ -53,11 +53,11 @@ export function FacultyMeetings() {
             </div>
 
             <!-- TABS AT THE TOP: Schedule Meeting | Past Meetings -->
-            <div class="project-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color, #e2e8f0); margin-bottom: 1.5rem;">
-                <button id="tab-btn-schedule" class="tab-btn ${activeTab === 'schedule' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.25rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'schedule' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'schedule' ? 'var(--primary, var(--primary))' : 'var(--text-muted, #64748b)'};">
+            <div class="project-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color, var(--border-subtle)); margin-bottom: 1.5rem;">
+                <button id="tab-btn-schedule" class="tab-btn ${activeTab === 'schedule' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.25rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'schedule' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'schedule' ? 'var(--primary, var(--primary))' : 'var(--text-muted, var(--text-muted))'};">
                     Schedule Meeting
                 </button>
-                <button id="tab-btn-past" class="tab-btn ${activeTab === 'past' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.25rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'past' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'past' ? 'var(--primary, var(--primary))' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <button id="tab-btn-past" class="tab-btn ${activeTab === 'past' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.25rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'past' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'past' ? 'var(--primary, var(--primary))' : 'var(--text-muted, var(--text-muted))'}; display: inline-flex; align-items: center; gap: 0.5rem;">
                     Past Meetings
                     ${pastPendingMeetings.length > 0 ? `
                         <span class="status-badge todo" style="padding: 0.15rem 0.55rem; font-size: 0.72rem;">
@@ -85,10 +85,10 @@ export function FacultyMeetings() {
     function renderScheduleMeetingTab() {
         return `
             <div style="max-width: 820px; margin: 0 auto;">
-                <div class="faculty-card-panel" style="background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 1.75rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                    <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 1rem;">
-                        <h2 style="margin: 0 0 0.35rem; font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">Schedule Project Meeting</h2>
-                        <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted, #64748b);">
+                <div class="faculty-card-panel" style="background: var(--surface-card); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 12px; padding: 1.75rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color, var(--border-subtle)); padding-bottom: 1rem;">
+                        <h2 style="margin: 0 0 0.35rem; font-size: 1.25rem; font-weight: 700; color: var(--text-main, var(--text-primary));">Schedule Project Meeting</h2>
+                        <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted, var(--text-muted));">
                             Set up an official meeting with students working under your assigned projects. Initial status will be set to <strong>scheduled</strong>.
                         </p>
                     </div>
@@ -97,7 +97,7 @@ export function FacultyMeetings() {
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
                             <!-- Meeting Title (Full Width) -->
                             <div class="form-group" style="grid-column: 1 / -1;">
-                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, var(--text-primary)); margin-bottom: 0.4rem;">
                                     Meeting Title *
                                 </label>
                                 <input
@@ -112,7 +112,7 @@ export function FacultyMeetings() {
 
                             <!-- Project Selection (Full Width) -->
                             <div class="form-group" style="grid-column: 1 / -1;">
-                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, var(--text-primary)); margin-bottom: 0.4rem;">
                                     Target Project *
                                 </label>
                                 <select id="meeting-project" class="premium-input" style="width: 100%; box-sizing: border-box; height: 42px;" required>
@@ -125,7 +125,7 @@ export function FacultyMeetings() {
 
                             <!-- Meeting Date -->
                             <div class="form-group">
-                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, var(--text-primary)); margin-bottom: 0.4rem;">
                                     Date (Past dates disabled) *
                                 </label>
                                 <input
@@ -141,7 +141,7 @@ export function FacultyMeetings() {
 
                             <!-- Meeting Time -->
                             <div class="form-group">
-                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, var(--text-primary)); margin-bottom: 0.4rem;">
                                     Time *
                                 </label>
                                 <input
@@ -156,7 +156,7 @@ export function FacultyMeetings() {
 
                             <!-- Location -->
                             <div class="form-group">
-                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, var(--text-primary)); margin-bottom: 0.4rem;">
                                     Location
                                 </label>
                                 <input
@@ -171,7 +171,7 @@ export function FacultyMeetings() {
 
                             <!-- Meeting Link (URL) -->
                             <div class="form-group">
-                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, var(--text-primary)); margin-bottom: 0.4rem;">
                                     Meeting Link (URL)
                                 </label>
                                 <input
@@ -185,7 +185,7 @@ export function FacultyMeetings() {
 
                             <!-- Agenda / Notes (Full Width) -->
                             <div class="form-group" style="grid-column: 1 / -1;">
-                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 0.4rem;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, var(--text-primary)); margin-bottom: 0.4rem;">
                                     Agenda & Discussion Items (Optional)
                                 </label>
                                 <textarea
@@ -197,7 +197,7 @@ export function FacultyMeetings() {
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; pt-3; border-top: 1px solid var(--border-color, #e2e8f0); padding-top: 1.25rem;">
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; pt-3; border-top: 1px solid var(--border-color, var(--border-subtle)); padding-top: 1.25rem;">
                             <button type="reset" class="btn btn-outline btn-sm" style="padding: 0.55rem 1.25rem;">
                                 Clear
                             </button>
@@ -222,17 +222,17 @@ export function FacultyMeetings() {
                 <!-- Section 1: Past Meetings Whose Minutes & Decisions Are NOT Entered -->
                 <div>
                     <div style="margin-bottom: 1rem;">
-                        <h2 style="margin: 0 0 0.35rem; font-size: 1.15rem; font-weight: 700; color: var(--text-main, #0f172a);">
+                        <h2 style="margin: 0 0 0.35rem; font-size: 1.15rem; font-weight: 700; color: var(--text-main, var(--text-primary));">
                             Past Meetings Awaiting Minutes & Outcome (${pendingMeetings.length})
                         </h2>
-                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted, #64748b);">
+                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted, var(--text-muted));">
                             The scheduled dates for these meetings have passed. Please update the meeting status to <strong>completed</strong> (with minutes and important decisions) or <strong>cancelled</strong>.
                         </p>
                     </div>
 
                     ${pendingMeetings.length === 0 ? `
-                        <div class="faculty-card-panel" style="text-align: center; color: var(--text-muted, #64748b); padding: 2.5rem;">
-                            <strong style="display: block; font-size: 1rem; color: var(--text-main, #0f172a); margin-bottom: 0.25rem;">All Caught Up!</strong>
+                        <div class="faculty-card-panel" style="text-align: center; color: var(--text-muted, var(--text-muted)); padding: 2.5rem;">
+                            <strong style="display: block; font-size: 1rem; color: var(--text-main, var(--text-primary)); margin-bottom: 0.25rem;">All Caught Up!</strong>
                             <span>There are no past meetings with pending minutes or status updates.</span>
                         </div>
                     ` : `
@@ -250,7 +250,7 @@ export function FacultyMeetings() {
                                     <div class="faculty-card-panel" style="padding: 1.25rem; border-left: 4px solid var(--primary, var(--primary));">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
                                             <div>
-                                                <strong style="font-size: 1.05rem; color: var(--text-main, #0f172a); display: block;">${m.title}</strong>
+                                                <strong style="font-size: 1.05rem; color: var(--text-main, var(--text-primary)); display: block;">${m.title}</strong>
                                                 <span style="font-size: 0.85rem; color: var(--primary, var(--primary)); font-weight: 600;">Project: ${m.project_name || m.project_title || 'Assigned Project'}</span>
                                             </div>
                                             <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -261,20 +261,20 @@ export function FacultyMeetings() {
                                         </div>
 
                                         <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-muted, #475569); display: flex; flex-direction: column; gap: 0.35rem;">
-                                            <div>Scheduled Date: <strong style="color: var(--text-main, #0f172a);">${formattedDate}</strong> <span style="color: #dc2626; font-size: 0.78rem; font-weight: 600;">(Meeting Date Passed)</span></div>
-                                            <div>Location: <strong style="color: var(--text-main, #0f172a);">${m.location || 'Google Meet'}</strong></div>
+                                            <div>Scheduled Date: <strong style="color: var(--text-main, var(--text-primary));">${formattedDate}</strong> <span style="color: #dc2626; font-size: 0.78rem; font-weight: 600;">(Meeting Date Passed)</span></div>
+                                            <div>Location: <strong style="color: var(--text-main, var(--text-primary));">${m.location || 'Google Meet'}</strong></div>
                                             ${m.meeting_link ? `
                                                 <div>Meeting Link: <a href="${m.meeting_link}" target="_blank" style="color: var(--primary, var(--primary)); font-weight: 600; text-decoration: underline;">${m.meeting_link}</a></div>
                                             ` : ''}
                                             ${m.agenda ? `
-                                                <div style="margin-top: 0.35rem; padding: 0.5rem 0.75rem; background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; font-size: 0.82rem; color: var(--text-main, #334155);">
+                                                <div style="margin-top: 0.35rem; padding: 0.5rem 0.75rem; background: var(--bg-main, var(--bg-canvas-light)); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 6px; font-size: 0.82rem; color: var(--text-main, #334155);">
                                                     <strong>Agenda:</strong> ${m.agenda}
                                                 </div>
                                             ` : ''}
                                         </div>
 
                                         <!-- ACTION CONTROLS TO UPDATE STATUS AND ENTER MINUTES -->
-                                        <div style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px dashed var(--border-color, #e2e8f0);">
+                                        <div style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px dashed var(--border-color, var(--border-subtle));">
                                             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                                                 <span style="font-size: 0.85rem; font-weight: 600; color: #92400e;">
                                                     Update Status & Enter Minutes:
@@ -306,7 +306,7 @@ export function FacultyMeetings() {
                                                             </label>
                                                             <textarea
                                                                 class="premium-input input-meeting-minutes"
-                                                                style="height: 85px; resize: vertical; background: #ffffff;"
+                                                                style="height: 85px; resize: vertical; background: var(--surface-card);"
                                                                 placeholder="Discussion summary, topics covered, student presentations reviewed..."
                                                                 required
                                                             ></textarea>
@@ -318,7 +318,7 @@ export function FacultyMeetings() {
                                                             </label>
                                                             <textarea
                                                                 class="premium-input input-meeting-decisions"
-                                                                style="height: 75px; resize: vertical; background: #ffffff;"
+                                                                style="height: 75px; resize: vertical; background: var(--surface-card);"
                                                                 placeholder="Agreed deliverables, task allocations, deadlines, architecture approvals..."
                                                                 required
                                                             ></textarea>
@@ -346,16 +346,16 @@ export function FacultyMeetings() {
                 <!-- Section 2: Completed Past Meetings With Recorded Minutes -->
                 ${completedMeetings.length > 0 ? `
                     <div style="margin-top: 1.5rem;">
-                        <h3 style="margin: 0 0 0.85rem; font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a);">
+                        <h3 style="margin: 0 0 0.85rem; font-size: 1.05rem; font-weight: 700; color: var(--text-main, var(--text-primary));">
                             Completed Meetings with Recorded Minutes (${completedMeetings.length})
                         </h3>
                         <div style="display: flex; flex-direction: column; gap: 0.85rem;">
                             ${completedMeetings.map(m => `
-                                <div class="module-card" style="background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 1.15rem; margin-bottom: 0;">
+                                <div class="module-card" style="background: var(--bg-card, var(--surface-card)); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 8px; padding: 1.15rem; margin-bottom: 0;">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
                                         <div>
-                                            <strong style="font-size: 0.95rem; color: var(--text-main, #0f172a);">${m.title}</strong>
-                                            <div style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin-top: 2px;">
+                                            <strong style="font-size: 0.95rem; color: var(--text-main, var(--text-primary));">${m.title}</strong>
+                                            <div style="font-size: 0.82rem; color: var(--text-muted, var(--text-muted)); margin-top: 2px;">
                                                 Project: <strong style="color: var(--primary, var(--primary));">${m.project_name || m.project_title || 'Assigned Project'}</strong> &bull; 
                                                 ${m.scheduled_at}
                                             </div>
@@ -367,7 +367,7 @@ export function FacultyMeetings() {
                                             </button>
                                         </div>
                                     </div>
-                                    <div style="margin-top: 0.65rem; padding: 0.65rem 0.85rem; background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; font-size: 0.82rem;">
+                                    <div style="margin-top: 0.65rem; padding: 0.65rem 0.85rem; background: var(--bg-main, var(--bg-canvas-light)); border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 6px; font-size: 0.82rem;">
                                         <div style="margin-bottom: 0.35rem; color: var(--text-main, #1e293b);">
                                             <strong>Minutes:</strong> ${m.notes.minutes}
                                         </div>

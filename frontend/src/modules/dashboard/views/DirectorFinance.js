@@ -234,7 +234,7 @@ export function DirectorFinance(route, router) {
             </div>
 
             <!-- Utilization Progress Bar -->
-            <div style="background:#ffffff; border:1px solid #e5e7eb; padding:0.75rem 0.85rem; border-radius:8px;">
+            <div style="background:var(--surface-card); border:1px solid #e5e7eb; padding:0.75rem 0.85rem; border-radius:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; margin-bottom:0.35rem;">
                 <strong style="color:#374151;">Budget Utilization Rate</strong>
                 <strong style="color:${percentSpent > 90 ? '#dc2626' : 'var(--primary)'};">${percentSpent}% Utilized</strong>
@@ -245,7 +245,7 @@ export function DirectorFinance(route, router) {
             </div>
 
             <!-- Expense Allocation Breakdown -->
-            <div style="border:1px solid #e5e7eb; border-radius:8px; padding:0.85rem; background:#ffffff;">
+            <div style="border:1px solid #e5e7eb; border-radius:8px; padding:0.85rem; background:var(--surface-card);">
               <div style="font-weight:700; font-size:0.85rem; color:#111827; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.35rem;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                 Project Expenditure Allocations
@@ -267,7 +267,7 @@ export function DirectorFinance(route, router) {
             </div>
 
             <!-- Student Payroll & Team Allocations -->
-            <div style="border:1px solid #e5e7eb; border-radius:8px; padding:0.85rem; background:#ffffff;">
+            <div style="border:1px solid #e5e7eb; border-radius:8px; padding:0.85rem; background:var(--surface-card);">
               <div style="font-weight:700; font-size:0.85rem; color:#111827; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
                 <span>🎓 Assigned Student Team & Stipend Tiers</span>
                 <span style="font-size:0.75rem; color:#6b7280; font-weight:normal;">${students.length} Member${students.length === 1 ? '' : 's'}</span>
