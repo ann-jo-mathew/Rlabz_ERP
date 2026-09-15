@@ -115,7 +115,7 @@ export async function CoordinatorMeetings(route, router) {
     if (!banner) return '';
     const isSuccess = banner.type === 'success';
     return `
-      <div style="background: ${isSuccess ? '#ecfdf5' : '#fef2f2'}; border: 1px solid ${isSuccess ? '#86efac' : '#fca5a5'}; color: ${isSuccess ? '#166534' : '#b91c1c'}; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1.25rem;">
+      <div style="background: ${isSuccess ? 'var(--primary-light)' : '#fef2f2'}; border: 1px solid ${isSuccess ? '#86efac' : '#fca5a5'}; color: ${isSuccess ? '#166534' : '#b91c1c'}; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1.25rem;">
         ${isSuccess ? '✓' : '⚠'} ${escapeHtml(banner.message)}
       </div>
     `;

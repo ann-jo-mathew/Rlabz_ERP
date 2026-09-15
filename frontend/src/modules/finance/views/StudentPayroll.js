@@ -28,9 +28,9 @@ export async function StudentPayroll(route, router) {
     printEl.innerHTML = `
       <div style="font-family: Arial, sans-serif; color: #1a1a1a; padding: 40px; max-width: 700px; margin: 0 auto;">
         <!-- Header -->
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 3px solid #059669; padding-bottom: 18px; margin-bottom: 24px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 3px solid var(--primary); padding-bottom: 18px; margin-bottom: 24px;">
           <div>
-            <div style="font-size:24px; font-weight:900; color:#059669; letter-spacing:-0.5px;">RLabZ</div>
+            <div style="font-size:24px; font-weight:900; color:var(--primary); letter-spacing:-0.5px;">RLabZ</div>
             <div style="font-size:12px; color:#666; margin-top:4px;">Modular Enterprise Resource Planning<br>Rajagiri College of Social Sciences, Kochi</div>
           </div>
           <div style="text-align:right;">
@@ -88,18 +88,18 @@ export async function StudentPayroll(route, router) {
         <!-- Total -->
         <div style="display:flex; justify-content:flex-end; margin-bottom:28px;">
           <table style="width:280px; font-size:14px;">
-            <tr style="border-top:2px solid #059669;">
+            <tr style="border-top:2px solid var(--primary);">
               <td style="padding:12px 14px; font-size:16px; font-weight:800;">Total Paid</td>
-              <td style="padding:12px 14px; text-align:right; font-size:18px; font-weight:800; color:#059669;">${fmt(pr.grossAmount)}</td>
+              <td style="padding:12px 14px; text-align:right; font-size:18px; font-weight:800; color:var(--primary);">${fmt(pr.grossAmount)}</td>
             </tr>
           </table>
         </div>
 
         <!-- Payment Status -->
-        <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; padding:16px 20px;">
-          <div style="font-size:11px; text-transform:uppercase; color:#065f46; letter-spacing:0.05em; margin-bottom:6px;">Payment Status</div>
-          <div style="font-size:17px; font-weight:800; color:#059669;">PAID</div>
-          <div style="font-size:13px; color:#065f46; margin-top:6px;">
+        <div style="background:var(--primary-light); border:1px solid var(--border-color); border-radius:8px; padding:16px 20px;">
+          <div style="font-size:11px; text-transform:uppercase; color:var(--primary); letter-spacing:0.05em; margin-bottom:6px;">Payment Status</div>
+          <div style="font-size:17px; font-weight:800; color:var(--primary);">PAID</div>
+          <div style="font-size:13px; color:var(--primary); margin-top:6px;">
             Paid on: <strong>${pr.paymentDate}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;
             Transaction Ref: <strong style="font-family:monospace;">${pr.txRef}</strong>
           </div>

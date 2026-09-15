@@ -35,10 +35,10 @@ export async function FinancialReports(route, router) {
 
       <!-- ALL PDF REPORT CONTENT (z-index: 1) -->
       <div style="position: relative; z-index: 1;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:3px solid #059669; padding-bottom:14px; margin-bottom:24px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:3px solid var(--primary); padding-bottom:14px; margin-bottom:24px;">
           <tr>
             <td style="vertical-align:bottom;">
-              <div style="font-size:20px; font-weight:900; color:#059669; margin-bottom:4px;">Financial Report</div>
+              <div style="font-size:20px; font-weight:900; color:var(--primary); margin-bottom:4px;">Financial Report</div>
               <div style="font-size:13px; font-weight:700; color:#333;">${typeLabel}</div>
               <div style="font-size:12px; color:#888; margin-top:4px;">
                 Filter: ${projectLabel}&nbsp;&nbsp;|&nbsp;&nbsp;Generated: ${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -205,7 +205,7 @@ export async function FinancialReports(route, router) {
     if (!reportHTML.trim()) { alert('Please generate a report first.'); return; }
 
     const fullHTML = buildPDFHTML(type, typeLabel, projectLabel, reportHTML
-      .replace(/var\(--primary\)/g, '#059669')
+      .replace(/var\(--primary\)/g, 'var(--primary)')
       .replace(/var\(--text-muted\)/g, '#64748b')
       .replace(/var\(--text-main\)/g, '#1a1a1a')
     );
@@ -214,9 +214,9 @@ export async function FinancialReports(route, router) {
     wrapper.innerHTML = fullHTML;
     wrapper.querySelectorAll('.fin-badge').forEach(el => {
       const cls = [...el.classList];
-      if (cls.includes('success')) { el.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#d1fae5;color:#065f46;'; }
+      if (cls.includes('success')) { el.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:var(--border-color);color:var(--primary);'; }
       else if (cls.includes('warning')) { el.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#fef3c7;color:#92400e;'; }
-      else if (cls.includes('nova')) { el.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;'; }
+      else if (cls.includes('nova')) { el.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:var(--primary-light);color:var(--primary);border:1px solid var(--border-color);'; }
       else if (cls.includes('orbit')) { el.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;'; }
       else if (cls.includes('spark')) { el.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#fffbeb;color:#92400e;border:1px solid #fde68a;'; }
       else { el.style.cssText = 'display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#f1f5f9;color:#475569;'; }

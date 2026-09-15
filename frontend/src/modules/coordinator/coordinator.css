@@ -592,7 +592,7 @@
 }
 
 .project-status.completed {
-  background: #f0fdf4;
+  background: var(--bg-main);
   color: #16a34a;
 }
 
@@ -782,8 +782,8 @@
 }
 
 .student-track.spark {
-  background: #ecfdf5;
-  color: #047857;
+  background: var(--primary-light);
+  color: var(--primary-hover);
 }
 
 .project-status.active {
@@ -792,6 +792,6 @@
 }
 
 .project-status.completed {
-  background: #f0fdf4;
+  background: var(--bg-main);
   color: #16a34a;
 }

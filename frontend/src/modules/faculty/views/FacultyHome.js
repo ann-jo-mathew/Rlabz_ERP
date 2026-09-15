@@ -33,7 +33,7 @@ export function FacultyHome(route, router) {
         if (isLoading) {
             container.innerHTML = `
                 <div style="padding: 5rem 2rem; text-align: center; color: var(--text-muted, #64748b);">
-                    <div class="spinner" style="border-top-color: var(--primary, #059669); margin: 0 auto 1rem; width: 36px; height: 36px;"></div>
+                    <div class="spinner" style="border-top-color: var(--primary, var(--primary)); margin: 0 auto 1rem; width: 36px; height: 36px;"></div>
                     <p style="font-size: 0.95rem;">Loading faculty dashboard...</p>
                 </div>
             `;
@@ -67,7 +67,7 @@ export function FacultyHome(route, router) {
                     <h1 style="margin: 0 0 0.4rem; font-size: 1.65rem; font-weight: 700; color: var(--text-main, #0f172a);">Faculty Dashboard</h1>
                     <p style="margin: 0; font-size: 0.92rem; color: var(--text-muted, #64748b); line-height: 1.5;">
                         Welcome back, <strong style="color: var(--text-main, #0f172a); font-weight: 600;">${faculty.name}</strong> 
-                        &bull; <span style="color: var(--primary, #059669); font-weight: 600;">${faculty.designation}</span> 
+                        &bull; <span style="color: var(--primary, var(--primary)); font-weight: 600;">${faculty.designation}</span> 
                         &bull; ${faculty.department} (${faculty.email})
                     </p>
                 </div>
@@ -77,25 +77,25 @@ export function FacultyHome(route, router) {
             <div class="faculty-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2.25rem;">
                 
                 <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/projects" role="button" tabindex="0" title="Click to view Assigned Projects" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
-                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #ecfdf5; border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center; color: var(--primary, #059669); flex-shrink: 0;">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--primary-light); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--primary, var(--primary)); flex-shrink: 0;">
                         ${iconProjects}
                     </div>
                     <div style="flex-grow: 1;">
                         <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.projects_count}</h3>
                         <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Projects Assigned</p>
                     </div>
-                    <span style="color: var(--primary, #059669); font-size: 1rem; opacity: 0.7;">→</span>
+                    <span style="color: var(--primary, var(--primary)); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
                 <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/students" role="button" tabindex="0" title="Click to view Students Mentored" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
-                    <div style="width: 44px; height: 44px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; color: #166534; flex-shrink: 0;">
+                    <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--bg-main); border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; color: #166534; flex-shrink: 0;">
                         ${iconStudents}
                     </div>
                     <div style="flex-grow: 1;">
                         <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.students_count}</h3>
                         <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Students Mentored</p>
                     </div>
-                    <span style="color: var(--primary, #059669); font-size: 1rem; opacity: 0.7;">→</span>
+                    <span style="color: var(--primary, var(--primary)); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
                 <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/faculty/meetings" role="button" tabindex="0" title="Click to view Meetings" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
@@ -106,7 +106,7 @@ export function FacultyHome(route, router) {
                         <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.meetings_today_count}</h3>
                         <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Meetings Today</p>
                     </div>
-                    <span style="color: var(--primary, #059669); font-size: 1rem; opacity: 0.7;">→</span>
+                    <span style="color: var(--primary, var(--primary)); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
                 <div class="faculty-card-panel faculty-kpi-card-clickable" data-route="/github" role="button" tabindex="0" title="Click to view Linked Repositories" style="display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.22s ease;">
@@ -117,7 +117,7 @@ export function FacultyHome(route, router) {
                         <h3 style="margin: 0 0 2px; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a); line-height: 1.2;">${stats.github_repos_count}</h3>
                         <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted, #64748b); font-weight: 500;">Linked Repositories</p>
                     </div>
-                    <span style="color: var(--primary, #059669); font-size: 1rem; opacity: 0.7;">→</span>
+                    <span style="color: var(--primary, var(--primary)); font-size: 1rem; opacity: 0.7;">→</span>
                 </div>
 
             </div>
@@ -131,7 +131,7 @@ export function FacultyHome(route, router) {
                         <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">
                             Assigned Projects (${projects.length})
                         </h2>
-                        <a href="/faculty/projects" class="nav-link-btn" style="font-size: 0.84rem; color: var(--primary, #059669); font-weight: 600; text-decoration: none;">
+                        <a href="/faculty/projects" class="nav-link-btn" style="font-size: 0.84rem; color: var(--primary, var(--primary)); font-weight: 600; text-decoration: none;">
                             View All Projects →
                         </a>
                     </div>
@@ -166,10 +166,10 @@ export function FacultyHome(route, router) {
                                                 <span style="color: var(--text-muted, #64748b); font-weight: 500;">
                                                     Tasks Completion: <strong style="color: var(--text-main, #0f172a);">${p.completed_tasks || 0} / ${p.total_tasks || 0}</strong> Tasks
                                                 </span>
-                                                <strong style="color: var(--primary, #059669); font-weight: 700;">${progress}%</strong>
+                                                <strong style="color: var(--primary, var(--primary)); font-weight: 700;">${progress}%</strong>
                                             </div>
                                             <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 9999px; overflow: hidden;">
-                                                <div style="width: ${progress}%; height: 100%; background: var(--primary, #059669); border-radius: 9999px; transition: width 0.4s ease;"></div>
+                                                <div style="width: ${progress}%; height: 100%; background: var(--primary, var(--primary)); border-radius: 9999px; transition: width 0.4s ease;"></div>
                                             </div>
                                         </div>
 
@@ -201,7 +201,7 @@ export function FacultyHome(route, router) {
                             <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a);">
                                 Upcoming Meetings
                             </h3>
-                            <a href="/faculty/meetings" class="nav-link-btn" style="font-size: 0.82rem; color: var(--primary, #059669); font-weight: 600; text-decoration: none;">
+                            <a href="/faculty/meetings" class="nav-link-btn" style="font-size: 0.82rem; color: var(--primary, var(--primary)); font-weight: 600; text-decoration: none;">
                                 Schedule →
                             </a>
                         </div>
@@ -221,12 +221,12 @@ export function FacultyHome(route, router) {
                                     return `
                                         <div style="padding: 0.9rem 1rem; background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px;">
                                             <strong style="font-size: 0.9rem; color: var(--text-main, #0f172a); display: block; margin-bottom: 0.2rem;">${m.title}</strong>
-                                            <div style="font-size: 0.8rem; color: var(--primary, #059669); font-weight: 600; margin-bottom: 0.35rem;">${m.project_name}</div>
+                                            <div style="font-size: 0.8rem; color: var(--primary, var(--primary)); font-weight: 600; margin-bottom: 0.35rem;">${m.project_name}</div>
                                             <div style="display: flex; gap: 0.75rem; font-size: 0.78rem; color: var(--text-muted, #64748b); flex-wrap: wrap; align-items: center;">
                                                 <span>${iconMiniCalendar} ${dateFormatted}</span>
                                                 <span>${iconMapPin} ${m.location || 'Google Meet'}</span>
                                                 ${m.meeting_link ? `
-                                                    <a href="${m.meeting_link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary, #059669); font-weight: 600; text-decoration: underline;">
+                                                    <a href="${m.meeting_link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary, var(--primary)); font-weight: 600; text-decoration: underline;">
                                                         Join Meeting ↗
                                                     </a>
                                                 ` : ''}

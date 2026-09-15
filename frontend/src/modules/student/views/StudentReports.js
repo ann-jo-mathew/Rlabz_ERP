@@ -352,7 +352,7 @@ export async function StudentReports(route, router) {
         <button class="student-tab-btn ${activeTab === 'weekly' ? 'active' : ''}" id="tab-weekly">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           <span>Weekly Progress</span>
-          <span style="background: #ecfdf5; color: #047857; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px;">Auto</span>
+          <span style="background: var(--primary-light); color: var(--primary-hover); font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 9999px; margin-left: 4px;">Auto</span>
         </button>
         <button class="student-tab-btn ${activeTab === 'daily' ? 'active' : ''}" id="tab-daily">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -421,7 +421,7 @@ export async function StudentReports(route, router) {
             <!-- Submit Daily Report Form -->
             <div class="student-card reports-form-card" style="height: fit-content;">
               <div class="student-card-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 <span>Submit Daily Report</span>
               </div>
               <form id="daily-report-form" class="student-form">
@@ -652,7 +652,7 @@ export async function StudentReports(route, router) {
             icon: 'warning',
             title: 'Project Required',
             text: 'Please select a project for this daily report.',
-            confirmButtonColor: '#059669'
+            confirmButtonColor: 'var(--primary)'
           });
           return;
         }
@@ -662,7 +662,7 @@ export async function StudentReports(route, router) {
             icon: 'warning',
             title: 'Task Required',
             text: 'Please select an assigned task you worked on today.',
-            confirmButtonColor: '#059669'
+            confirmButtonColor: 'var(--primary)'
           });
           return;
         }
@@ -672,7 +672,7 @@ export async function StudentReports(route, router) {
             icon: 'warning',
             title: 'Description Required',
             text: 'Please describe the work completed for this task.',
-            confirmButtonColor: '#059669'
+            confirmButtonColor: 'var(--primary)'
           });
           return;
         }
@@ -706,7 +706,7 @@ export async function StudentReports(route, router) {
             html: `
               <p>Your daily log has been recorded and the corresponding <strong>Weekly Progress Report</strong> has been automatically generated/updated.</p>
             `,
-            confirmButtonColor: '#059669',
+            confirmButtonColor: 'var(--primary)',
             confirmButtonText: 'View Weekly Progress'
           }).then((result) => {
             if (result.isConfirmed) {
@@ -726,7 +726,7 @@ export async function StudentReports(route, router) {
             icon: 'error',
             title: 'Submission Error',
             text: err.message || 'Could not submit daily report.',
-            confirmButtonColor: '#059669'
+            confirmButtonColor: 'var(--primary)'
           });
         }
       });

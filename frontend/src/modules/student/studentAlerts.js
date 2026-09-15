@@ -6,7 +6,7 @@ import 'sweetalert2/dist/sweetalert2.min.css';
  * Scoped to match the Student Portal emerald / slate aesthetic.
  */
 export const StudentSwal = Swal.mixin({
-  confirmButtonColor: '#059669',
+  confirmButtonColor: 'var(--primary)',
   cancelButtonColor: '#94a3b8',
   buttonsStyling: true,
   customClass: {

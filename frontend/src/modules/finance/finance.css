@@ -1,6 +1,6 @@
 /* ============================================================
    RLABZ ERP — Finance Module Styles
-   Theme: Emerald (#059669) · Font: Plus Jakarta Sans
+   Theme: Emerald (var(--primary)) · Font: Plus Jakarta Sans
    ============================================================ */
 
 /* ── Module Shell ──────────────────────────────────────────── */
@@ -106,7 +106,7 @@
   margin-top: 0.35rem;
 }
 
-.fin-kpi-card.primary  { background: linear-gradient(135deg, #059669, #047857); }
+.fin-kpi-card.primary  { background: linear-gradient(135deg, var(--primary), var(--primary-hover)); }
 .fin-kpi-card.teal     { background: linear-gradient(135deg, #0891b2, #0e7490); }
 .fin-kpi-card.indigo   { background: linear-gradient(135deg, #6366f1, #4f46e5); }
 .fin-kpi-card.purple   { background: linear-gradient(135deg, #a855f7, #9333ea); }
@@ -193,7 +193,7 @@ hr.fin-divider {
 
 .fin-table tbody tr:last-child td { border-bottom: none; }
 .fin-table tbody tr { transition: background 0.15s; }
-.fin-table tbody tr:hover { background: #f0fdf4; }
+.fin-table tbody tr:hover { background: var(--bg-main); }
 
 /* ── Badges ─────────────────────────────────────────────────── */
 .fin-badge {
@@ -207,7 +207,7 @@ hr.fin-divider {
   white-space: nowrap;
 }
 
-.fin-badge.success { background: #d1fae5; color: #065f46; }
+.fin-badge.success { background: var(--border-color); color: var(--primary); }
 .fin-badge.warning { background: #fef3c7; color: #92400e; }
 .fin-badge.danger  { background: #fee2e2; color: #991b1b; }
 .fin-badge.info    { background: #dbeafe; color: #1e40af; }
@@ -313,7 +313,7 @@ hr.fin-divider {
   display: inline-block;
 }
 .fin-aging-cell.a0 { color: var(--text-muted); }
-.fin-aging-cell.a1 { background: #d1fae5; color: #065f46; }
+.fin-aging-cell.a1 { background: var(--border-color); color: var(--primary); }
 .fin-aging-cell.a2 { background: #fef3c7; color: #92400e; }
 .fin-aging-cell.a3 { background: #fed7aa; color: #9a3412; }
 .fin-aging-cell.a4 { background: #fee2e2; color: #991b1b; }
@@ -533,11 +533,11 @@ hr.fin-divider {
 }
 
 /* Designation badges */
-.fin-badge.nova   { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.fin-badge.nova   { background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); }
 .fin-badge.orbit  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
 .fin-badge.spark  { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 .fin-badge.indigo { background: #ede9fe; color: #5b21b6; }
-.fin-badge.primary { background: #d1fae5; color: #065f46; }
+.fin-badge.primary { background: var(--border-color); color: var(--primary); }
 
 /* ── Payroll hours cell ──────────────────────────────────── */
 .fin-hours-cell {
@@ -748,7 +748,7 @@ hr.fin-divider {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  background: #f0fdf4;
+  background: var(--bg-main);
   border: 1px solid #bbf7d0;
   border-radius: 6px;
   padding: 8px 12px;
@@ -786,7 +786,7 @@ hr.fin-divider {
   width: 42px;
   height: 42px;
   border-radius: 20px 0 0 20px;
-  background: #059669;
+  background: var(--primary);
   border: none;
   box-shadow: -2px 4px 10px rgba(0, 0, 0, 0.15);
   display: flex;
@@ -807,7 +807,7 @@ hr.fin-divider {
 .fin-bell-trigger:hover {
   transform: scale(1.06);
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-  background: #047857;
+  background: var(--primary-hover);
   color: #ffffff;
 }
 
@@ -894,13 +894,13 @@ hr.fin-divider {
 }
 
 .fin-drawer-count {
-  background: #ecfdf5;
-  color: #059669;
+  background: var(--primary-light);
+  color: var(--primary);
   font-size: 0.72rem;
   font-weight: 700;
   padding: 3px 9px;
   border-radius: 12px;
-  border: 1px solid #a7f3d0;
+  border: 1px solid var(--border-color);
 }
 
 .fin-drawer-close {

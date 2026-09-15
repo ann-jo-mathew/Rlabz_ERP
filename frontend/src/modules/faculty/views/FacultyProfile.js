@@ -81,7 +81,7 @@ export function FacultyProfile() {
                         <input type="file" id="faculty-photo-file-input" accept="image/*" style="display: none;" />
 
                         <div style="display: flex; flex-direction: column; gap: 5px; align-items: center; width: 100%;">
-                            <button type="button" id="btn-upload-photo" class="btn btn-sm" style="font-size: 0.75rem; padding: 0.32rem 0.7rem; background: #ffffff; border: 1px solid #059669; color: #059669; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap;">
+                            <button type="button" id="btn-upload-photo" class="btn btn-sm" style="font-size: 0.75rem; padding: 0.32rem 0.7rem; background: #ffffff; border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap;">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                                 ${facultyPhoto ? 'Change Photo' : 'Upload Photo'}
                             </button>
@@ -128,8 +128,8 @@ export function FacultyProfile() {
 
                             <div class="simple-profile-field">
                                 <span class="label">Account Status</span>
-                                <div class="value" style="color: #059669; display: flex; align-items: center; gap: 6px;">
-                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                                <div class="value" style="color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary-accent); display: inline-block;"></span>
                                     Active
                                 </div>
                             </div>

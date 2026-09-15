@@ -314,7 +314,7 @@ export async function FinanceDashboard(route, router) {
         </div>
         <div class="fin-legend" style="margin-top:1.25rem">
           <div class="fin-legend-item">
-            <span class="fin-legend-dot" style="background:#059669"></span>
+            <span class="fin-legend-dot" style="background:var(--primary)"></span>
             <span class="leg-label">Student Payroll</span>
             <span class="leg-pct">${fmt(summary.totalPayroll)}</span>
           </div>
@@ -414,7 +414,7 @@ export async function FinanceDashboard(route, router) {
   const Chart = await loadChartJs();
 
   const COLORS = {
-    primary: '#059669',
+    primary: 'var(--primary)',
     teal: '#0891b2',
     indigo: '#6366f1',
     warning: '#f59e0b',

@@ -54,10 +54,10 @@ export function FacultyMeetings() {
 
             <!-- TABS AT THE TOP: Schedule Meeting | Past Meetings -->
             <div class="project-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color, #e2e8f0); margin-bottom: 1.5rem;">
-                <button id="tab-btn-schedule" class="tab-btn ${activeTab === 'schedule' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.25rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'schedule' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'schedule' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'};">
+                <button id="tab-btn-schedule" class="tab-btn ${activeTab === 'schedule' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.25rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'schedule' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'schedule' ? 'var(--primary, var(--primary))' : 'var(--text-muted, #64748b)'};">
                     Schedule Meeting
                 </button>
-                <button id="tab-btn-past" class="tab-btn ${activeTab === 'past' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.25rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'past' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'past' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <button id="tab-btn-past" class="tab-btn ${activeTab === 'past' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.25rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'past' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'past' ? 'var(--primary, var(--primary))' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.5rem;">
                     Past Meetings
                     ${pastPendingMeetings.length > 0 ? `
                         <span class="status-badge todo" style="padding: 0.15rem 0.55rem; font-size: 0.72rem;">
@@ -247,11 +247,11 @@ export function FacultyMeetings() {
                                 const isExpanded = expandedMeetingId === m.id;
 
                                 return `
-                                    <div class="faculty-card-panel" style="padding: 1.25rem; border-left: 4px solid var(--primary, #059669);">
+                                    <div class="faculty-card-panel" style="padding: 1.25rem; border-left: 4px solid var(--primary, var(--primary));">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
                                             <div>
                                                 <strong style="font-size: 1.05rem; color: var(--text-main, #0f172a); display: block;">${m.title}</strong>
-                                                <span style="font-size: 0.85rem; color: var(--primary, #059669); font-weight: 600;">Project: ${m.project_name || m.project_title || 'Assigned Project'}</span>
+                                                <span style="font-size: 0.85rem; color: var(--primary, var(--primary)); font-weight: 600;">Project: ${m.project_name || m.project_title || 'Assigned Project'}</span>
                                             </div>
                                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                                 <span class="status-badge todo" style="font-size: 0.75rem;">
@@ -264,7 +264,7 @@ export function FacultyMeetings() {
                                             <div>Scheduled Date: <strong style="color: var(--text-main, #0f172a);">${formattedDate}</strong> <span style="color: #dc2626; font-size: 0.78rem; font-weight: 600;">(Meeting Date Passed)</span></div>
                                             <div>Location: <strong style="color: var(--text-main, #0f172a);">${m.location || 'Google Meet'}</strong></div>
                                             ${m.meeting_link ? `
-                                                <div>Meeting Link: <a href="${m.meeting_link}" target="_blank" style="color: var(--primary, #059669); font-weight: 600; text-decoration: underline;">${m.meeting_link}</a></div>
+                                                <div>Meeting Link: <a href="${m.meeting_link}" target="_blank" style="color: var(--primary, var(--primary)); font-weight: 600; text-decoration: underline;">${m.meeting_link}</a></div>
                                             ` : ''}
                                             ${m.agenda ? `
                                                 <div style="margin-top: 0.35rem; padding: 0.5rem 0.75rem; background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; font-size: 0.82rem; color: var(--text-main, #334155);">
@@ -291,7 +291,7 @@ export function FacultyMeetings() {
 
                                             <!-- EXPANDABLE FORM TO ENTER MINUTES AND IMPORTANT DECISIONS -->
                                             ${isExpanded ? `
-                                                <div style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;">
+                                                <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-main); border: 1px solid #86efac; border-radius: 8px;">
                                                     <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; font-weight: 700; color: #166534;">
                                                         Enter Meeting Minutes & Important Decisions (to meeting_notes table)
                                                     </h4>
@@ -356,7 +356,7 @@ export function FacultyMeetings() {
                                         <div>
                                             <strong style="font-size: 0.95rem; color: var(--text-main, #0f172a);">${m.title}</strong>
                                             <div style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin-top: 2px;">
-                                                Project: <strong style="color: var(--primary, #059669);">${m.project_name || m.project_title || 'Assigned Project'}</strong> &bull; 
+                                                Project: <strong style="color: var(--primary, var(--primary));">${m.project_name || m.project_title || 'Assigned Project'}</strong> &bull; 
                                                 ${m.scheduled_at}
                                             </div>
                                         </div>
@@ -471,7 +471,7 @@ export function FacultyMeetings() {
 
                         if (msgContainer) {
                             msgContainer.innerHTML = `
-                                <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                                <div style="background: var(--primary-light); border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
                                     Meeting scheduled successfully with status <strong>scheduled</strong>! Notifications sent to team students.
                                 </div>
                             `;
@@ -561,7 +561,7 @@ export function FacultyMeetings() {
                         );
                         if (msgContainer) {
                             msgContainer.innerHTML = `
-                                <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                                <div style="background: var(--primary-light); border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
                                     Meeting marked as completed and minutes saved to <strong>meeting_notes</strong> table!
                                 </div>
                             `;
@@ -613,7 +613,7 @@ export function FacultyMeetings() {
                         );
                         if (msgContainer) {
                             msgContainer.innerHTML = `
-                                <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                                <div style="background: var(--primary-light); border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
                                     Meeting status updated to cancelled in meetings table.
                                 </div>
                             `;

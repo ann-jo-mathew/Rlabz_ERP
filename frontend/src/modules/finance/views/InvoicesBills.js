@@ -147,7 +147,7 @@ export async function InvoicesBills(route, router) {
         <div style="position: relative; z-index: 1;">
 
         <!-- HEADER -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 3px solid #059669; padding-bottom: 14px; margin-bottom: 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 3px solid var(--primary); padding-bottom: 14px; margin-bottom: 20px;">
           <tr>
             <td style="vertical-align:top;">
               <!-- Header Logo replacing the old green 'R' square icon -->
@@ -169,7 +169,7 @@ export async function InvoicesBills(route, router) {
               </div>
             </td>
             <td style="vertical-align:top; text-align:right;">
-              <div style="font-size:22px; font-weight:800; color:#059669; margin-bottom:6px; letter-spacing:0.05em;">
+              <div style="font-size:22px; font-weight:800; color:var(--primary); margin-bottom:6px; letter-spacing:0.05em;">
                 TAX INVOICE
               </div>
               <table cellpadding="0" cellspacing="0" style="margin-left:auto; font-size:11px;">
@@ -217,7 +217,7 @@ export async function InvoicesBills(route, router) {
         <!-- ITEMIZED TABLE -->
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-bottom:20px;">
           <thead>
-            <tr style="background:#059669; color:#ffffff;">
+            <tr style="background:var(--primary); color:#ffffff;">
               <th style="padding:8px 10px; font-size:10px; font-weight:700; text-align:center; width:35px;">SL</th>
               <th style="padding:8px 10px; font-size:10px; font-weight:700; text-align:left;">PARTICULARS</th>
               <th style="padding:8px 10px; font-size:10px; font-weight:700; text-align:right; width:100px;">RATE (₹)</th>
@@ -237,7 +237,7 @@ export async function InvoicesBills(route, router) {
               <!-- TOTAL IN WORDS BOX -->
               <div style="padding:10px 14px;">
                 <div style="font-size:9px; text-transform:uppercase; color:#64748b; letter-spacing:0.06em; font-weight:800; margin-bottom:4px;">Total Amount In Words</div>
-                <div style="font-size:13px; font-weight:900; color:#059669;">${wordsTotal}</div>
+                <div style="font-size:13px; font-weight:900; color:var(--primary);">${wordsTotal}</div>
               </div>
             </td>
             <td style="width:280px; vertical-align:top;">
@@ -250,13 +250,13 @@ export async function InvoicesBills(route, router) {
                   <td style="padding:5px 8px; color:#64748b;">GST (${inv.gst_percentage || 18}%):</td>
                   <td style="padding:5px 8px; text-align:right; font-weight:600;">${fmt(gstAmt)}</td>
                 </tr>
-                <tr style="border-top:2px solid #059669;">
+                <tr style="border-top:2px solid var(--primary);">
                   <td style="padding:8px 8px; font-size:14px; font-weight:800; color:#0f172a;">Grand Total:</td>
-                  <td style="padding:8px 8px; text-align:right; font-size:15px; font-weight:800; color:#059669;">${fmt(grandTotal)}</td>
+                  <td style="padding:8px 8px; text-align:right; font-size:15px; font-weight:800; color:var(--primary);">${fmt(grandTotal)}</td>
                 </tr>
                 <tr style="border-top:1px solid #e2e8f0;">
                   <td style="padding:5px 8px; color:#64748b;">Amount Received:</td>
-                  <td style="padding:5px 8px; text-align:right; font-weight:600; color:#059669;">${fmt(collected)}</td>
+                  <td style="padding:5px 8px; text-align:right; font-weight:600; color:var(--primary);">${fmt(collected)}</td>
                 </tr>
                 ${outstanding > 0 ? `
                 <tr>
@@ -272,11 +272,11 @@ export async function InvoicesBills(route, router) {
         ${paymentsHtml}
 
         <!-- REMITTANCE BOX FOOTER -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4; border:1px solid #a7f3d0; border-radius:6px; padding:12px; margin-bottom:16px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:6px; padding:12px; margin-bottom:16px;">
           <tr>
             <td style="vertical-align:top; width:50%;">
-              <div style="font-size:9px; text-transform:uppercase; color:#047857; letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">REMITTANCE DETAILS (BANK TRANSFER)</div>
-              <div style="font-size:11px; color:#064e3b; line-height:1.5;">
+              <div style="font-size:9px; text-transform:uppercase; color:var(--primary-hover); letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">REMITTANCE DETAILS (BANK TRANSFER)</div>
+              <div style="font-size:11px; color:var(--primary); line-height:1.5;">
                 <strong>Account Name:</strong> RLabZ ERP Division<br>
                 <strong>Bank Name:</strong> Federal Bank<br>
                 <strong>Account Number:</strong> 12340100567890<br>
@@ -285,7 +285,7 @@ export async function InvoicesBills(route, router) {
             </td>
             <td style="vertical-align:top; width:50%; text-align:right;">
               <div style="font-size:9px; text-transform:uppercase; color:#64748b; letter-spacing:0.08em; font-weight:700; margin-bottom:4px;">STATUS</div>
-              <div style="display:inline-block; padding:4px 12px; border-radius:999px; font-weight:800; font-size:12px; background:${inv.status === 'Paid' ? '#d1fae5' : '#fef3c7'}; color:${inv.status === 'Paid' ? '#065f46' : '#92400e'};">
+              <div style="display:inline-block; padding:4px 12px; border-radius:999px; font-weight:800; font-size:12px; background:${inv.status === 'Paid' ? 'var(--border-color)' : '#fef3c7'}; color:${inv.status === 'Paid' ? 'var(--primary)' : '#92400e'};">
                 ${(inv.status || 'Pending').toUpperCase()}
               </div>
             </td>

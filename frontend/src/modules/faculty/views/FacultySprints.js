@@ -92,7 +92,7 @@ export function FacultySprints() {
                     background: var(--bg-surface, #f8fafc) !important;
                 }
                 .faculty-sprints .project-row-clickable:hover td:first-child {
-                    color: var(--primary, #059669) !important;
+                    color: var(--primary, var(--primary)) !important;
                 }
             </style>
         `;
@@ -217,7 +217,7 @@ export function FacultySprints() {
                         ` : ''}
                         <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-muted, #64748b);">
                             Client: <strong style="color: var(--text-main, #0f172a);">${clientName}</strong> &nbsp;|&nbsp; 
-                            Project Students: <strong style="color: var(--primary, #059669);">${students.length}</strong> &nbsp;|&nbsp; 
+                            Project Students: <strong style="color: var(--primary, var(--primary));">${students.length}</strong> &nbsp;|&nbsp; 
                             Modules: <strong style="color: var(--text-main, #0f172a);">${modules.length}</strong> &nbsp;|&nbsp; 
                             Tasks: <strong style="color: var(--text-main, #0f172a);">${tasks.length}</strong>
                         </div>
@@ -249,19 +249,19 @@ export function FacultySprints() {
 
             <!-- Sub Navigation Tabs: Assign Module | Assign Task | Existing Modules | Existing Tasks -->
             <div class="project-tabs" style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0); margin-bottom: 1.5rem; flex-wrap: wrap;">
-                <button id="tab-btn-assign-module" class="tab-btn ${activeTab === 'assign-module' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'assign-module' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'assign-module' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
+                <button id="tab-btn-assign-module" class="tab-btn ${activeTab === 'assign-module' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'assign-module' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'assign-module' ? 'var(--primary, var(--primary))' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
                     ${iconFolder} Assign Module ${isClosed ? '<span style="font-size: 0.7rem; background: #fee2e2; color: #991b1b; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700; margin-left: 0.25rem;">Closed</span>' : ''}
                 </button>
-                <button id="tab-btn-assign-task" class="tab-btn ${activeTab === 'assign-task' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'assign-task' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'assign-task' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
+                <button id="tab-btn-assign-task" class="tab-btn ${activeTab === 'assign-task' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'assign-task' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'assign-task' ? 'var(--primary, var(--primary))' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
                     ${iconTask} Assign Task ${isClosed ? '<span style="font-size: 0.7rem; background: #fee2e2; color: #991b1b; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700; margin-left: 0.25rem;">Closed</span>' : ''}
                 </button>
-                <button id="tab-btn-existing-modules" class="tab-btn ${activeTab === 'existing-modules' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'existing-modules' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'existing-modules' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
+                <button id="tab-btn-existing-modules" class="tab-btn ${activeTab === 'existing-modules' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'existing-modules' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'existing-modules' ? 'var(--primary, var(--primary))' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
                     ${iconLayers} Existing Modules
                     <span class="status-badge ${activeTab === 'existing-modules' ? 'completed' : 'todo'}" style="padding: 0.15rem 0.5rem; font-size: 0.72rem;">
                         ${modules.length}
                     </span>
                 </button>
-                <button id="tab-btn-existing-tasks" class="tab-btn ${activeTab === 'existing-tasks' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'existing-tasks' ? 'var(--primary, #059669)' : 'transparent'}; color: ${activeTab === 'existing-tasks' ? 'var(--primary, #059669)' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
+                <button id="tab-btn-existing-tasks" class="tab-btn ${activeTab === 'existing-tasks' ? 'active' : ''}" style="background: none; border: none; padding: 0.6rem 1.15rem; font-weight: 700; font-size: 0.92rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'existing-tasks' ? 'var(--primary, var(--primary))' : 'transparent'}; color: ${activeTab === 'existing-tasks' ? 'var(--primary, var(--primary))' : 'var(--text-muted, #64748b)'}; display: inline-flex; align-items: center; gap: 0.45rem;">
                     ${iconList} Existing Tasks
                     <span class="status-badge ${activeTab === 'existing-tasks' ? 'completed' : 'todo'}" style="padding: 0.15rem 0.5rem; font-size: 0.72rem;">
                         ${tasks.length}
@@ -394,7 +394,7 @@ export function FacultySprints() {
 
                                 <div id="student-dropdown-menu" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 280px; overflow-y: auto; background: #ffffff; border: 1px solid var(--border-color, #cbd5e1); border-radius: var(--radius-md, 8px); box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.1)); z-index: 60; padding: 0.5rem;">
                                     <div style="display: flex; justify-content: space-between; padding: 0.25rem 0.5rem 0.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0); font-size: 0.75rem;">
-                                        <button type="button" id="btn-select-all-students" style="background: none; border: none; color: var(--primary, #059669); font-weight: 600; cursor: pointer; padding: 0;">Select All</button>
+                                        <button type="button" id="btn-select-all-students" style="background: none; border: none; color: var(--primary, var(--primary)); font-weight: 600; cursor: pointer; padding: 0;">Select All</button>
                                         <button type="button" id="btn-clear-students" style="background: none; border: none; color: var(--text-muted, #64748b); cursor: pointer; padding: 0;">Clear</button>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 0.25rem; padding-top: 0.5rem;">
@@ -413,7 +413,7 @@ export function FacultySprints() {
                                                         value="${s.student_id}"
                                                         data-name="${s.name}"
                                                         class="module-student-checkbox"
-                                                        style="width: 16px; height: 16px; margin-top: 3px; accent-color: var(--primary, #059669); cursor: pointer;"
+                                                        style="width: 16px; height: 16px; margin-top: 3px; accent-color: var(--primary, var(--primary)); cursor: pointer;"
                                                     />
                                                     <div style="flex: 1; min-width: 0;">
                                                         <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
@@ -664,7 +664,7 @@ export function FacultySprints() {
                                             ${assigned.length === 0 ? `
                                                 <span style="font-size: 0.82rem; color: var(--text-muted, #94a3b8); font-style: italic;">No students assigned to this module yet.</span>
                                             ` : assigned.map(s => `
-                                                <span style="background: var(--primary-light, #ecfdf5); color: var(--primary, #059669); border: 1px solid #a7f3d0; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                <span style="background: var(--primary-light, var(--primary-light)); color: var(--primary, var(--primary)); border: 1px solid var(--border-color); padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;">
                                                     ${iconUser} ${s.name} ${s.designation ? `(${s.designation})` : ''}
                                                     ${!isClosed ? `
                                                     <button
@@ -673,7 +673,7 @@ export function FacultySprints() {
                                                         data-module-id="${m.id}"
                                                         data-student-id="${s.student_id}"
                                                         title="Remove student from this module"
-                                                        style="background: none; border: none; color: var(--primary, #059669); cursor: pointer; font-weight: bold; font-size: 12px; padding: 0 2px; line-height: 1;"
+                                                        style="background: none; border: none; color: var(--primary, var(--primary)); cursor: pointer; font-weight: bold; font-size: 12px; padding: 0 2px; line-height: 1;"
                                                     >&times;</button>
                                                     ` : ''}
                                                 </span>
@@ -905,9 +905,9 @@ export function FacultySprints() {
                         const s = students.find(item => item.student_id === id);
                         const sName = s ? s.name : `Student #${id}`;
                         return `
-                            <span style="background: var(--primary-light, #ecfdf5); color: var(--primary, #059669); border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                            <span style="background: var(--primary-light, var(--primary-light)); color: var(--primary, var(--primary)); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
                                 👤 ${sName}
-                                <button type="button" class="remove-pill-btn" data-id="${id}" style="background: none; border: none; color: var(--primary, #059669); cursor: pointer; font-weight: bold; font-size: 11px; padding: 0;">✕</button>
+                                <button type="button" class="remove-pill-btn" data-id="${id}" style="background: none; border: none; color: var(--primary, var(--primary)); cursor: pointer; font-weight: bold; font-size: 11px; padding: 0;">✕</button>
                             </span>
                         `;
                     }).join('');
@@ -991,7 +991,7 @@ export function FacultySprints() {
                             <strong>Assigned Module:</strong> "${matchedMod.module_name}" is assigned to <strong>${(matchedMod.assigned_students || []).map(s => s.name).join(', ')}</strong>.
                         `;
                     } else {
-                        banner.style.background = '#f0fdf4';
+                        banner.style.background = 'var(--bg-main)';
                         banner.style.border = '1px solid #bbf7d0';
                         banner.style.color = '#166534';
                         banner.innerHTML = `
@@ -1122,7 +1122,7 @@ export function FacultySprints() {
 
                         if (msgContainer) {
                             msgContainer.innerHTML = `
-                                <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600;">
+                                <div style="background: var(--primary-light); border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600;">
                                     ✓ Students successfully assigned to module!
                                 </div>
                             `;
@@ -1364,7 +1364,7 @@ export function FacultySprints() {
                 `;
                 taskStudentSelect.value = soleStudent.student_id;
                 if (studentsHint) {
-                    studentsHint.innerHTML = `<span style="color: var(--primary, #059669); font-weight: 600;">✓ Module is assigned to only <strong>${soleStudent.name}</strong> — automatically assigned to this student.</span>`;
+                    studentsHint.innerHTML = `<span style="color: var(--primary, var(--primary)); font-weight: 600;">✓ Module is assigned to only <strong>${soleStudent.name}</strong> — automatically assigned to this student.</span>`;
                 }
                 updateStudentTaskPreview(soleStudent.student_id);
             } else {
@@ -1515,7 +1515,7 @@ export function FacultySprints() {
 
                         if (msgContainer) {
                             msgContainer.innerHTML = `
-                                <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600;">
+                                <div style="background: var(--primary-light); border: 1px solid #86efac; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600;">
                                     ✓ Task successfully assigned with status <strong>TO DO</strong>!
                                 </div>
                             `;

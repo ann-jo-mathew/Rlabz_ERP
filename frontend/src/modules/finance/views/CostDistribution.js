@@ -165,7 +165,7 @@ export async function CostDistribution(route, router) {
             <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${p.client_name || '-'}</div>
           </td>
           <td>
-            <div style="font-weight:600;color:#059669">${fmt(student)}</div>
+            <div style="font-weight:600;color:var(--primary)">${fmt(student)}</div>
             <div style="font-size:0.75rem;color:var(--text-muted)">${sPct}%</div>
           </td>
           <td>
@@ -179,12 +179,12 @@ export async function CostDistribution(route, router) {
           <td style="font-weight:700">${fmt(total)}</td>
           <td style="min-width:140px">
             <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:#e2e8f0">
-              <div style="width:${sPct}%;background:${lock.locked ? '#9ca3af' : '#059669'}" title="Student ${sPct}%"></div>
+              <div style="width:${sPct}%;background:${lock.locked ? '#9ca3af' : 'var(--primary)'}" title="Student ${sPct}%"></div>
               <div style="width:${fPct}%;background:${lock.locked ? '#c4c9d4' : '#0891b2'}" title="Faculty ${fPct}%"></div>
               <div style="width:${rPct}%;background:${lock.locked ? '#d1d5db' : '#6366f1'}" title="RLabZ ${rPct}%"></div>
             </div>
             <div style="display:flex;gap:8px;margin-top:4px;font-size:0.65rem;color:var(--text-muted)">
-              <span style="display:flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:#059669;display:inline-block"></span>Stu</span>
+              <span style="display:flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:var(--primary);display:inline-block"></span>Stu</span>
               <span style="display:flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:#0891b2;display:inline-block"></span>Fac</span>
               <span style="display:flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:#6366f1;display:inline-block"></span>RLz</span>
             </div>
@@ -276,7 +276,7 @@ export async function CostDistribution(route, router) {
       const rem      = total - assigned;
       modal.querySelector('#dist-assigned').textContent = fmt(assigned);
       modal.querySelector('#dist-remaining').textContent = fmt(rem);
-      modal.querySelector('#dist-remaining').style.color = rem < 0 ? '#e53e3e' : '#059669';
+      modal.querySelector('#dist-remaining').style.color = rem < 0 ? '#e53e3e' : 'var(--primary)';
     };
 
     modal.querySelectorAll('.alloc-input').forEach(inp => inp.addEventListener('input', updateSummary));

@@ -32,7 +32,7 @@ export function DirectorHome(route, router) {
     destroyCharts();
     container.innerHTML = `
       <div style="padding: 3.5rem; text-align: center; color: #6b7280; background: white; border-radius: 14px; border: 1px solid #e5e7eb; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
-        <div style="display:inline-block; width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 0.85rem;"></div>
+        <div style="display:inline-block; width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 0.85rem;"></div>
         <p style="margin: 0; font-weight: 600; font-size: 1rem; color: #111827;">Synchronizing Live Executive Analytics...</p>
         <small style="color: #9ca3af; display:block; margin-top: 0.25rem;">Fetching real-time project metrics, student talent rosters & financial balances</small>
       </div>
@@ -217,7 +217,7 @@ export function DirectorHome(route, router) {
               <span class="chart-legend-val">${orbit} (${orbitPct}%)</span>
             </div>
             <div class="chart-legend-item" style="cursor: pointer;" data-track="Spark" title="Click to view Spark Learner students">
-              <span class="chart-legend-dot" style="background:#10b981;"></span>
+              <span class="chart-legend-dot" style="background:var(--primary-accent);"></span>
               <span>Spark Learners:</span>
               <span class="chart-legend-val">${spark} (${sparkPct}%)</span>
             </div>
@@ -229,7 +229,7 @@ export function DirectorHome(route, router) {
           <div class="director-chart-header">
             <div class="director-chart-title-group">
               <h3>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                 Capital Allocation: Budget vs Actual Spend
               </h3>
               <div class="director-chart-subtitle">Comparison of sanctioned budgets against incurred expenditures</div>
@@ -243,7 +243,7 @@ export function DirectorHome(route, router) {
 
           <div class="director-chart-legend">
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:#10b981;"></span>
+              <span class="chart-legend-dot" style="background:var(--primary-accent);"></span>
               <span>Sanctioned Budget</span>
             </div>
             <div class="chart-legend-item">
@@ -252,7 +252,7 @@ export function DirectorHome(route, router) {
             </div>
             <div class="chart-legend-item">
               <span style="color:#6b7280; font-weight:500;">Burn Rate:</span>
-              <span class="chart-legend-val" style="color:#059669;">${spentPct}%</span>
+              <span class="chart-legend-val" style="color:var(--primary);">${spentPct}%</span>
             </div>
           </div>
         </div>
@@ -280,7 +280,7 @@ export function DirectorHome(route, router) {
               <span>Milestones Completed</span>
             </div>
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:#10b981;"></span>
+              <span class="chart-legend-dot" style="background:var(--primary-accent);"></span>
               <span>Task Throughput</span>
             </div>
             <div class="chart-legend-item">
@@ -309,7 +309,7 @@ export function DirectorHome(route, router) {
 
           <div class="director-chart-legend">
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:#10b981;"></span>
+              <span class="chart-legend-dot" style="background:var(--primary-accent);"></span>
               <span>In Progress (${activeProjects})</span>
             </div>
             <div class="chart-legend-item">
@@ -357,7 +357,7 @@ export function DirectorHome(route, router) {
                   </div>
                   <div class="faculty-load-meter">
                     <div class="faculty-meter-bar">
-                      <div class="faculty-meter-fill" style="width: ${loadPct}%; background:${count >= 3 ? '#e11d48' : '#10b981'};"></div>
+                      <div class="faculty-meter-fill" style="width: ${loadPct}%; background:${count >= 3 ? '#e11d48' : 'var(--primary-accent)'};"></div>
                     </div>
                     <span style="font-size:0.75rem; font-weight:700; color:#4b5563;">${count} Proj</span>
                   </div>
@@ -422,7 +422,7 @@ export function DirectorHome(route, router) {
           </div>
           ${pendingProposals.length === 0 ? `
             <div style="text-align:center; padding:2rem; color:#6b7280; background:#f9fafb; border-radius:10px; border:1px dashed #d1d5db;">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" style="margin-bottom:0.5rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent)" stroke-width="2" style="margin-bottom:0.5rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
               <p style="margin:0; font-weight:700; color:#111827;">All Project Proposals Clear!</p>
               <small>No pending submissions requiring Director evaluation at this time.</small>
             </div>
@@ -581,7 +581,7 @@ export function DirectorHome(route, router) {
           labels: ['Nova Leads', 'Orbit Developers', 'Spark Learners'],
           datasets: [{
             data: [nova || 1, orbit || 1, spark || 1],
-            backgroundColor: ['#8b5cf6', '#0284c7', '#10b981'],
+            backgroundColor: ['#8b5cf6', '#0284c7', 'var(--primary-accent)'],
             borderColor: '#ffffff',
             borderWidth: 3,
             hoverOffset: 8,
@@ -666,7 +666,7 @@ export function DirectorHome(route, router) {
             {
               label: 'Sanctioned Budget',
               data: budgets,
-              backgroundColor: '#10b981',
+              backgroundColor: 'var(--primary-accent)',
               borderRadius: 6,
               barPercentage: 0.6,
               categoryPercentage: 0.7
@@ -748,7 +748,7 @@ export function DirectorHome(route, router) {
             {
               label: 'Milestones Completed',
               data: milestonesCompleted,
-              borderColor: '#10b981',
+              borderColor: 'var(--primary-accent)',
               backgroundColor: 'transparent',
               borderWidth: 2.5,
               borderDash: [5, 4],
@@ -756,7 +756,7 @@ export function DirectorHome(route, router) {
               fill: false,
               pointRadius: 3,
               pointHoverRadius: 6,
-              pointBackgroundColor: '#10b981'
+              pointBackgroundColor: 'var(--primary-accent)'
             },
             {
               label: 'Proposals Received',
@@ -856,7 +856,7 @@ export function DirectorHome(route, router) {
     popupOverlay.className = 'director-modal-overlay';
     popupOverlay.style.zIndex = '1050';
     popupOverlay.innerHTML = `
-      <div class="director-modal" style="max-width: 460px; border-top: 4px solid #10b981;">
+      <div class="director-modal" style="max-width: 460px; border-top: 4px solid var(--primary-accent);">
         <div class="director-modal-header">
           <h3 style="margin:0; font-size:1.1rem; color:#111827;">Active Projects — ${faculty.name}</h3>
           <button class="btn-director btn-director-outline btn-close-popup">✕</button>
@@ -916,7 +916,7 @@ export function DirectorHome(route, router) {
                 const count = f.activeProjectsCount !== undefined ? f.activeProjectsCount : projectsList.length;
                 const isSelected = String(f.id) === String(defaultFacId);
                 return `
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? '#10b981' : '#e5e7eb'}; border-radius:6px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? 'var(--primary-accent)' : '#e5e7eb'}; border-radius:6px;">
                     <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; margin:0;">
                       <input type="radio" name="proposal_home_faculty_choice" value="${f.id}" ${isSelected ? 'checked' : ''} />
                       <div>
@@ -924,7 +924,7 @@ export function DirectorHome(route, router) {
                         <div style="font-size:0.75rem; color:#6b7280;">${f.department || 'Computer Applications'}</div>
                       </div>
                     </label>
-                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:#047857; border-color:#a7f3d0; background:#ecfdf5; border-radius:6px; cursor:pointer;">
+                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:var(--primary-hover); border-color:var(--border-color); background:var(--primary-light); border-radius:6px; cursor:pointer;">
                       📊 ${count} Active Project${count === 1 ? '' : 's'}
                     </button>
                   </div>

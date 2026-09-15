@@ -118,7 +118,7 @@ export async function StudentWorkLogs(route, router) {
         <!-- Work Log Form -->
         <div class="student-card reports-form-card" style="height: fit-content;">
           <div class="student-card-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             <span>Log Working Hours</span>
           </div>
 
@@ -315,7 +315,7 @@ export async function StudentWorkLogs(route, router) {
           icon: 'warning',
           title: 'Project Required',
           text: 'Please select a project.',
-          confirmButtonColor: '#059669'
+          confirmButtonColor: 'var(--primary)'
         });
         return;
       }
@@ -325,7 +325,7 @@ export async function StudentWorkLogs(route, router) {
           icon: 'warning',
           title: 'Task Required',
           text: 'Please select an assigned task.',
-          confirmButtonColor: '#059669'
+          confirmButtonColor: 'var(--primary)'
         });
         return;
       }
@@ -345,7 +345,7 @@ export async function StudentWorkLogs(route, router) {
           icon: 'success',
           title: 'Logged Successfully',
           text: `Logged ${hours} hours for task.`,
-          confirmButtonColor: '#059669'
+          confirmButtonColor: 'var(--primary)'
         });
       } catch (err) {
         formSubmitting = false;
@@ -354,7 +354,7 @@ export async function StudentWorkLogs(route, router) {
           icon: 'error',
           title: 'Error Logging Hours',
           text: err.message || 'Failed to submit work log.',
-          confirmButtonColor: '#059669'
+          confirmButtonColor: 'var(--primary)'
         });
       }
     });

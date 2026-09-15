@@ -127,7 +127,7 @@ export async function StudentMeetings(route, router) {
       return `
         <div class="student-meeting-item ${isSelected ? 'active-selected' : ''}" data-id="${m.id}">
           <div class="student-meeting-info">
-            <div style="font-size:0.75rem; color:#059669; font-weight:700; text-transform:uppercase; letter-spacing:0.03em;">
+            <div style="font-size:0.75rem; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.03em;">
               ${m.project}
             </div>
             <div class="student-meeting-title" style="font-size:0.95rem; margin-top:2px;">
@@ -183,15 +183,15 @@ export async function StudentMeetings(route, router) {
           <!-- Meta Strip -->
           <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0; font-size: 0.88rem; color: #475569;">
             <div style="display: flex; align-items: center; gap: 6px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               <span>Date: <strong style="color: #0f172a;">${selectedMeeting.date}</strong></span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               <span>Time: <strong style="color: #0f172a;">${selectedMeeting.time}</strong></span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               <span>Supervisor: <strong style="color: #0f172a;">Faculty Supervisor</strong></span>
             </div>
           </div>
@@ -226,7 +226,7 @@ export async function StudentMeetings(route, router) {
             </div>
           ` : `
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
               <div>
                 <div style="font-weight: 700; font-size: 0.925rem; color: #0f172a;">Location &amp; Venue</div>
                 <div style="font-size: 0.825rem; color: #64748b; margin-top: 2px;">${selectedMeeting.location || 'In-Person Academy Conference Room'}</div>
@@ -329,7 +329,7 @@ export async function StudentMeetings(route, router) {
                 <span>Session Scheduled</span>
               </div>
               <div style="display:flex; align-items:center; gap:6px;">
-                <div style="width:10px; height:10px; border-radius:3px; background:#ecfdf5; border:1px solid #059669;"></div>
+                <div style="width:10px; height:10px; border-radius:3px; background:var(--primary-light); border:1px solid var(--primary);"></div>
                 <span>Today (${formattedToday})</span>
               </div>
             </div>
@@ -347,9 +347,9 @@ export async function StudentMeetings(route, router) {
             </div>
 
             ${dateFilter ? `
-              <div style="display: flex; justify-content: space-between; align-items: center; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 6px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.8rem; color: #065f46;">
+              <div style="display: flex; justify-content: space-between; align-items: center; background: var(--primary-light); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.8rem; color: var(--primary);">
                 <span>Filtered on: <strong>${dateFilter}</strong></span>
-                <button type="button" id="btn-remove-date-filter" style="background: none; border: none; color: #047857; font-weight: 700; cursor: pointer; font-size: 0.75rem;">Show All</button>
+                <button type="button" id="btn-remove-date-filter" style="background: none; border: none; color: var(--primary-hover); font-weight: 700; cursor: pointer; font-size: 0.75rem;">Show All</button>
               </div>
             ` : ''}
 

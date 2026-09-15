@@ -396,7 +396,7 @@ export async function StudentCertificates(route, router) {
                 PROUDLY PRESENTED TO
               </div>
 
-              <div style="font-size: 30px; font-style: italic; font-weight: 700; color: #059669; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin: 0 auto 16px; display: inline-block; min-width: 260px;">
+              <div style="font-size: 30px; font-style: italic; font-weight: 700; color: var(--primary); border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin: 0 auto 16px; display: inline-block; min-width: 260px;">
                 ${studentName}
               </div>
 
@@ -415,7 +415,7 @@ export async function StudentCertificates(route, router) {
               <div style="font-size: 11px; color: #64748b; margin-bottom: 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                 Certificate No: <strong style="color: #1e293b;">${certNumber}</strong> &nbsp;|&nbsp; 
                 Issued Date: <strong style="color: #1e293b;">${issuedDate}</strong> &nbsp;|&nbsp; 
-                Status: <strong style="color: #059669;">Issued &amp; Verified</strong>
+                Status: <strong style="color: var(--primary);">Issued &amp; Verified</strong>
               </div>
 
               <div style="display: flex; justify-content: space-between; width: 100%; max-width: 540px; margin: 20px auto 0;">

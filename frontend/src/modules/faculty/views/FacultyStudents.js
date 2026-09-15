@@ -170,7 +170,7 @@ export function FacultyStudents() {
                         <div style="display: flex; flex-direction: column; gap: 0.35rem;">
                             ${projects.map(p => `
                                 <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--primary, #059669); flex-shrink: 0;"></span>
+                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--primary, var(--primary)); flex-shrink: 0;"></span>
                                     <span>${p}</span>
                                 </div>
                             `).join('')}

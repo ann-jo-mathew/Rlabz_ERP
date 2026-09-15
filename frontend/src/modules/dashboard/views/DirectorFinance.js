@@ -89,10 +89,10 @@ export function DirectorFinance(route, router) {
             <p style="font-size:0.8rem; color:#6b7280; margin:0.5rem 0 0 0;">Standard developer stipend tier (₹3,000/mo) for contributors.</p>
           </div>
 
-          <div style="background:#d1fae5; padding:1.25rem; border-radius:10px; border:1px solid #6ee7b7;">
+          <div style="background:var(--border-color); padding:1.25rem; border-radius:10px; border:1px solid #6ee7b7;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <span class="track-badge spark">Spark Learner Track</span>
-              <strong style="color:#047857; font-size:1.1rem;">₹${formatMoney(payrollByTrack.Spark || 0)}</strong>
+              <strong style="color:var(--primary-hover); font-size:1.1rem;">₹${formatMoney(payrollByTrack.Spark || 0)}</strong>
             </div>
             <p style="font-size:0.8rem; color:#6b7280; margin:0.5rem 0 0 0;">Entry-level intern stipend tier (₹1,500/mo) for learners.</p>
           </div>
@@ -106,7 +106,7 @@ export function DirectorFinance(route, router) {
             <h2 style="margin:0;">Project Financial Tracking Overview</h2>
             <small style="color:#6b7280; font-size:0.8rem;">Click on any row to open the detailed financial breakdown popup</small>
           </div>
-          <span style="font-size:0.75rem; background:#ecfdf5; color:#047857; padding:4px 10px; border-radius:12px; border:1px solid #a7f3d0; font-weight:600;">
+          <span style="font-size:0.75rem; background:var(--primary-light); color:var(--primary-hover); padding:4px 10px; border-radius:12px; border:1px solid var(--border-color); font-weight:600;">
             💡 Click row for details
           </span>
         </div>
@@ -136,7 +136,7 @@ export function DirectorFinance(route, router) {
                     <td>${p.clientName || 'N/A'}</td>
                     <td>₹${formatMoney(p.budget || 0)}</td>
                     <td>₹${formatMoney(p.spent || 0)}</td>
-                    <td style="color:${remaining >= 0 ? '#059669' : '#dc2626'}; font-weight:600;">₹${formatMoney(remaining)}</td>
+                    <td style="color:${remaining >= 0 ? 'var(--primary)' : '#dc2626'}; font-weight:600;">₹${formatMoney(remaining)}</td>
                     <td>
                       <span class="status-badge ${percentSpent > 90 ? 'rejected' : 'completed'}">
                         ${percentSpent}% Utilized
@@ -194,7 +194,7 @@ export function DirectorFinance(route, router) {
 
     modalRoot.innerHTML = `
       <div class="director-modal-overlay" style="z-index: 1100;">
-        <div class="director-modal" style="max-width: 640px; border-top: 4px solid #10b981;">
+        <div class="director-modal" style="max-width: 640px; border-top: 4px solid var(--primary-accent);">
           
           <!-- Header -->
           <div class="director-modal-header" style="border-bottom:1px solid #f3f4f6; padding-bottom:0.75rem;">
@@ -217,9 +217,9 @@ export function DirectorFinance(route, router) {
 
             <!-- Key Financial Summary Grid -->
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.75rem; margin-top:0.5rem;">
-              <div style="background:#ecfdf5; padding:0.75rem; border-radius:8px; border:1px solid #a7f3d0;">
-                <span style="font-size:0.75rem; color:#047857; font-weight:600;">Total Allocated Budget</span>
-                <div style="font-size:1.15rem; font-weight:800; color:#065f46; margin-top:2px;">₹${formatMoney(budget)}</div>
+              <div style="background:var(--primary-light); padding:0.75rem; border-radius:8px; border:1px solid var(--border-color);">
+                <span style="font-size:0.75rem; color:var(--primary-hover); font-weight:600;">Total Allocated Budget</span>
+                <div style="font-size:1.15rem; font-weight:800; color:var(--primary); margin-top:2px;">₹${formatMoney(budget)}</div>
               </div>
 
               <div style="background:#eff6ff; padding:0.75rem; border-radius:8px; border:1px solid #bfdbfe;">
@@ -227,7 +227,7 @@ export function DirectorFinance(route, router) {
                 <div style="font-size:1.15rem; font-weight:800; color:#1e40af; margin-top:2px;">₹${formatMoney(spent)}</div>
               </div>
 
-              <div style="background:${remaining >= 0 ? '#f0fdf4' : '#fef2f2'}; padding:0.75rem; border-radius:8px; border:1px solid ${remaining >= 0 ? '#bbf7d0' : '#fecaca'};">
+              <div style="background:${remaining >= 0 ? 'var(--bg-main)' : '#fef2f2'}; padding:0.75rem; border-radius:8px; border:1px solid ${remaining >= 0 ? '#bbf7d0' : '#fecaca'};">
                 <span style="font-size:0.75rem; color:${remaining >= 0 ? '#15803d' : '#b91c1c'}; font-weight:600;">Remaining Balance</span>
                 <div style="font-size:1.15rem; font-weight:800; color:${remaining >= 0 ? '#166534' : '#991b1b'}; margin-top:2px;">₹${formatMoney(remaining)}</div>
               </div>
@@ -237,10 +237,10 @@ export function DirectorFinance(route, router) {
             <div style="background:#ffffff; border:1px solid #e5e7eb; padding:0.75rem 0.85rem; border-radius:8px;">
               <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; margin-bottom:0.35rem;">
                 <strong style="color:#374151;">Budget Utilization Rate</strong>
-                <strong style="color:${percentSpent > 90 ? '#dc2626' : '#059669'};">${percentSpent}% Utilized</strong>
+                <strong style="color:${percentSpent > 90 ? '#dc2626' : 'var(--primary)'};">${percentSpent}% Utilized</strong>
               </div>
               <div class="director-progress-bar-bg" style="width:100%; height:10px; margin-right:0;">
-                <div class="director-progress-bar-fill" style="width:${Math.min(100, percentSpent)}%; background:${percentSpent > 90 ? '#ef4444' : 'linear-gradient(90deg, #10b981, #059669)'};"></div>
+                <div class="director-progress-bar-fill" style="width:${Math.min(100, percentSpent)}%; background:${percentSpent > 90 ? '#ef4444' : 'linear-gradient(90deg, var(--primary-accent), var(--primary))'};"></div>
               </div>
             </div>
 
@@ -289,7 +289,7 @@ export function DirectorFinance(route, router) {
                           <strong>${s.name}</strong>
                           <span style="color:#6b7280; font-size:0.75rem;">(${s.role || 'Developer'})</span>
                         </div>
-                        <div style="font-weight:700; color:#047857;">₹${formatMoney(stipend)} / mo</div>
+                        <div style="font-weight:700; color:var(--primary-hover);">₹${formatMoney(stipend)} / mo</div>
                       </div>
                     `;
                   }).join('')}
@@ -298,7 +298,7 @@ export function DirectorFinance(route, router) {
             </div>
 
             <!-- Client Payment Status -->
-            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:0.75rem 0.85rem; font-size:0.8rem; display:flex; justify-content:space-between; align-items:center;">
+            <div style="background:var(--bg-main); border:1px solid #bbf7d0; border-radius:8px; padding:0.75rem 0.85rem; font-size:0.8rem; display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <strong style="color:#166534;">Client Invoicing & Billing Status</strong>
                 <div style="color:#15803d; font-size:0.75rem; margin-top:2px;">Invoiced: ₹${formatMoney(budget)} | Total Paid: ₹${formatMoney(spent > 0 ? spent : budget * 0.6)}</div>

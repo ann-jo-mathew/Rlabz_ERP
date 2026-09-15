@@ -70,7 +70,7 @@ export function FacultyVerifyTasks() {
             </div>
 
             ${actionMessage ? `
-                <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.85rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
+                <div style="background: var(--primary-light); border: 1px solid #86efac; color: #166534; padding: 0.85rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
                     <span>${actionMessage}</span>
                     <button class="btn-close-msg" style="background:none; border:none; color: #166534; cursor: pointer; font-size: 1.1rem; line-height: 1;">&times;</button>
                 </div>
@@ -97,7 +97,7 @@ export function FacultyVerifyTasks() {
                     background: var(--bg-surface, #f8fafc) !important;
                 }
                 .faculty-verify-tasks .project-row-clickable:hover td:first-child > div:first-child {
-                    color: var(--primary, #059669) !important;
+                    color: var(--primary, var(--primary)) !important;
                 }
             </style>
         `;
@@ -198,7 +198,7 @@ export function FacultyVerifyTasks() {
         if (isLoadingWorkLogs || !projectDetail) {
             container.innerHTML = `
                 <div style="padding: 4rem; text-align: center; color: var(--text-muted, #64748b);">
-                    <div class="spinner" style="border-top-color: var(--primary, #059669); margin: 0 auto 1rem; width: 32px; height: 32px;"></div>
+                    <div class="spinner" style="border-top-color: var(--primary, var(--primary)); margin: 0 auto 1rem; width: 32px; height: 32px;"></div>
                     <p style="font-size: 0.95rem;">Loading student submissions for project...</p>
                 </div>
             `;
@@ -234,7 +234,7 @@ export function FacultyVerifyTasks() {
 
         container.innerHTML = `
             ${actionMessage ? `
-                <div style="background: #ecfdf5; border: 1px solid #86efac; color: #166534; padding: 0.85rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
+                <div style="background: var(--primary-light); border: 1px solid #86efac; color: #166534; padding: 0.85rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">
                     <span>${actionMessage}</span>
                     <button class="btn-close-msg" style="background:none; border:none; color: #166534; cursor: pointer; font-size: 1.1rem; line-height: 1;">&times;</button>
                 </div>
@@ -277,7 +277,7 @@ export function FacultyVerifyTasks() {
                             </span>
                         </div>
                         <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted, #64748b);">
-                            Client: <strong style="color: var(--text-main, #334155);">${clientName}</strong> &bull; Type: ${projectType} &bull; Total Work Logs: <strong style="color: var(--primary, #059669);">${totalLogs}</strong>
+                            Client: <strong style="color: var(--text-main, #334155);">${clientName}</strong> &bull; Type: ${projectType} &bull; Total Work Logs: <strong style="color: var(--primary, var(--primary));">${totalLogs}</strong>
                         </p>
                     </div>
                     <div>
@@ -309,9 +309,9 @@ export function FacultyVerifyTasks() {
                         <div class="faculty-stat-card-interactive" style="background: #ffffff; padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0); box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <span style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.35rem;">Total Hours</span>
-                                <div style="font-size: 1.6rem; font-weight: 700; color: #059669; line-height: 1.1;">${totalHours} <span style="font-size: 0.95rem; font-weight: 600; color: #64748b;">hrs</span></div>
+                                <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary); line-height: 1.1;">${totalHours} <span style="font-size: 0.95rem; font-weight: 600; color: #64748b;">hrs</span></div>
                             </div>
-                            <div style="width: 44px; height: 44px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
                                 ${iconClock}
                             </div>
                         </div>
@@ -321,7 +321,7 @@ export function FacultyVerifyTasks() {
                                 <span style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.35rem;">Approved</span>
                                 <div style="font-size: 1.6rem; font-weight: 700; color: #16a34a; line-height: 1.1;">${approvedLogsCount}</div>
                             </div>
-                            <div style="width: 44px; height: 44px; border-radius: 10px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--bg-main); color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
                                 ${iconCheckCircle}
                             </div>
                         </div>
@@ -339,13 +339,13 @@ export function FacultyVerifyTasks() {
 
                     <!-- Filter Tabs -->
                     <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0; flex-wrap: wrap;">
-                        <button class="log-tab-btn ${logFilter === 'all' ? 'active-tab' : ''}" data-filter="all" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'all' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'all' ? 'var(--primary, #059669)' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
+                        <button class="log-tab-btn ${logFilter === 'all' ? 'active-tab' : ''}" data-filter="all" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'all' ? 'var(--primary, var(--primary))' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'all' ? 'var(--primary, var(--primary))' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
                             All Work Logs (${totalLogs})
                         </button>
-                        <button class="log-tab-btn ${logFilter === 'pending' ? 'active-tab' : ''}" data-filter="pending" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'pending' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'pending' ? 'var(--primary, #059669)' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
+                        <button class="log-tab-btn ${logFilter === 'pending' ? 'active-tab' : ''}" data-filter="pending" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'pending' ? 'var(--primary, var(--primary))' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'pending' ? 'var(--primary, var(--primary))' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
                             Pending Approval (${pendingLogsCount})
                         </button>
-                        <button class="log-tab-btn ${logFilter === 'approved' ? 'active-tab' : ''}" data-filter="approved" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'approved' ? 'var(--primary, #059669)' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'approved' ? 'var(--primary, #059669)' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
+                        <button class="log-tab-btn ${logFilter === 'approved' ? 'active-tab' : ''}" data-filter="approved" style="background: none; border: none; padding: 0.65rem 1.1rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: ${logFilter === 'approved' ? 'var(--primary, var(--primary))' : '#64748b'}; border-bottom: 2px solid ${logFilter === 'approved' ? 'var(--primary, var(--primary))' : 'transparent'}; margin-bottom: -2px; transition: all 0.15s ease;">
                             Approved Logs (${approvedLogsCount})
                         </button>
                         ${rejectedLogsCount > 0 ? `
@@ -416,7 +416,7 @@ export function FacultyVerifyTasks() {
                                                         ${iconCalendar} <span>${l.work_date}</span>
                                                     </div>
                                                     <div style="margin-top: 6px;">
-                                                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 2px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; white-space: nowrap;">
+                                                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 2px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); white-space: nowrap;">
                                                             ${iconClock} ${parseFloat(l.hours_worked || 0).toFixed(1)} hrs
                                                         </span>
                                                     </div>
@@ -431,7 +431,7 @@ export function FacultyVerifyTasks() {
                                                         ${iconFolder} <span>${moduleName}</span>
                                                     </div>
                                                     <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
-                                                        <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${taskStatus === 'completed' ? '#ecfdf5' : '#f1f5f9'}; color: ${taskStatus === 'completed' ? '#059669' : '#475569'}; border: 1px solid ${taskStatus === 'completed' ? '#a7f3d0' : '#e2e8f0'}; text-transform: uppercase;">
+                                                        <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${taskStatus === 'completed' ? 'var(--primary-light)' : '#f1f5f9'}; color: ${taskStatus === 'completed' ? 'var(--primary)' : '#475569'}; border: 1px solid ${taskStatus === 'completed' ? 'var(--border-color)' : '#e2e8f0'}; text-transform: uppercase;">
                                                             TASK: ${taskStatus.replace('_', ' ')}
                                                         </span>
                                                         <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd;" title="Planned weight/estimated hours">
@@ -442,7 +442,7 @@ export function FacultyVerifyTasks() {
                                                                 ⚠ Late (${daysLate}d &bull; Due: ${dueDate})
                                                             </span>
                                                         ` : dueDate ? `
-                                                            <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;" title="Submitted on time">
+                                                            <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: var(--bg-main); color: #16a34a; border: 1px solid #bbf7d0;" title="Submitted on time">
                                                                 ✓ On Time (${dueDate})
                                                             </span>
                                                         ` : ''}
@@ -481,7 +481,7 @@ export function FacultyVerifyTasks() {
                                                         <!-- Status Badge -->
                                                         <div>
                                                             ${isApproved ? `
-                                                                <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 3px 9px; border-radius: 9999px; font-size: 0.76rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;">
+                                                                <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 3px 9px; border-radius: 9999px; font-size: 0.76rem; font-weight: 700; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color);">
                                                                     ${iconCheckCircle} Approved
                                                                 </span>
                                                             ` : isRejected ? `

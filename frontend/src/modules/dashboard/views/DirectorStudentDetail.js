@@ -58,7 +58,7 @@ export function DirectorStudentDetail(route, router) {
     const trackColors = {
       nova: { border: '#9333ea', bg: '#faf5ff', text: '#7e22ce', gradient: 'linear-gradient(135deg, #9333ea, #6b21a8)' },
       orbit: { border: '#2563eb', bg: '#eff6ff', text: '#1d4ed8', gradient: 'linear-gradient(135deg, #2563eb, #1e40af)' },
-      spark: { border: '#059669', bg: '#ecfdf5', text: '#047857', gradient: 'linear-gradient(135deg, #059669, #065f46)' }
+      spark: { border: 'var(--primary)', bg: 'var(--primary-light)', text: 'var(--primary-hover)', gradient: 'linear-gradient(135deg, var(--primary), var(--primary))' }
     };
     const activeColor = trackColors[trackClass] || trackColors.orbit;
 
@@ -164,7 +164,7 @@ export function DirectorStudentDetail(route, router) {
             <span class="metric-title">Tasks Completed</span>
             <span class="metric-badge emerald">${student.stats.completedTasks} Done</span>
           </div>
-          <div class="metric-big-num" style="color:#059669">${student.stats.completedTasks}</div>
+          <div class="metric-big-num" style="color:var(--primary)">${student.stats.completedTasks}</div>
           <p class="metric-subtext">${Math.round((student.stats.completedTasks / (student.stats.totalTasks || 1)) * 100)}% Task completion rate</p>
         </div>
 
@@ -173,9 +173,9 @@ export function DirectorStudentDetail(route, router) {
             <span class="metric-title">Execution Velocity</span>
             <span class="metric-badge emerald">${student.stats.overallProgress}%</span>
           </div>
-          <div class="metric-big-num" style="color:#059669">${student.stats.overallProgress}%</div>
+          <div class="metric-big-num" style="color:var(--primary)">${student.stats.overallProgress}%</div>
           <div class="student-progress-bar-wrap" style="margin-top:0.35rem;">
-            <div class="student-progress-bar-fill" style="width: ${student.stats.overallProgress}%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+            <div class="student-progress-bar-fill" style="width: ${student.stats.overallProgress}%; background: linear-gradient(90deg, var(--primary-accent), var(--primary));"></div>
           </div>
         </div>
       </div>
@@ -298,7 +298,7 @@ export function DirectorStudentDetail(route, router) {
                 const statusClass = t.status === 'Completed' ? 'completed' : 
                                     t.status === 'In Progress' ? 'in_progress' : 
                                     t.status === 'Under Review' ? 'pending' : 'in_progress';
-                const progressColor = t.progress === 100 ? '#10b981' : 
+                const progressColor = t.progress === 100 ? 'var(--primary-accent)' : 
                                      t.progress >= 60 ? '#3b82f6' : '#f59e0b';
                 return `
                   <tr>

@@ -176,7 +176,7 @@ export async function StudentProjects(route, router) {
           <div class="project-team-section">
             <div class="project-team-header">
               <span class="project-team-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                   <circle cx="9" cy="7" r="4"></circle>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -322,7 +322,7 @@ export async function StudentProjects(route, router) {
                   </div>
                   <div class="project-info-text">
                     <span class="project-info-label">Faculty Supervisor</span>
-                    <span class="project-info-val" style="color: #059669;">${selectedProject.faculty}</span>
+                    <span class="project-info-val" style="color: var(--primary);">${selectedProject.faculty}</span>
                   </div>
                 </div>
 
@@ -342,7 +342,7 @@ export async function StudentProjects(route, router) {
               <!-- Description Tile -->
               <div class="project-description-card">
                 <div class="project-description-header">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                   <span>Project Scope & Objectives</span>
                 </div>
                 <p class="project-description-text">${selectedProject.description}</p>
@@ -453,7 +453,7 @@ export async function StudentProjects(route, router) {
                 const isMyTask = t.isMyTask || (t.assignee && t.assignee.toLowerCase() === (currentUser?.name?.toLowerCase() || ''));
                 const taskTitle = t.title || t.name;
                 return `
-                <div class="student-task-item ${isMyTask ? 'is-my-task' : ''}" style="${isMyTask ? 'border-left: 3px solid #059669; background: #f0fdf4;' : ''}">
+                <div class="student-task-item ${isMyTask ? 'is-my-task' : ''}" style="${isMyTask ? 'border-left: 3px solid var(--primary); background: var(--bg-main);' : ''}">
                   <div class="student-task-main">
                     <span class="student-task-title">${taskTitle}</span>
                     <span class="student-task-assignee">
@@ -487,8 +487,8 @@ export async function StudentProjects(route, router) {
                 <div class="module-tasks-card">
                   <div class="module-tasks-header">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                      <span>Tasks for: <strong style="color: #059669;">${selectedModuleName || 'None'}</strong></span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                      <span>Tasks for: <strong style="color: var(--primary);">${selectedModuleName || 'None'}</strong></span>
                     </div>
                     <span class="student-badge student-badge-info" style="font-size: 0.72rem;">${moduleTasks.length} Tasks</span>
                   </div>
@@ -520,7 +520,7 @@ export async function StudentProjects(route, router) {
           });
 
           const taskRowsHtml = allTasks.map(t => `
-            <tr style="${t.isMyTask ? 'background: #f0fdf4;' : ''}">
+            <tr style="${t.isMyTask ? 'background: var(--bg-main);' : ''}">
               <td>
                 <div style="font-weight: 600; font-size: 0.9rem; color: #0f172a;">${t.name}</div>
                 <div style="font-size: 0.75rem; color: #64748b; margin-top: 3px; display: flex; align-items: center; gap: 4px;">

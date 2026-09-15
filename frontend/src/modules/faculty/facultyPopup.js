@@ -28,8 +28,8 @@ export function showFacultySuccessPopup(title, message, duration = 4200) {
     popup.style.cssText = `
         pointer-events: auto;
         background: #ffffff;
-        border: 1px solid #10b981;
-        border-left: 5px solid #059669;
+        border: 1px solid var(--primary-accent);
+        border-left: 5px solid var(--primary);
         border-radius: 10px;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
         padding: 14px 16px;
@@ -44,8 +44,8 @@ export function showFacultySuccessPopup(title, message, duration = 4200) {
 
     // Standard stroke checkmark SVG (clean, professional, zero emojis)
     const checkmarkSvg = `
-        <div style="width: 32px; height: 32px; border-radius: 50%; background: #ecfdf5; border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #059669;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--primary);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
         </div>
@@ -281,7 +281,7 @@ export function showCustomConfirmModal({
         ${detailsHtml ? `<div style="margin-bottom: 1.25rem; padding: 0.85rem 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.86rem; color: #334155;">${detailsHtml}</div>` : ''}
         <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
             <button type="button" class="btn btn-outline btn-sm confirm-modal-cancel" style="padding: 0.5rem 1.15rem; font-size: 0.88rem; font-weight: 600; cursor: pointer;">${cancelText}</button>
-            <button type="button" class="btn btn-primary btn-sm confirm-modal-confirm shadow-hover" style="padding: 0.5rem 1.25rem; font-size: 0.88rem; font-weight: 600; background: #059669; border-color: #059669; cursor: pointer;">${confirmText}</button>
+            <button type="button" class="btn btn-primary btn-sm confirm-modal-confirm shadow-hover" style="padding: 0.5rem 1.25rem; font-size: 0.88rem; font-weight: 600; background: var(--primary); border-color: var(--primary); cursor: pointer;">${confirmText}</button>
         </div>
     `;
 

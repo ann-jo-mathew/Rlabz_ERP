@@ -179,7 +179,7 @@ export async function ProjectDetails(route, router) {
                 <span style="font-size: 0.75rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase;">Task Completion</span>
                 <div style="font-size: 1.3rem; font-weight: 700; color: #0f172a; margin: 0.25rem 0;" id="val-overview-tasks-ratio">-</div>
                 <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 9999px; overflow: hidden; margin-top: 6px;">
-                  <div id="val-overview-tasks-bar" style="width: 0%; height: 100%; background: #059669; border-radius: 9999px; transition: width 0.4s ease;"></div>
+                  <div id="val-overview-tasks-bar" style="width: 0%; height: 100%; background: var(--primary); border-radius: 9999px; transition: width 0.4s ease;"></div>
                 </div>
               </div>
               <div style="background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 0.85rem 1rem;">
@@ -189,7 +189,7 @@ export async function ProjectDetails(route, router) {
               </div>
               <div style="background: var(--bg-main, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 0.85rem 1rem;">
                 <span style="font-size: 0.75rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase;">Actual Hours Logged</span>
-                <div style="font-size: 1.3rem; font-weight: 700; color: #059669; margin: 0.25rem 0;" id="val-overview-hours">-</div>
+                <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary); margin: 0.25rem 0;" id="val-overview-hours">-</div>
                 <span style="font-size: 0.75rem; color: var(--text-muted, #64748b);">From student work logs</span>
               </div>
             </div>
@@ -342,7 +342,7 @@ export async function ProjectDetails(route, router) {
             </div>
             <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; text-align: center; background: var(--bg-surface);">
               <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Amount Received</span>
-              <strong id="fin-received" style="display: block; font-size: 1.5rem; margin-top: 0.5rem; color: #10b981;">-</strong>
+              <strong id="fin-received" style="display: block; font-size: 1.5rem; margin-top: 0.5rem; color: var(--primary-accent);">-</strong>
             </div>
             <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; text-align: center; background: var(--bg-surface);">
               <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Amount Remaining</span>
@@ -798,7 +798,7 @@ export async function ProjectDetails(route, router) {
             } else if (isBehind) {
               paceBadgeEl.innerHTML = '<span class="student-badge student-badge-danger" style="font-size: 0.78rem; padding: 0.25rem 0.75rem; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-weight: 700;">⚠ Behind Schedule</span>';
             } else {
-              paceBadgeEl.innerHTML = '<span class="student-badge student-badge-success" style="font-size: 0.78rem; padding: 0.25rem 0.75rem; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-weight: 700;">✓ On Track</span>';
+              paceBadgeEl.innerHTML = '<span class="student-badge student-badge-success" style="font-size: 0.78rem; padding: 0.25rem 0.75rem; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); font-weight: 700;">✓ On Track</span>';
             }
           }
 
@@ -866,7 +866,7 @@ export async function ProjectDetails(route, router) {
                     <strong style="display: block; font-size: 0.92rem; color: var(--text-main, #0f172a);">${s.name}</strong>
                     <span style="font-size: 0.78rem; color: var(--text-muted, #64748b);">${s.email || ''}</span>
                   </div>
-                  <span class="status-badge" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 6px; font-weight: 700; margin-left: 0.25rem;">
+                  <span class="status-badge" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); border-radius: 6px; font-weight: 700; margin-left: 0.25rem;">
                     ${formattedDes}
                   </span>
                 </div>
@@ -957,7 +957,7 @@ export async function ProjectDetails(route, router) {
               <div class="module-details-card animate-fade-in" style="background: #ffffff; border-radius: 12px; border: 1px solid var(--border-color, #e2e8f0); padding: 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; border-bottom: 1px solid var(--border-color, #e2e8f0); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
                   <div>
-                    <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--primary, #059669); letter-spacing: 0.05em; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--primary, var(--primary)); letter-spacing: 0.05em; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                       Module Details
                     </div>
@@ -977,7 +977,7 @@ export async function ProjectDetails(route, router) {
                       </button>
                     ` : ''}
                     ${canBlock ? `
-                      <button class="btn btn-sm btn-outline btn-toggle-module-block" data-module-id="${selectedModule.id}" data-current-status="${mStatus}" title="${isModBlocked ? 'Unblock Module' : 'Block Module'}" style="font-size: 0.75rem; padding: 0.3rem 0.75rem; ${isModBlocked ? 'border-color: #10b981; color: #10b981;' : 'border-color: #ef4444; color: #ef4444;'}">
+                      <button class="btn btn-sm btn-outline btn-toggle-module-block" data-module-id="${selectedModule.id}" data-current-status="${mStatus}" title="${isModBlocked ? 'Unblock Module' : 'Block Module'}" style="font-size: 0.75rem; padding: 0.3rem 0.75rem; ${isModBlocked ? 'border-color: var(--primary-accent); color: var(--primary-accent);' : 'border-color: #ef4444; color: #ef4444;'}">
                         ${isModBlocked ? 'Unblock' : 'Block'}
                       </button>
                     ` : ''}
@@ -998,7 +998,7 @@ export async function ProjectDetails(route, router) {
                     Associated Tasks: <strong style="color: var(--text-main, #0f172a);">${modTasks.length} Tasks</strong>
                   </div>
                   <div style="font-size: 0.85rem; color: var(--text-muted, #64748b);">
-                    Completed Tasks: <strong style="color: #059669;">${completedCount} Tasks</strong>
+                    Completed Tasks: <strong style="color: var(--primary);">${completedCount} Tasks</strong>
                   </div>
                 </div>
               </div>
@@ -1031,7 +1031,7 @@ export async function ProjectDetails(route, router) {
                     </div>
                   </div>
                   ${canBlock ? `
-                    <button class="btn btn-sm btn-outline btn-toggle-module-block" data-module-id="${m.id}" data-current-status="${mStatus}" title="${isModBlocked ? 'Unblock Module' : 'Block Module'}" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; ${isModBlocked ? 'border-color: #10b981; color: #10b981;' : 'border-color: #ef4444; color: #ef4444;'}">
+                    <button class="btn btn-sm btn-outline btn-toggle-module-block" data-module-id="${m.id}" data-current-status="${mStatus}" title="${isModBlocked ? 'Unblock Module' : 'Block Module'}" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; ${isModBlocked ? 'border-color: var(--primary-accent); color: var(--primary-accent);' : 'border-color: #ef4444; color: #ef4444;'}">
                       ${isModBlocked ? 'Unblock' : 'Block'}
                     </button>
                   ` : ''}
@@ -1213,7 +1213,7 @@ export async function ProjectDetails(route, router) {
                           Rework
                         </button>
                       ` : ''}
-                      <button class="btn btn-sm btn-outline btn-toggle-task-block" data-task-id="${t.id}" data-current-status="${tStatus}" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; ${isTaskBlocked ? 'border-color: #10b981; color: #10b981;' : 'border-color: #ef4444; color: #ef4444;'}">
+                      <button class="btn btn-sm btn-outline btn-toggle-task-block" data-task-id="${t.id}" data-current-status="${tStatus}" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; ${isTaskBlocked ? 'border-color: var(--primary-accent); color: var(--primary-accent);' : 'border-color: #ef4444; color: #ef4444;'}">
                         ${isTaskBlocked ? 'Unblock' : 'Block'}
                       </button>
                     </div>
@@ -1306,7 +1306,7 @@ export async function ProjectDetails(route, router) {
               <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
                 <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main);">${repo.repository_name || 'Project Repository'}</h3>
                 ${isVerified 
-                  ? '<span class="status-badge active" style="font-size: 0.75rem; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 0.25rem 0.65rem; border-radius: 6px; font-weight: 600;"><i class="fa fa-check-circle" style="margin-right: 0.35rem;"></i>Verified</span>' 
+                  ? '<span class="status-badge active" style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); padding: 0.25rem 0.65rem; border-radius: 6px; font-weight: 600;"><i class="fa fa-check-circle" style="margin-right: 0.35rem;"></i>Verified</span>' 
                   : '<span class="status-badge pending" style="font-size: 0.75rem; padding: 0.25rem 0.65rem; border-radius: 6px; font-weight: 600;">Pending Verification</span>'
                 }
               </div>
@@ -1340,7 +1340,7 @@ export async function ProjectDetails(route, router) {
           </div>
           <div>
             <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 0.25rem;">Verification Status</span>
-            <span style="font-size: 0.95rem; font-weight: 600; color: ${isVerified ? '#059669' : '#b45309'};">${isVerified ? 'Verified by Faculty' : 'Awaiting Faculty Verification'}</span>
+            <span style="font-size: 0.95rem; font-weight: 600; color: ${isVerified ? 'var(--primary)' : '#b45309'};">${isVerified ? 'Verified by Faculty' : 'Awaiting Faculty Verification'}</span>
           </div>
         </div>
       </div>
@@ -1509,7 +1509,7 @@ export async function ProjectDetails(route, router) {
                 <span style="display: block; font-size: 0.85rem; color: var(--text-muted);">${p.date || ''}</span>
               </div>
               <div style="text-align: right;">
-                <strong style="display: block; font-size: 1.1rem; color: ${p.status === 'Confirmed' ? '#10b981' : 'var(--text-main)'};">₹${p.amount}</strong>
+                <strong style="display: block; font-size: 1.1rem; color: ${p.status === 'Confirmed' ? 'var(--primary-accent)' : 'var(--text-main)'};">₹${p.amount}</strong>
                 <span class="status-badge ${p.status ? p.status.toLowerCase() : 'pending'}" style="font-size: 0.75rem;">${p.status || 'Pending'}</span>
               </div>
             </div>
@@ -1645,8 +1645,8 @@ export async function ProjectDetails(route, router) {
             const reason = c.reason;
             const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString() : '';
             const status = (c.status || 'pending').toLowerCase();
-            const statusColor = status === 'approved' ? '#059669' : (status === 'rejected' ? '#dc2626' : '#d97706');
-            const statusBg = status === 'approved' ? '#ecfdf5' : (status === 'rejected' ? '#fef2f2' : '#fef3c7');
+            const statusColor = status === 'approved' ? 'var(--primary)' : (status === 'rejected' ? '#dc2626' : '#d97706');
+            const statusBg = status === 'approved' ? 'var(--primary-light)' : (status === 'rejected' ? '#fef2f2' : '#fef3c7');
 
             return `
               <div style="padding: 0.95rem 1.15rem; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; background: #ffffff; text-align: left; position: relative;">

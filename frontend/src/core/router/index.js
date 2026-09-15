@@ -229,7 +229,7 @@ export async function setupRouter() {
       <div style="font-size:3.5rem;margin-bottom:1rem">🚧</div>
       <h2 style="font-size:1.5rem;font-weight:800;color:var(--text-main);margin-bottom:0.5rem">${route.name ? route.name.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : 'Module'}</h2>
       <p style="color:var(--text-muted);max-width:400px">This module is under active development. Check back soon!</p>
-      <div style="margin-top:1.5rem;padding:0.6rem 1.5rem;background:linear-gradient(135deg,#059669,#047857);color:#fff;border-radius:8px;font-weight:600;font-size:0.9rem;display:inline-block">Coming Soon</div>
+      <div style="margin-top:1.5rem;padding:0.6rem 1.5rem;background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;border-radius:8px;font-weight:600;font-size:0.9rem;display:inline-block">Coming Soon</div>
     `;
     return el;
   };

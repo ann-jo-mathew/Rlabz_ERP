@@ -272,9 +272,9 @@ export function FacultyReports() {
             <div id="printable-report-wrapper" style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; padding: ${isInteractive ? '35px' : '30px'}; background: #ffffff; line-height: 1.5;">
                 
                 <!-- Institutional Pack Header -->
-                <div style="border-bottom: 3px solid #059669; padding-bottom: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="border-bottom: 3px solid var(--primary); padding-bottom: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
-                        <div style="font-size: 11px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">
+                        <div style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">
                             RAJAGIRI COLLEGE OF SOCIAL SCIENCES (AUTONOMOUS) &bull; RLABZ
                         </div>
                         <h1 style="margin: 0 0 6px; font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1.25;">
@@ -289,7 +289,7 @@ export function FacultyReports() {
                     </div>
                     ${isInteractive ? `
                         <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
-                            <button id="modal-download-pdf-btn" style="background: #059669; color: white; border: none; padding: 9px 18px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <button id="modal-download-pdf-btn" style="background: var(--primary); color: white; border: none; padding: 9px 18px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 📥 Download PDF
                             </button>
                             <button id="close-report-modal-btn" title="Close" style="background: #f1f5f9; border: 1px solid #cbd5e1; font-size: 16px; border-radius: 6px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b;">
@@ -301,7 +301,7 @@ export function FacultyReports() {
 
                 <!-- 1. Executive Project Summary -->
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 13px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
+                    <div style="font-size: 13px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
                         1. Executive Project Overview
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: #f8fafc; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 12px; margin-bottom: 12px;">
@@ -315,7 +315,7 @@ export function FacultyReports() {
                         </div>
                         <div>
                             <span style="color: #64748b; display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;">Current Status</span>
-                            <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: ${rawStatus === 'completed' ? '#ecfdf5' : '#eff6ff'}; color: ${rawStatus === 'completed' ? '#059669' : '#1d4ed8'};">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: ${rawStatus === 'completed' ? 'var(--primary-light)' : '#eff6ff'}; color: ${rawStatus === 'completed' ? 'var(--primary)' : '#1d4ed8'};">
                                 ${statusLabel.toUpperCase()}
                             </span>
                         </div>
@@ -338,7 +338,7 @@ export function FacultyReports() {
 
                 <!-- 2. Overall Progress Indicator -->
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 13px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
+                    <div style="font-size: 13px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
                         2. Project Completion & Health
                     </div>
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 18px;">
@@ -346,12 +346,12 @@ export function FacultyReports() {
                             <span style="font-size: 12px; font-weight: 700; color: #1e293b;">
                                 Overall Milestone & Task Progress
                             </span>
-                            <span style="font-size: 16px; font-weight: 800; color: #059669;">
+                            <span style="font-size: 16px; font-weight: 800; color: var(--primary);">
                                 ${progressPercentage}% Complete
                             </span>
                         </div>
                         <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 9999px; overflow: hidden; margin-bottom: 10px;">
-                            <div style="width: ${progressPercentage}%; height: 100%; background: #059669; border-radius: 9999px;"></div>
+                            <div style="width: ${progressPercentage}%; height: 100%; background: var(--primary); border-radius: 9999px;"></div>
                         </div>
                         <div style="font-size: 11.5px; color: #64748b;">
                             &bull; <strong>${completedTasks}</strong> of <strong>${totalTasks}</strong> operational tasks completed and verified.
@@ -362,7 +362,7 @@ export function FacultyReports() {
 
                 <!-- 3. Project Supervision & Development Team -->
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 13px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
+                    <div style="font-size: 13px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
                         3. Project Leadership & Student Team
                     </div>
 
@@ -373,7 +373,7 @@ export function FacultyReports() {
                             <strong style="font-size: 13px; color: #0f172a;">${leadFaculty.name}</strong>
                             <span style="color: #64748b; margin-left: 6px;">(${leadFaculty.designation || 'Associate Professor'}, ${leadFaculty.department || 'Department of Computer Applications'})</span>
                         </div>
-                        <div style="color: #059669; font-weight: 600; font-size: 12px;">
+                        <div style="color: var(--primary); font-weight: 600; font-size: 12px;">
                             ${leadFaculty.email}
                         </div>
                     </div>
@@ -404,7 +404,7 @@ export function FacultyReports() {
                                                 ${s.course || 'MCA'} &bull; Batch ${s.batch || '2025-2027'}
                                             </td>
                                             <td style="padding: 10px 14px;">
-                                                <span style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; background: #ecfdf5; color: #059669; text-transform: uppercase;">
+                                                <span style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; background: var(--primary-light); color: var(--primary); text-transform: uppercase;">
                                                     ${formattedRole}
                                                 </span>
                                             </td>
@@ -418,7 +418,7 @@ export function FacultyReports() {
 
                 <!-- 4. Key Milestones & Functional Deliverables -->
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 13px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
+                    <div style="font-size: 13px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
                         4. Project Milestones & Deliverables
                     </div>
 
@@ -435,7 +435,7 @@ export function FacultyReports() {
                                             <div style="font-size: 13px; font-weight: 700; color: #0f172a;">
                                                 Milestone ${idx + 1}: ${m.module_name}
                                             </div>
-                                            <span style="padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; background: ${isDone ? '#ecfdf5' : '#eff6ff'}; color: ${isDone ? '#059669' : '#1d4ed8'};">
+                                            <span style="padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; background: ${isDone ? 'var(--primary-light)' : '#eff6ff'}; color: ${isDone ? 'var(--primary)' : '#1d4ed8'};">
                                                 ${isDone ? 'COMPLETED' : 'IN PROGRESS'}
                                             </span>
                                         </div>
@@ -451,7 +451,7 @@ export function FacultyReports() {
 
                 <!-- 5. Key Completed Activities & Focus -->
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 13px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
+                    <div style="font-size: 13px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
                         5. Key Verified Activities
                     </div>
                     ${tasks.length === 0 ? `
@@ -475,7 +475,7 @@ export function FacultyReports() {
                                             <td style="padding: 8px 12px; color: #475569;">${t.module_name || 'General'}</td>
                                             <td style="padding: 8px 12px; color: #334155;">${t.assigned_to_name || 'Team'}</td>
                                             <td style="padding: 8px 12px;">
-                                                <span style="display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase; background: ${isCompleted ? '#ecfdf5' : '#f1f5f9'}; color: ${isCompleted ? '#059669' : '#475569'};">
+                                                <span style="display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase; background: ${isCompleted ? 'var(--primary-light)' : '#f1f5f9'}; color: ${isCompleted ? 'var(--primary)' : '#475569'};">
                                                     ${isCompleted ? 'VERIFIED' : 'PLANNED'}
                                                 </span>
                                             </td>

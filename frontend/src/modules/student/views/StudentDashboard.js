@@ -75,7 +75,7 @@ export async function StudentDashboard(route, router) {
                 ${t.type === 'module' ? 'Module / Sprint' : 'Sub-Task'}
               </span>
               <span class="student-badge" style="background: #f1f5f9; color: #475569; font-size: 0.7rem; padding: 2px 6px;">${t.project}</span>
-              <span class="student-badge" style="background: #ecfdf5; color: #047857; font-size: 0.7rem; padding: 2px 6px;">${t.module}</span>
+              <span class="student-badge" style="background: var(--primary-light); color: var(--primary-hover); font-size: 0.7rem; padding: 2px 6px;">${t.module}</span>
             </div>
           </td>
           <td>
@@ -167,7 +167,7 @@ export async function StudentDashboard(route, router) {
             <div class="student-dash-meeting-meta">
               <span>⏰ ${m.time || '10:00 AM'}</span>
               <span>•</span>
-              <span style="color: #059669; font-weight: 600;">${m.project}</span>
+              <span style="color: var(--primary); font-weight: 600;">${m.project}</span>
               ${m.scheduledBy ? `<span>• By: ${m.scheduledBy}</span>` : ''}
             </div>
           </div>
@@ -185,7 +185,7 @@ export async function StudentDashboard(route, router) {
 
     // 4. Build Notifications List (Latest 1 or 2)
     const notifItems = displayedNotifications.map(n => {
-      let iconColor = '#059669';
+      let iconColor = 'var(--primary)';
       if (n.type === 'meeting_scheduled') iconColor = '#2563eb';
       else if (n.type === 'task_assigned') iconColor = '#d97706';
       else if (n.type === 'module_assigned') iconColor = '#7c3aed';
@@ -247,7 +247,7 @@ export async function StudentDashboard(route, router) {
 
         <!-- 2. Completed Projects -->
         <div class="student-kpi-card" id="kpi-completed-projects" style="cursor: pointer;" title="Click to view completed projects">
-          <div class="student-kpi-icon" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); color: #16a34a; border: 1px solid #bbf7d0;">
+          <div class="student-kpi-icon" style="background: linear-gradient(135deg, var(--bg-main) 0%, #dcfce7 100%); color: #16a34a; border: 1px solid #bbf7d0;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -442,12 +442,12 @@ export async function StudentDashboard(route, router) {
           <div class="student-card">
             <div class="student-card-header">
               <div class="student-card-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                   <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                 </svg>
                 <span>Recent Activity & Alerts</span>
-                <span class="student-badge" style="background: #ecfdf5; color: #047857; font-size: 0.72rem; margin-left: 6px; font-weight: 600;">
+                <span class="student-badge" style="background: var(--primary-light); color: var(--primary-hover); font-size: 0.72rem; margin-left: 6px; font-weight: 600;">
                   Latest ${displayedNotifications.length}
                 </span>
               </div>
@@ -580,7 +580,7 @@ export async function StudentDashboard(route, router) {
             </div>
           `,
           confirmButtonText: 'Go to Projects Workspace →',
-          confirmButtonColor: '#059669',
+          confirmButtonColor: 'var(--primary)',
           showCancelButton: true,
           cancelButtonText: 'Close'
         }).then((res) => {
@@ -594,7 +594,7 @@ export async function StudentDashboard(route, router) {
           title: '0 Bug Fixes Pending',
           text: 'No bug fixes or rework tickets have been assigned by Faculty or Coordinator. All your deliverables are in order.',
           confirmButtonText: 'Great!',
-          confirmButtonColor: '#059669'
+          confirmButtonColor: 'var(--primary)'
         });
       }
     });

@@ -269,7 +269,7 @@ export function DirectorProjects(route, router) {
     popupOverlay.className = 'director-modal-overlay';
     popupOverlay.style.zIndex = '1050';
     popupOverlay.innerHTML = `
-      <div class="director-modal" style="max-width: 440px; border-top: 4px solid #10b981;">
+      <div class="director-modal" style="max-width: 440px; border-top: 4px solid var(--primary-accent);">
         <div class="director-modal-header">
           <h3 style="margin:0; font-size:1.1rem; color:#111827;">Active Projects — ${faculty.name}</h3>
           <button class="btn-director btn-director-outline btn-close-popup">✕</button>
@@ -329,7 +329,7 @@ export function DirectorProjects(route, router) {
                 const count = f.activeProjectsCount !== undefined ? f.activeProjectsCount : projectsList.length;
                 const isSelected = String(f.id) === String(defaultFacId);
                 return `
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? '#10b981' : '#e5e7eb'}; border-radius:6px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? 'var(--primary-accent)' : '#e5e7eb'}; border-radius:6px;">
                     <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; margin:0;">
                       <input type="radio" name="proposal_faculty_choice" value="${f.id}" ${isSelected ? 'checked' : ''} />
                       <div>
@@ -337,7 +337,7 @@ export function DirectorProjects(route, router) {
                         <div style="font-size:0.75rem; color:#6b7280;">${f.department || 'Computer Applications'}</div>
                       </div>
                     </label>
-                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:#047857; border-color:#a7f3d0; background:#ecfdf5; border-radius:6px; cursor:pointer;">
+                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:var(--primary-hover); border-color:var(--border-color); background:var(--primary-light); border-radius:6px; cursor:pointer;">
                       📊 ${count} Active Project${count === 1 ? '' : 's'}
                     </button>
                   </div>
@@ -412,7 +412,7 @@ export function DirectorProjects(route, router) {
                 const count = f.activeProjectsCount !== undefined ? f.activeProjectsCount : projectsList.length;
                 const isSelected = String(f.id) === String(defaultFacId);
                 return `
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? '#10b981' : '#e5e7eb'}; border-radius:6px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.75rem; background:#ffffff; border:1px solid ${isSelected ? 'var(--primary-accent)' : '#e5e7eb'}; border-radius:6px;">
                     <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; margin:0;">
                       <input type="radio" name="project_faculty_choice" value="${f.id}" ${isSelected ? 'checked' : ''} />
                       <div>
@@ -420,7 +420,7 @@ export function DirectorProjects(route, router) {
                         <div style="font-size:0.75rem; color:#6b7280;">${f.department || 'Computer Applications'}</div>
                       </div>
                     </label>
-                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:#047857; border-color:#a7f3d0; background:#ecfdf5; border-radius:6px; cursor:pointer;">
+                    <button type="button" class="btn-director btn-director-outline btn-view-faculty-projects" data-id="${f.id}" title="Click to view assigned project names" style="font-size:0.75rem; padding:0.25rem 0.6rem; color:var(--primary-hover); border-color:var(--border-color); background:var(--primary-light); border-radius:6px; cursor:pointer;">
                       📊 ${count} Active Project${count === 1 ? '' : 's'}
                     </button>
                   </div>

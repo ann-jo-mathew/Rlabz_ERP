@@ -589,7 +589,7 @@
 }
 
 #faculty-student-search:focus {
-    border-color: #059669;
+    border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
 
@@ -613,9 +613,9 @@
     padding: 14px 20px;
     font-size: 13px;
     font-weight: 700;
-    color: #065f46;
+    color: var(--primary);
     text-transform: uppercase;
-    border-bottom: 2px solid #a7f3d0;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .faculty-student-table td {
@@ -1185,7 +1185,7 @@
 .faculty-sprints .premium-input:focus,
 .faculty-meetings .premium-input:focus {
     outline: none;
-    border-color: var(--primary, #059669);
+    border-color: var(--primary, var(--primary));
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
@@ -1218,7 +1218,7 @@
 .faculty-sprints .btn-primary,
 .faculty-meetings .btn-primary,
 .faculty-verify-tasks .btn-primary {
-    background: var(--primary, #059669);
+    background: var(--primary, var(--primary));
     color: #ffffff;
 }
 
@@ -1231,7 +1231,7 @@
 .faculty-sprints .btn-primary.shadow-hover:hover,
 .faculty-meetings .btn-primary.shadow-hover:hover,
 .faculty-verify-tasks .btn-primary.shadow-hover:hover {
-    background: var(--primary-hover, #047857);
+    background: var(--primary-hover, var(--primary-hover));
     box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.1));
     transform: translateY(-2px);
 }
@@ -1247,9 +1247,9 @@
 .faculty-sprints .btn-outline:hover,
 .faculty-meetings .btn-outline:hover,
 .faculty-verify-tasks .btn-outline:hover {
-    border-color: var(--primary, #059669);
-    color: var(--primary, #059669);
-    background: var(--primary-light, #ecfdf5);
+    border-color: var(--primary, var(--primary));
+    color: var(--primary, var(--primary));
+    background: var(--primary-light, var(--primary-light));
 }
 
 /* Status Badges matching My Project */
@@ -1274,7 +1274,7 @@
 .faculty-verify-tasks .status-badge.in_progress { background: #fce7f3; color: #db2777; }
 .faculty-sprints .status-badge.completed,
 .faculty-meetings .status-badge.completed,
-.faculty-verify-tasks .status-badge.completed { background: #d1fae5; color: #059669; }
+.faculty-verify-tasks .status-badge.completed { background: var(--border-color); color: var(--primary); }
 .faculty-sprints .status-badge.scheduled,
 .faculty-meetings .status-badge.scheduled,
 .faculty-verify-tasks .status-badge.scheduled { background: #fef3c7; color: #d97706; }
@@ -1297,7 +1297,7 @@
 .faculty-stat-card-interactive:hover {
     transform: translateY(-3px) !important;
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08) !important;
-    border-color: var(--primary, #059669) !important;
+    border-color: var(--primary, var(--primary)) !important;
 }
 .faculty-kpi-card-clickable:active,
 .faculty-stat-card-interactive:active {
@@ -1319,8 +1319,8 @@
 .project-table-container table thead,
 .project-table-container table thead th {
     background: #e8f7f1 !important;
-    color: #065f46 !important;
-    border-bottom: 2px solid #a7f3d0 !important;
+    color: var(--primary) !important;
+    border-bottom: 2px solid var(--border-color) !important;
     font-weight: 700 !important;
 }
 
@@ -1358,7 +1358,7 @@
 .project-table-container table tbody tr:hover td:first-child,
 .premium-table tbody tr.project-row-clickable:hover td:first-child *,
 .project-table-container table tbody tr:hover td:first-child * {
-    color: #059669 !important;
+    color: var(--primary) !important;
     background: transparent !important;
     transition: color 0.15s ease;
 }
@@ -1401,7 +1401,7 @@
     width: 95px;
     height: 95px;
     border-radius: 50%;
-    background: #059669;
+    background: var(--primary);
     color: #ffffff;
     font-size: 32px;
     font-weight: 700;
@@ -1442,12 +1442,12 @@
 
 .simple-profile-badge {
     background: #e8f7f1;
-    color: #065f46;
+    color: var(--primary);
     padding: 3px 10px;
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
-    border: 1px solid #a7f3d0;
+    border: 1px solid var(--border-color);
 }
 
 .simple-profile-grid {
@@ -1484,4 +1484,4 @@
     font-weight: 600;
     color: #1e293b;
     word-break: break-word;
-}
+}

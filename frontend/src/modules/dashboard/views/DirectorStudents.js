@@ -109,7 +109,7 @@ export function DirectorStudents(route, router) {
           </p>
         </div>
 
-        <div class="director-panel" style="border-top: 4px solid #059669; padding: 1rem;">
+        <div class="director-panel" style="border-top: 4px solid var(--primary); padding: 1rem;">
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <span class="track-badge spark">Spark Track</span>
             <strong>${counts.spark} Students</strong>

@@ -50,7 +50,7 @@ export function FacultyNotifications() {
         if (listContainer) {
             listContainer.innerHTML = `
                 <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; text-align: center;">
-                    <div class="spinner" style="border-top-color: var(--primary, #059669); margin: 0 auto 0.75rem; width: 24px; height: 24px;"></div>
+                    <div class="spinner" style="border-top-color: var(--primary, var(--primary)); margin: 0 auto 0.75rem; width: 24px; height: 24px;"></div>
                     <p style="margin: 0; color: #64748b; font-size: 13px;">Loading notifications...</p>
                 </div>
             `;
