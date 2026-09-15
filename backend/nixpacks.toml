@@ -16,3 +16,6 @@ nixPkgs = [
 
 [phases.install]
 cmds = ["COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction --no-scripts"]
+
+[phases.build]
+cmds = ["php artisan package:discover --ansi || true"]
