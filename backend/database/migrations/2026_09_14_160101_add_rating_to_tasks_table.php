@@ -1,7 +1,9 @@
+```php
 <?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -15,20 +17,24 @@ return new class extends Migration
     {
         Schema::table('tasks', function (Blueprint $table) {
             if (!Schema::hasColumn('tasks', 'rating')) {
-                $table->decimal('rating', 3, 2)->unsigned()->nullable()->after('status');
+                $table->decimal('rating', 3, 2)
+                    ->unsigned()
+                    ->nullable()
+                    ->after('status');
             }
         });
 
         // Sync existing ratings from student_work_logs into tasks
-        $logsWithRatings = \Illuminate\Support\Facades\DB::table('student_work_logs')
+        $logsWithRatings = DB::table('student_work_logs')
             ->whereNotNull('task_id')
             ->whereNotNull('rating')
             ->get();
 
         foreach ($logsWithRatings as $log) {
-            $r = $log->rating;
+            $r = is_numeric($log->rating) ? (float) $log->rating : null;
+
             if ($r !== null) {
-                \Illuminate\Support\Facades\DB::table('tasks')
+                DB::table('tasks')
                     ->where('id', $log->task_id)
                     ->whereNull('rating')
                     ->update(['rating' => $r]);
@@ -50,3 +56,4 @@ return new class extends Migration
         });
     }
 };
+```
