@@ -646,7 +646,9 @@ class FacultyController extends Controller
 
         $query = DB::table('student_reports')
             ->leftJoin('projects', 'projects.id', '=', 'student_reports.project_id')
-            ->leftJoin('users', 'users.id', '=', 'student_reports.student_id');
+            ->leftJoin('users', 'users.id', '=', 'student_reports.student_id')
+            ->leftJoin('tasks', 'tasks.id', '=', 'student_reports.task_id')
+            ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id');
 
         if ($request->filled('project_id')) {
             $query->where('student_reports.project_id', $request->input('project_id'));
@@ -670,7 +672,12 @@ class FacultyController extends Controller
             'student_reports.report_file',
             'student_reports.approval_status',
             'student_reports.feedback',
-            'student_reports.submitted_at'
+            'student_reports.submitted_at',
+            'student_reports.task_id',
+            'tasks.title as task_title',
+            'tasks.github_pr_url',
+            'github_repositories.branch_name',
+            'github_repositories.branch_url'
         )
         ->orderBy('student_reports.submitted_at', 'desc')
         ->get()
@@ -693,6 +700,11 @@ class FacultyController extends Controller
                 'file_name' => $fileName,
                 'file_url' => $r->report_file ? asset('storage/' . $r->report_file) : null,
                 'download_url' => $r->report_file ? url('api/faculty/reports/' . $r->id . '/download') : null,
+                'task_id' => $r->task_id,
+                'task_title' => $r->task_title,
+                'github_pr_url' => $r->github_pr_url,
+                'branch_name' => $r->branch_name,
+                'branch_url' => $r->branch_url,
             ];
         });
 
@@ -909,16 +921,22 @@ class FacultyController extends Controller
 
         // GitHub repository details from github_repositories table
         $repositories = DB::table('github_repositories')
-            ->where('project_id', $id)
+            ->leftJoin('users', 'users.id', '=', 'github_repositories.student_id')
+            ->where('github_repositories.project_id', $id)
             ->select(
-                'id',
-                'project_id',
-                'repository_name',
-                'repository_url',
-                'submitted_date',
-                'is_verified',
-                'verified_by',
-                'verified_at'
+                'github_repositories.id',
+                'github_repositories.project_id',
+                'github_repositories.student_id',
+                'users.name as student_name',
+                'github_repositories.link_type',
+                'github_repositories.repository_name',
+                'github_repositories.repository_url',
+                'github_repositories.branch_name',
+                'github_repositories.branch_url',
+                'github_repositories.submitted_date',
+                'github_repositories.is_verified',
+                'github_repositories.verified_by',
+                'github_repositories.verified_at'
             )
             ->get();
 
@@ -934,6 +952,7 @@ class FacultyController extends Controller
         $tasks = DB::table('tasks')
             ->leftJoin('users', 'users.id', '=', 'tasks.assigned_to')
             ->leftJoin('modules', 'modules.id', '=', 'tasks.module_id')
+            ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id')
             ->whereIn('tasks.module_id', $moduleIds)
             ->select(
                 'tasks.id',
@@ -945,7 +964,11 @@ class FacultyController extends Controller
                 'tasks.status',
                 'tasks.due_date',
                 'tasks.assigned_to',
-                'users.name as assigned_to_name'
+                'users.name as assigned_to_name',
+                'tasks.github_repository_id',
+                'tasks.github_pr_url',
+                'github_repositories.branch_name',
+                'github_repositories.branch_url'
             )
             ->get();
 
@@ -1013,6 +1036,7 @@ class FacultyController extends Controller
             ->leftJoin('users as assigned_user', 'assigned_user.id', '=', 'tasks.assigned_to')
             ->leftJoin('users as reviewer', 'reviewer.id', '=', 'tasks.reviewed_by')
             ->leftJoin('modules', 'modules.id', '=', 'tasks.module_id')
+            ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id')
             ->whereIn('tasks.module_id', $moduleIds)
             ->select(
                 'tasks.id',
@@ -1024,6 +1048,10 @@ class FacultyController extends Controller
                 'tasks.status',
                 'tasks.due_date',
                 'tasks.assigned_to',
+                'tasks.github_repository_id',
+                'tasks.github_pr_url',
+                'github_repositories.branch_name',
+                'github_repositories.branch_url',
                 'tasks.reviewed_by',
                 'tasks.reviewed_at',
                 'assigned_user.name as assigned_to_name',
@@ -1568,6 +1596,7 @@ class FacultyController extends Controller
             ->join('users as student', 'student.id', '=', 'project_student.student_id')
             ->leftJoin('student_profiles', 'student_profiles.student_id', '=', 'student.id')
             ->leftJoin('tasks', 'tasks.id', '=', 'student_work_logs.task_id')
+            ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id')
             ->leftJoin('modules', 'modules.id', '=', 'tasks.module_id')
             ->leftJoin('users as approver', 'approver.id', '=', 'student_work_logs.approved_by')
             ->where('project_student.project_id', $id)
@@ -1591,6 +1620,9 @@ class FacultyController extends Controller
                 'tasks.weight as task_weight',
                 'tasks.status as task_status',
                 'tasks.due_date as task_due_date',
+                'tasks.github_pr_url',
+                'github_repositories.branch_name',
+                'github_repositories.branch_url',
                 'modules.id as module_id',
                 'modules.module_name',
                 'approver.name as approved_by_name'

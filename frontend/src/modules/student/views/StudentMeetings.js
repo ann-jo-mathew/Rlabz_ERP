@@ -8,7 +8,7 @@ export async function StudentMeetings(route, router) {
   renderStudentSidebar();
 
   const container = document.createElement('div');
-  container.className = 'student-portal-container animate-fade-in';
+  container.className = 'student-portal-container animate-fade-in student-meetings-view';
 
   const meetings = getMeetings() || [];
   const projects = getProjects() || [];
@@ -31,7 +31,19 @@ export async function StudentMeetings(route, router) {
   ];
 
   function render() {
-    // 1. Filter meetings
+    // 1. Calculate KPI Metrics
+    const totalCount = meetings.length;
+    const upcomingCount = meetings.filter(m => (m.status || '').toLowerCase() === 'scheduled').length;
+    const completedCount = meetings.filter(m => (m.status || '').toLowerCase() === 'completed').length;
+    
+    // Find next upcoming meeting
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const futureUpcoming = meetings
+      .filter(m => (m.status || '').toLowerCase() === 'scheduled' && (m.date || '') >= todayStr)
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+    const nextMeetingDate = futureUpcoming.length > 0 ? futureUpcoming[0].date : (upcomingCount > 0 ? 'Upcoming' : 'None');
+
+    // 2. Filter meetings
     const filteredMeetings = meetings.filter(m => {
       // Status filter
       if (statusFilter !== 'all' && (m.status || '').toLowerCase() !== statusFilter.toLowerCase()) {
@@ -64,7 +76,7 @@ export async function StudentMeetings(route, router) {
 
     const selectedMeeting = meetings.find(m => m.id === selectedMeetingId);
 
-    // 2. Calendar Grid Calculation
+    // 3. Calendar Grid Calculation
     const startDayOffset = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun .. 6=Sat
     const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
     const daysArray = [];
@@ -77,17 +89,19 @@ export async function StudentMeetings(route, router) {
     }
 
     const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(h => `
-      <div class="student-calendar-day-header">${h}</div>
+      <div class="student-cal-day-header">${h}</div>
     `).join('');
 
     const dayCells = daysArray.map(day => {
       if (day === null) {
-        return `<div class="student-calendar-day empty-day"></div>`;
+        return `<div class="student-cal-day-cell empty"></div>`;
       }
 
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const dayMeetings = meetings.filter(m => m.date === dateStr);
       const hasMeeting = dayMeetings.length > 0;
+      const hasScheduled = dayMeetings.some(m => (m.status || '').toLowerCase() === 'scheduled');
+      const hasCompleted = dayMeetings.some(m => (m.status || '').toLowerCase() === 'completed');
 
       const isToday = (
         currentYear === now.getFullYear() &&
@@ -96,44 +110,47 @@ export async function StudentMeetings(route, router) {
       );
       const isDateFiltered = dateFilter === dateStr;
 
-      const cellClasses = ['student-calendar-day'];
-      if (isToday) cellClasses.push('student-calendar-day-today');
-      if (hasMeeting) cellClasses.push('has-meeting');
+      const cellClasses = ['student-cal-day-cell'];
+      if (isToday) cellClasses.push('today');
       if (isDateFiltered) cellClasses.push('active-selected');
 
       return `
         <div class="${cellClasses.join(' ')}" data-date="${dateStr}" data-day="${day}" title="${hasMeeting ? `${dayMeetings.length} session(s) on ${dateStr}` : (isToday ? 'Today' : '')}">
-          <div class="student-calendar-day-num">${day}</div>
+          <span>${day}</span>
           ${hasMeeting ? `
-            <div class="student-calendar-day-dot ${isToday ? 'today' : ''}"></div>
+            <div class="student-cal-dots-wrap">
+              ${hasScheduled ? '<div class="student-cal-dot" title="Upcoming session"></div>' : ''}
+              ${hasCompleted ? '<div class="student-cal-dot completed" title="Completed session"></div>' : ''}
+            </div>
           ` : ''}
         </div>
       `;
     }).join('');
 
-    // 3. Project Filter Options
+    // 4. Project Filter Options
     const projectFilterOptions = projects.map(p => `
       <option value="${p.title}" ${projectFilter === p.title ? 'selected' : ''}>${p.title}</option>
     `).join('');
 
     const isFiltersActive = searchQuery.trim() !== '' || statusFilter !== 'all' || projectFilter !== 'all' || dateFilter !== null;
 
-    // 4. Meeting Cards List HTML
+    // 5. Meeting Cards List HTML
     const meetingCardsHtml = filteredMeetings.map(m => {
       const isSelected = m.id === selectedMeetingId;
       const isCompleted = (m.status || '').toLowerCase() === 'completed';
-      const statusClass = isCompleted ? 'student-badge-success' : 'student-badge-warning';
+      const isGoogleMeet = m.location && m.location.toLowerCase().includes('google meet');
+      const cardTypeClass = isCompleted ? 'completed' : 'upcoming';
 
       return `
-        <div class="student-meeting-item ${isSelected ? 'active-selected' : ''}" data-id="${m.id}">
-          <div class="student-meeting-info">
-            <div style="font-size:0.75rem; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.03em;">
+        <div class="student-meet-item ${cardTypeClass} ${isSelected ? 'active-selected' : ''}" data-id="${m.id}">
+          <div class="student-meet-item-body">
+            <div class="student-meet-item-proj">
               ${m.project}
             </div>
-            <div class="student-meeting-title" style="font-size:0.95rem; margin-top:2px;">
+            <div class="student-meet-item-title">
               ${m.title}
             </div>
-            <div class="student-meeting-meta" style="margin-top:6px; font-size:0.78rem;">
+            <div class="student-meet-item-meta">
               <span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 ${m.date}
@@ -142,120 +159,186 @@ export async function StudentMeetings(route, router) {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 ${m.time}
               </span>
+              <span>
+                ${isGoogleMeet ? `
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                  Meet Call
+                ` : `
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  In-Person
+                `}
+              </span>
             </div>
           </div>
           <div>
-            <span class="student-badge ${statusClass}" style="font-size:0.7rem;">${m.status}</span>
+            ${isCompleted ? `
+              <span class="student-meet-status-badge completed">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Completed
+              </span>
+            ` : `
+              <span class="student-meet-status-badge scheduled">
+                <span class="student-meet-pulse-dot"></span>
+                Scheduled
+              </span>
+            `}
           </div>
         </div>
       `;
     }).join('');
 
-    // 5. Selected Meeting Workspace Details
+    // 6. Selected Meeting Workspace Details
     let detailsHtml = '';
     if (selectedMeeting) {
       const isCompleted = (selectedMeeting.status || '').toLowerCase() === 'completed';
-      const statusBadge = isCompleted ? 'student-badge-success' : 'student-badge-warning';
       const isGoogleMeet = selectedMeeting.location && selectedMeeting.location.toLowerCase().includes('google meet');
       const meetRawUrl = isGoogleMeet ? selectedMeeting.location.replace(/^Google Meet:\s*/i, '').trim() : '';
       const meetHref = meetRawUrl.startsWith('http') ? meetRawUrl : `https://${meetRawUrl}`;
 
+      // Format clean date string (e.g. "Thursday, Sep 17, 2026")
+      let fullDateStr = selectedMeeting.date;
+      try {
+        const dObj = new Date(selectedMeeting.date + 'T00:00:00');
+        if (!isNaN(dObj.getTime())) {
+          fullDateStr = dObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+        }
+      } catch (e) {}
+
       detailsHtml = `
-        <!-- Main Details Card -->
-        <div class="student-card" style="padding: 28px;">
-          <!-- Top Row Badges -->
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <span class="student-badge student-badge-info" style="font-size: 0.8rem; font-weight: 700;">
-                ${selectedMeeting.project}
-              </span>
-              <span class="student-badge ${statusBadge}" style="font-size: 0.8rem; font-weight: 700;">
-                ${selectedMeeting.status}
-              </span>
+        <div class="student-meet-detail-card">
+          <!-- Top Row Badges & Title -->
+          <div>
+            <div class="student-meet-detail-header">
+              <div class="student-meet-detail-badges">
+                <span class="student-badge student-badge-info" style="font-weight: 800; font-size: 0.8rem;">
+                  ${selectedMeeting.project}
+                </span>
+                ${isCompleted ? `
+                  <span class="student-meet-status-badge completed">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Completed Review
+                  </span>
+                ` : `
+                  <span class="student-meet-status-badge scheduled">
+                    <span class="student-meet-pulse-dot"></span>
+                    Scheduled Session
+                  </span>
+                `}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">
+                ID: #${selectedMeeting.id}
+              </div>
             </div>
+
+            <h2 class="student-meet-detail-title">
+              ${selectedMeeting.title}
+            </h2>
           </div>
 
-          <!-- Meeting Title -->
-          <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-primary); margin-bottom: 14px; letter-spacing: -0.02em;">
-            ${selectedMeeting.title}
-          </h2>
+          <!-- 3-Column Meta Information Grid -->
+          <div class="student-meet-meta-grid">
+            <div class="student-meet-meta-box">
+              <div class="student-meet-meta-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </div>
+              <div class="student-meet-meta-info">
+                <span class="student-meet-meta-label">Date</span>
+                <span class="student-meet-meta-val">${fullDateStr}</span>
+              </div>
+            </div>
 
-          <!-- Meta Strip -->
-          <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border-subtle); font-size: 0.88rem; color: #475569;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              <span>Date: <strong style="color: var(--text-primary);">${selectedMeeting.date}</strong></span>
+            <div class="student-meet-meta-box">
+              <div class="student-meet-meta-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="student-meet-meta-info">
+                <span class="student-meet-meta-label">Time</span>
+                <span class="student-meet-meta-val">${selectedMeeting.time} (IST)</span>
+              </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <span>Time: <strong style="color: var(--text-primary);">${selectedMeeting.time}</strong></span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              <span>Supervisor: <strong style="color: var(--text-primary);">Faculty Supervisor</strong></span>
+
+            <div class="student-meet-meta-box">
+              <div class="student-meet-meta-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </div>
+              <div class="student-meet-meta-info">
+                <span class="student-meet-meta-label">Supervisor</span>
+                <span class="student-meet-meta-val">Faculty Reviewer</span>
+              </div>
             </div>
           </div>
 
           <!-- Video Conference Action Banner (If Online Google Meet) -->
           ${isGoogleMeet ? `
-            <div class="student-meet-banner">
-              <div class="student-meet-banner-info">
-                <div class="student-meet-banner-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M23 7l-7 5 7 5V7z"></path>
+            <div class="student-meet-call-banner">
+              <div class="student-meet-call-info">
+                <div class="student-meet-call-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
                     <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                   </svg>
                 </div>
                 <div>
-                  <div style="font-weight: 800; font-size: 1.05rem;">Google Meet Video Conference</div>
-                  <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 2px;">
-                    Online Standup &amp; Evaluation Link: <code>${meetRawUrl}</code>
-                  </div>
+                  <h4 class="student-meet-call-title">Google Meet Video Conference</h4>
+                  <div class="student-meet-call-sub">${meetRawUrl}</div>
                 </div>
               </div>
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <button type="button" class="student-meet-copy-btn btn-copy-meet-link" data-url="${meetHref}" title="Copy Google Meet Link">
+              <div class="student-meet-call-actions">
+                <button type="button" class="student-meet-btn-copy btn-copy-meet-link" data-url="${meetHref}" title="Copy Google Meet Link">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   Copy Link
                 </button>
-                <a href="${meetHref}" target="_blank" rel="noopener noreferrer" class="student-meet-banner-btn student-meet-link" data-title="${selectedMeeting.title}">
+                <a href="${meetHref}" target="_blank" rel="noopener noreferrer" class="student-meet-btn-join student-meet-link" data-title="${selectedMeeting.title}">
                   <span>Join Video Call</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 </a>
               </div>
             </div>
           ` : `
-            <div style="background: var(--bg-canvas-light); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <div class="student-meet-venue-card">
+              <div class="student-meet-venue-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
               <div>
-                <div style="font-weight: 700; font-size: 0.925rem; color: var(--text-primary);">Location &amp; Venue</div>
-                <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 2px;">${selectedMeeting.location || 'In-Person Academy Conference Room'}</div>
+                <div class="student-meet-venue-title">Location &amp; In-Person Venue</div>
+                <div class="student-meet-venue-desc">${selectedMeeting.location || 'In-Person Academy Conference Room / Lab Facility'}</div>
               </div>
             </div>
           `}
 
           <!-- Notes & Minutes Section -->
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                <span>📝</span> Meeting Minutes &amp; Discussion Notes
+          <div class="student-meet-notes-section">
+            <div class="student-meet-notes-header">
+              <div class="student-meet-notes-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Meeting Minutes &amp; Discussion Notes
               </div>
-              <span class="student-badge student-badge-info" style="font-size: 0.72rem;">Official Record</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                ${selectedMeeting.notes ? `
+                  <button type="button" class="student-btn student-btn-outline student-btn-sm btn-copy-notes" data-notes="${encodeURIComponent(selectedMeeting.notes)}" style="padding: 4px 10px; font-size: 0.75rem; display: flex; align-items: center; gap: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Copy Notes
+                  </button>
+                ` : ''}
+                <span class="student-badge student-badge-info" style="font-size: 0.72rem;">Official Record</span>
+              </div>
             </div>
             
-            <div class="student-meet-notes-content">
-              ${selectedMeeting.notes || 'No minutes or discussion notes have been recorded for this session yet. Your faculty supervisor will document agenda points during the meeting.'}
+            <div class="student-meet-notes-body ${!selectedMeeting.notes ? 'student-meet-notes-empty' : ''}">
+              ${selectedMeeting.notes || 'No minutes or discussion notes have been recorded for this session yet. Your faculty supervisor will document agenda points, action items, and technical feedback during or after the meeting.'}
             </div>
           </div>
         </div>
       `;
     } else {
       detailsHtml = `
-        <div class="student-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:380px; color:var(--text-muted); text-align:center; padding:40px 20px;">
-          <div style="font-size: 2.5rem; margin-bottom: 12px;">📅</div>
-          <div style="font-weight: 700; font-size: 1.05rem; color: #1e293b; margin-bottom: 6px;">No Session Selected</div>
-          <div style="font-size: 0.85rem; color: var(--text-secondary); max-width: 320px;">
-            Choose a date from the calendar or click a scheduled meeting from the list to inspect its agenda, call link, and discussion minutes.
+        <div class="student-meet-empty-detail">
+          <div class="student-meet-empty-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <div class="student-meet-empty-title">No Session Selected</div>
+          <div class="student-meet-empty-desc">
+            Choose a date from the calendar or select a scheduled meeting from the sessions list to view its agenda, supervisor, call link, and discussion minutes.
           </div>
         </div>
       `;
@@ -263,40 +346,105 @@ export async function StudentMeetings(route, router) {
 
     const formattedToday = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    // 6. Build Master Container HTML
+    // 7. Master Container Markup
     container.innerHTML = `
-      <div class="student-header">
-        <h1>Meetings Calendar &amp; Notes</h1>
-        <p>Coordinate meeting schedules, review academic standup reports, and access supervisor discussion minutes.</p>
+      <!-- Header Banner -->
+      <div class="student-meet-header-wrapper">
+        <div class="student-meet-header-left">
+          <div class="student-meet-brand-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div>
+            <h1 class="student-meet-title">Meetings Calendar &amp; Notes</h1>
+            <p class="student-meet-subtitle">Coordinate project standups, track scheduled reviews, and access supervisor discussion minutes.</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Controls & Filter Bar -->
-      <div class="student-filter-bar">
-        <!-- Search -->
-        <div class="student-search-wrapper">
-          <svg class="student-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <!-- KPI Metrics Overview -->
+      <div class="student-meet-kpi-grid">
+        <div class="student-meet-kpi-card kpi-blue">
+          <div class="student-meet-kpi-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <div class="student-meet-kpi-info">
+            <div class="student-meet-kpi-val">${totalCount}</div>
+            <div class="student-meet-kpi-lbl">Total Sessions</div>
+          </div>
+        </div>
+
+        <div class="student-meet-kpi-card kpi-indigo">
+          <div class="student-meet-kpi-icon indigo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <div class="student-meet-kpi-info">
+            <div class="student-meet-kpi-val">${upcomingCount}</div>
+            <div class="student-meet-kpi-lbl">Upcoming Sessions</div>
+          </div>
+        </div>
+
+        <div class="student-meet-kpi-card kpi-emerald">
+          <div class="student-meet-kpi-icon emerald">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <div class="student-meet-kpi-info">
+            <div class="student-meet-kpi-val">${completedCount}</div>
+            <div class="student-meet-kpi-lbl">Completed Reviews</div>
+          </div>
+        </div>
+
+        <div class="student-meet-kpi-card kpi-amber">
+          <div class="student-meet-kpi-icon amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </div>
+          <div class="student-meet-kpi-info">
+            <div class="student-meet-kpi-val" style="font-size: 1.15rem;">${nextMeetingDate}</div>
+            <div class="student-meet-kpi-lbl">Next Agenda</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls & Comprehensive Filter Bar -->
+      <div class="student-meet-filter-bar">
+        <!-- Search Input -->
+        <div class="student-meet-search-box">
+          <svg class="student-meet-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input type="text" id="meet-search-input" class="student-search-input" placeholder="Search meetings by topic, project, or notes..." value="${searchQuery}">
+          <input type="text" id="meet-search-input" class="student-meet-search-input" placeholder="Search by topic, project, location, or notes..." value="${searchQuery}">
         </div>
 
         <!-- Status Filter Pills -->
-        <div class="student-filter-pills">
-          <button type="button" class="student-filter-pill ${statusFilter === 'all' ? 'active' : ''}" data-status="all">All Sessions</button>
-          <button type="button" class="student-filter-pill ${statusFilter === 'Scheduled' ? 'active' : ''}" data-status="Scheduled">Upcoming</button>
-          <button type="button" class="student-filter-pill ${statusFilter === 'Completed' ? 'active' : ''}" data-status="Completed">Completed</button>
+        <div class="student-meet-pills-group">
+          <button type="button" class="student-meet-pill-btn ${statusFilter === 'all' ? 'active' : ''}" data-status="all">
+            <span>All Sessions</span>
+            <span class="student-meet-pill-badge">${totalCount}</span>
+          </button>
+          <button type="button" class="student-meet-pill-btn ${statusFilter === 'Scheduled' ? 'active' : ''}" data-status="Scheduled">
+            <span>Upcoming</span>
+            <span class="student-meet-pill-badge">${upcomingCount}</span>
+          </button>
+          <button type="button" class="student-meet-pill-btn ${statusFilter === 'Completed' ? 'active' : ''}" data-status="Completed">
+            <span>Completed</span>
+            <span class="student-meet-pill-badge">${completedCount}</span>
+          </button>
         </div>
 
         <!-- Project Filter Dropdown -->
-        <select id="meet-proj-filter" class="student-filter-select">
+        <select id="meet-proj-filter" class="student-meet-select">
           <option value="all" ${projectFilter === 'all' ? 'selected' : ''}>All Projects</option>
           ${projectFilterOptions}
         </select>
 
         <!-- Date Filter Badge or Reset Button -->
         ${isFiltersActive ? `
-          <button type="button" id="btn-clear-meet-filters" class="student-filter-btn-clear" title="Clear all filters">
+          <button type="button" id="btn-clear-meet-filters" class="student-meet-btn-reset" title="Clear all filters">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             ${dateFilter ? `Reset Date (${dateFilter})` : 'Reset Filters'}
           </button>
@@ -304,63 +452,71 @@ export async function StudentMeetings(route, router) {
       </div>
 
       <!-- Modern Responsive 2-Column Split Layout -->
-      <div class="student-meetings-layout">
+      <div class="student-meet-grid-layout">
         <!-- Left Panel: Calendar & Meetings List -->
-        <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="student-meet-sidebar-col">
           <!-- Interactive Monthly Calendar Card -->
-          <div class="student-card student-calendar-card" style="margin-bottom: 0; max-width: 100%;">
-            <div class="student-calendar-header">
-              <span class="student-calendar-title">${monthNames[currentMonth]} ${currentYear}</span>
-              <div class="student-calendar-nav">
-                <button type="button" class="student-btn-cal-nav" id="btn-prev-month" title="Previous Month">‹</button>
-                <button type="button" class="student-btn-cal-nav" id="btn-today-month" title="Jump to Current Month">Today</button>
-                <button type="button" class="student-btn-cal-nav" id="btn-next-month" title="Next Month">›</button>
+          <div class="student-cal-card">
+            <div class="student-cal-header">
+              <span class="student-cal-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                ${monthNames[currentMonth]} ${currentYear}
+              </span>
+              <div class="student-cal-nav">
+                <button type="button" class="student-cal-btn-nav" id="btn-prev-month" title="Previous Month">‹</button>
+                <button type="button" class="student-cal-btn-today" id="btn-today-month" title="Jump to Current Month">Today</button>
+                <button type="button" class="student-cal-btn-nav" id="btn-next-month" title="Next Month">›</button>
               </div>
             </div>
             
-            <div class="student-calendar-grid">
+            <div class="student-cal-grid">
               ${dayHeaders}
               ${dayCells}
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-muted); margin-top:8px; border-top:1px solid #f1f5f9; padding-top:8px;">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <div class="student-calendar-day-dot" style="margin:0;"></div>
-                <span>Session Scheduled</span>
+            <div class="student-cal-legend">
+              <div class="student-cal-legend-item">
+                <div class="student-cal-dot"></div>
+                <span>Upcoming</span>
               </div>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <div style="width:10px; height:10px; border-radius:3px; background:var(--primary-light); border:1px solid var(--primary);"></div>
+              <div class="student-cal-legend-item">
+                <div class="student-cal-dot completed"></div>
+                <span>Completed</span>
+              </div>
+              <div class="student-cal-legend-item">
+                <div style="width:9px; height:9px; border-radius:3px; background:#f0f9ff; border:1px solid #0284c7;"></div>
                 <span>Today (${formattedToday})</span>
               </div>
             </div>
           </div>
 
           <!-- Scheduled Sessions List Card -->
-          <div class="student-card" style="padding: 18px 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-              <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">
-                Scheduled Sessions
+          <div class="student-meet-list-card">
+            <div class="student-meet-list-header">
+              <div class="student-meet-list-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                Sessions Queue
               </div>
-              <span class="student-badge student-badge-info" style="font-size: 0.72rem;">
+              <span class="student-badge student-badge-info" style="font-size: 0.72rem; font-weight: 800;">
                 ${filteredMeetings.length} found
               </span>
             </div>
 
             ${dateFilter ? `
-              <div style="display: flex; justify-content: space-between; align-items: center; background: var(--primary-light); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.8rem; color: var(--primary);">
-                <span>Filtered on: <strong>${dateFilter}</strong></span>
-                <button type="button" id="btn-remove-date-filter" style="background: none; border: none; color: var(--primary-hover); font-weight: 700; cursor: pointer; font-size: 0.75rem;">Show All</button>
+              <div class="student-meet-active-tag">
+                <span>Date Filter: <strong>${dateFilter}</strong></span>
+                <button type="button" id="btn-remove-date-filter" style="background: none; border: none; color: #0369a1; font-weight: 800; cursor: pointer; font-size: 0.75rem;">Clear</button>
               </div>
             ` : ''}
 
             <!-- Meeting Cards List -->
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 2px;">
+            <div class="student-meet-list-scroll">
               ${meetingCardsHtml || `
-                <div class="student-empty-filter" style="padding: 24px 10px;">
-                  <div class="student-empty-filter-icon" style="font-size: 1.5rem;">📅</div>
-                  <div class="student-empty-filter-text" style="font-size: 0.875rem;">No sessions matching</div>
-                  <div class="student-empty-filter-sub" style="font-size: 0.75rem; margin-bottom: 8px;">Try clearing filters.</div>
-                  <button type="button" id="btn-empty-clear-meets" class="student-btn student-btn-outline student-btn-sm" style="font-size: 0.75rem; padding: 4px 10px; margin: 0 auto;">
+                <div style="text-align: center; padding: 32px 14px; background: var(--bg-canvas-light); border: 1px dashed var(--border-subtle); border-radius: 12px;">
+                  <div style="font-size: 1.6rem; margin-bottom: 6px;">📅</div>
+                  <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px;">No Sessions Found</div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">Try adjusting or clearing your filters.</div>
+                  <button type="button" id="btn-empty-clear-meets" class="student-btn student-btn-outline student-btn-sm" style="font-size: 0.75rem; padding: 4px 12px; margin: 0 auto;">
                     Reset Filters
                   </button>
                 </div>
@@ -393,7 +549,7 @@ export async function StudentMeetings(route, router) {
     });
 
     // Status filter pills
-    container.querySelectorAll('.student-filter-pill').forEach(pill => {
+    container.querySelectorAll('.student-meet-pill-btn').forEach(pill => {
       pill.addEventListener('click', () => {
         statusFilter = pill.getAttribute('data-status');
         render();
@@ -447,7 +603,7 @@ export async function StudentMeetings(route, router) {
     });
 
     // Calendar Day click (filter by date or toggle date filter)
-    container.querySelectorAll('.student-calendar-day[data-date]').forEach(el => {
+    container.querySelectorAll('.student-cal-day-cell[data-date]').forEach(el => {
       el.addEventListener('click', () => {
         const clickedDate = el.getAttribute('data-date');
         if (dateFilter === clickedDate) {
@@ -460,7 +616,7 @@ export async function StudentMeetings(route, router) {
     });
 
     // Meeting Card click in list
-    container.querySelectorAll('.student-meeting-item').forEach(el => {
+    container.querySelectorAll('.student-meet-item').forEach(el => {
       el.addEventListener('click', () => {
         selectedMeetingId = parseInt(el.getAttribute('data-id'), 10);
         render();
@@ -488,6 +644,31 @@ export async function StudentMeetings(route, router) {
           });
         } catch (err) {
           showStudentSuccess('Link Copied', url);
+        }
+      });
+    });
+
+    // Copy Meeting Notes button
+    container.querySelectorAll('.btn-copy-notes').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const rawNotes = decodeURIComponent(btn.getAttribute('data-notes') || '');
+        if (!rawNotes) return;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(rawNotes);
+          }
+          StudentSwal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Notes Copied!',
+            text: 'Meeting minutes copied to clipboard.',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+          });
+        } catch (err) {
+          showStudentSuccess('Notes Copied', 'Meeting minutes copied to clipboard.');
         }
       });
     });

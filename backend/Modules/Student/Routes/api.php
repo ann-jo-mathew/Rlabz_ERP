@@ -15,6 +15,9 @@ Route::group(['prefix' => 'student', 'middleware' => ['auth.jwt']], function () 
     Route::post('/work-logs', [StudentController::class, 'saveWorkLog']);
     Route::get('/github', [StudentController::class, 'getGithub']);
     Route::post('/github', [StudentController::class, 'saveGithubUrl']);
+    Route::post('/github/branch', [StudentController::class, 'saveGithubBranch']);
+    Route::delete('/github/branch/{id}', [StudentController::class, 'deleteGithubBranch']);
+    Route::post('/tasks/{id}/github', [StudentController::class, 'updateTaskGithub']);
     Route::get('/certificates', [StudentController::class, 'getCertificates']);
     Route::get('/meetings', [StudentController::class, 'getMeetings']);
     Route::get('/notifications', [StudentController::class, 'getNotifications']);

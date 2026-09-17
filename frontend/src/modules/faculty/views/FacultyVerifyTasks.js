@@ -446,6 +446,21 @@ export function FacultyVerifyTasks() {
                                                                 ✓ On Time (${dueDate})
                                                             </span>
                                                         ` : ''}
+                                                        ${(l.branch_name || l.github_pr_url) ? `
+                                                            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; margin-top: 0.35rem; width: 100%;">
+                                                                ${l.branch_name ? `
+                                                                    <a href="${l.branch_url || '#'}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; text-decoration: none;" title="Open GitHub branch">
+                                                                        <span>🌿</span> <span>${l.branch_name}</span>
+                                                                    </a>
+                                                                ` : ''}
+                                                                ${l.github_pr_url ? `
+                                                                    <a href="${l.github_pr_url}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; text-decoration: none;" title="View Pull Request">
+                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                                                        <span>PR ↗</span>
+                                                                    </a>
+                                                                ` : ''}
+                                                            </div>
+                                                        ` : ''}
                                                     </div>
                                                 </td>
 

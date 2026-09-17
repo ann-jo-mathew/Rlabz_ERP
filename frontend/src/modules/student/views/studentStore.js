@@ -11,6 +11,7 @@ let cachedReports = [];
 let cachedWorkLogs = [];
 let cachedMeetings = [];
 let cachedGithub = [];
+let cachedGithubProjects = [];
 let cachedChatMessages = [];
 let cachedNotifications = [];
 let cachedProfile = null;
@@ -80,7 +81,9 @@ export async function ensureDataLoaded(force = false) {
     cachedWorkLogs = await apiFetch('/student/work-logs');
     
     // 5. Fetch github
-    cachedGithub = await apiFetch('/student/github');
+    const githubRes = await apiFetch('/student/github');
+    cachedGithub = Array.isArray(githubRes) ? githubRes : (githubRes.repos || []);
+    cachedGithubProjects = Array.isArray(githubRes) ? [] : (githubRes.projects || []);
     
     // 6. Fetch meetings
     cachedMeetings = await apiFetch('/student/meetings');
@@ -193,6 +196,10 @@ export function getGithub() {
   return cachedGithub;
 }
 
+export function getGithubProjects() {
+  return cachedGithubProjects;
+}
+
 export function getChatMessages() {
   return cachedChatMessages;
 }
@@ -242,12 +249,41 @@ export async function saveWorkLog(workLog) {
   await ensureDataLoaded(true); // refresh cache
 }
 
-export async function saveGithubUrl(project, url) {
+export async function saveGithubUrl(project, url, projectId = null) {
   await apiFetch('/student/github', {
     method: 'POST',
-    body: JSON.stringify({ project, url })
+    body: JSON.stringify({ project, url, projectId })
   });
   await ensureDataLoaded(true); // refresh cache
+}
+
+export async function saveGithubBranch(projectId, branchName, branchUrl = '', id = null) {
+  const res = await apiFetch('/student/github/branch', {
+    method: 'POST',
+    body: JSON.stringify({ projectId, branchName, branchUrl, id })
+  });
+  await ensureDataLoaded(true); // refresh cache
+  return res;
+}
+
+export async function deleteGithubBranch(branchId) {
+  const res = await apiFetch(`/student/github/branch/${branchId}`, {
+    method: 'DELETE'
+  });
+  await ensureDataLoaded(true); // refresh cache
+  return res;
+}
+
+export async function updateTaskGithub(taskId, githubRepositoryId, githubPrUrl) {
+  const res = await apiFetch(`/student/tasks/${taskId}/github`, {
+    method: 'POST',
+    body: JSON.stringify({
+      github_repository_id: githubRepositoryId,
+      github_pr_url: githubPrUrl
+    })
+  });
+  await ensureDataLoaded(true); // refresh cache
+  return res;
 }
 
 export async function saveChatMessage(project, text) {

@@ -134,8 +134,21 @@ class StudentController extends Controller
             $moduleIds = $modules->pluck('id');
             $allTasks = DB::table('tasks')
                 ->leftJoin('users', 'users.id', '=', 'tasks.assigned_to')
+                ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id')
                 ->whereIn('tasks.module_id', $moduleIds)
-                ->select('tasks.id', 'tasks.module_id', 'tasks.title', 'tasks.assigned_to', 'users.name as assignee', 'tasks.status', 'tasks.due_date')
+                ->select(
+                    'tasks.id',
+                    'tasks.module_id',
+                    'tasks.title',
+                    'tasks.assigned_to',
+                    'users.name as assignee',
+                    'tasks.status',
+                    'tasks.due_date',
+                    'tasks.github_repository_id',
+                    'tasks.github_pr_url',
+                    'github_repositories.branch_name',
+                    'github_repositories.branch_url'
+                )
                 ->get();
 
             $totalTasks = $allTasks->count();
@@ -159,6 +172,10 @@ class StudentController extends Controller
                     'isMyTask' => ($t->assigned_to == $studentId),
                     'status' => $statusMap[strtolower($t->status ?: 'todo')] ?? 'Todo',
                     'dueDate' => $t->due_date ? date('M d, Y', strtotime($t->due_date)) : null,
+                    'githubRepositoryId' => $t->github_repository_id,
+                    'githubPrUrl' => $t->github_pr_url,
+                    'branchName' => $t->branch_name,
+                    'branchUrl' => $t->branch_url,
                 ];
             }
 
@@ -430,6 +447,7 @@ class StudentController extends Controller
         // 2. MUST NOT be completed (status != 'completed')
         $tasks = DB::table('tasks')
             ->join('modules', 'modules.id', '=', 'tasks.module_id')
+            ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id')
             ->whereIn('tasks.module_id', $moduleIds)
             ->where('tasks.assigned_to', $studentId)
             ->where('tasks.status', '!=', 'completed')
@@ -439,6 +457,10 @@ class StudentController extends Controller
                 'tasks.description',
                 'tasks.status',
                 'tasks.due_date',
+                'tasks.github_repository_id',
+                'tasks.github_pr_url',
+                'github_repositories.branch_name',
+                'github_repositories.branch_url',
                 'modules.module_name'
             )
             ->orderBy('tasks.id', 'asc')
@@ -462,6 +484,10 @@ class StudentController extends Controller
                     'isRework' => $isRework,
                     'moduleName' => $t->module_name,
                     'dueDate' => $t->due_date ? date('M j, Y', strtotime($t->due_date)) : null,
+                    'githubRepositoryId' => $t->github_repository_id,
+                    'githubPrUrl' => $t->github_pr_url,
+                    'branchName' => $t->branch_name,
+                    'branchUrl' => $t->branch_url,
                 ];
             });
 
@@ -478,6 +504,7 @@ class StudentController extends Controller
         $reports = DB::table('student_reports')
             ->leftJoin('projects', 'projects.id', '=', 'student_reports.project_id')
             ->leftJoin('tasks', 'tasks.id', '=', 'student_reports.task_id')
+            ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id')
             ->where('student_reports.student_id', $studentId)
             ->whereNotNull('student_reports.project_id')
             ->where('student_reports.project_id', '>', 0)
@@ -485,7 +512,11 @@ class StudentController extends Controller
                 'student_reports.*',
                 'projects.title as project_title',
                 'tasks.title as task_title',
-                'tasks.status as task_status'
+                'tasks.status as task_status',
+                'tasks.github_repository_id',
+                'tasks.github_pr_url',
+                'github_repositories.branch_name',
+                'github_repositories.branch_url'
             )
             ->orderBy('student_reports.report_date', 'desc')
             ->orderBy('student_reports.id', 'desc')
@@ -508,6 +539,9 @@ class StudentController extends Controller
                     'taskId' => $r->task_id,
                     'taskCode' => $r->task_id ? 'T-' . $r->task_id : null,
                     'taskTitle' => $r->task_title,
+                    'branchName' => $r->branch_name,
+                    'branchUrl' => $r->branch_url,
+                    'githubPrUrl' => $r->github_pr_url,
                     'type' => ucfirst($r->report_type),
                     'date' => $r->report_date,
                     'weekStart' => $r->week_start,
@@ -588,6 +622,19 @@ class StudentController extends Controller
             return response()->json(['error' => 'This task is already completed and cannot accept reports unless rework is requested.'], 422);
         }
 
+        // Update task's github repository and PR if provided in report submission
+        $taskGithubUpdate = [];
+        if ($request->has('githubRepositoryId') && $request->filled('githubRepositoryId')) {
+            $taskGithubUpdate['github_repository_id'] = $request->input('githubRepositoryId');
+        }
+        if ($request->has('githubPrUrl')) {
+            $taskGithubUpdate['github_pr_url'] = $request->input('githubPrUrl') ?: null;
+        }
+        if (!empty($taskGithubUpdate)) {
+            $taskGithubUpdate['updated_at'] = now();
+            DB::table('tasks')->where('id', $taskId)->update($taskGithubUpdate);
+        }
+
         // Calculate week boundaries for this daily report
         $dateCarbon = Carbon::parse($reportDate);
         $weekStart = $dateCarbon->copy()->startOfWeek(Carbon::MONDAY)->toDateString();
@@ -647,6 +694,7 @@ class StudentController extends Controller
         // Fetch all daily reports for this student, project, and week range
         $dailyReports = DB::table('student_reports')
             ->leftJoin('tasks', 'tasks.id', '=', 'student_reports.task_id')
+            ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id')
             ->where('student_reports.student_id', $studentId)
             ->where('student_reports.project_id', $projectId)
             ->where('student_reports.report_type', 'daily')
@@ -657,7 +705,10 @@ class StudentController extends Controller
                 'student_reports.work_done',
                 'student_reports.task_id',
                 'tasks.title as task_title',
-                'tasks.status as task_status'
+                'tasks.status as task_status',
+                'tasks.github_pr_url',
+                'github_repositories.branch_name',
+                'github_repositories.branch_url'
             )
             ->orderBy('student_reports.report_date', 'asc')
             ->orderBy('student_reports.id', 'asc')
@@ -683,6 +734,9 @@ class StudentController extends Controller
                     'taskCode' => $dr->task_id ? 'T-' . $dr->task_id : 'General',
                     'taskTitle' => $dr->task_title ?: 'General Work',
                     'taskStatus' => $statusMap[strtolower($dr->task_status ?: 'todo')] ?? ucfirst($dr->task_status ?: 'Todo'),
+                    'branchName' => $dr->branch_name,
+                    'branchUrl' => $dr->branch_url,
+                    'githubPrUrl' => $dr->github_pr_url,
                     'entries' => [],
                 ];
             }
@@ -697,6 +751,12 @@ class StudentController extends Controller
         foreach ($tasksGrouped as $tg) {
             $formattedText .= "{$tg['taskCode']} — {$tg['taskTitle']}\n";
             $formattedText .= "Status: {$tg['taskStatus']}\n";
+            if (!empty($tg['branchName'])) {
+                $formattedText .= "Branch: {$tg['branchName']}\n";
+            }
+            if (!empty($tg['githubPrUrl'])) {
+                $formattedText .= "PR: {$tg['githubPrUrl']}\n";
+            }
             foreach ($tg['entries'] as $entry) {
                 $formattedDate = date('M j', strtotime($entry['date']));
                 $formattedText .= "• [{$formattedDate}] {$entry['work']}\n";
@@ -940,19 +1000,129 @@ class StudentController extends Controller
             ->where('student_id', $studentId)
             ->pluck('project_id');
 
-        $repos = DB::table('github_repositories')
-            ->join('projects', 'projects.id', '=', 'github_repositories.project_id')
-            ->leftJoin('users', 'users.id', '=', 'github_repositories.verified_by')
-            ->whereIn('github_repositories.project_id', $projectIds)
-            ->select(
-                'projects.title as project',
-                'github_repositories.repository_url as url',
-                DB::raw('CASE WHEN github_repositories.is_verified = 1 THEN "Verified" ELSE "Pending" END as status'),
-                'users.name as faculty'
-            )
+        $projects = DB::table('projects')
+            ->whereIn('id', $projectIds)
             ->get();
 
-        return response()->json($repos);
+        $projectDetails = [];
+        $flatRepos = [];
+
+        foreach ($projects as $proj) {
+            $isLead = DB::table('project_student')
+                ->where('project_id', $proj->id)
+                ->where('student_id', $studentId)
+                ->where('role', 'project_lead')
+                ->exists();
+
+            $totalStudents = DB::table('project_student')
+                ->where('project_id', $proj->id)
+                ->count();
+            if ($totalStudents <= 1) {
+                $isLead = true;
+            }
+
+            $leadStudent = DB::table('project_student')
+                ->join('users', 'users.id', '=', 'project_student.student_id')
+                ->where('project_student.project_id', $proj->id)
+                ->where('project_student.role', 'project_lead')
+                ->select('users.name')
+                ->first();
+            $leadName = $leadStudent ? $leadStudent->name : ($isLead ? 'You' : 'Unassigned');
+
+            $supervisor = DB::table('project_faculty')
+                ->join('users', 'users.id', '=', 'project_faculty.faculty_id')
+                ->where('project_faculty.project_id', $proj->id)
+                ->value('users.name');
+
+            // Main Repo
+            $mainRepo = DB::table('github_repositories')
+                ->leftJoin('users as verifier', 'verifier.id', '=', 'github_repositories.verified_by')
+                ->where('github_repositories.project_id', $proj->id)
+                ->where('github_repositories.link_type', 'main')
+                ->select(
+                    'github_repositories.id',
+                    'github_repositories.repository_name',
+                    'github_repositories.repository_url as url',
+                    'github_repositories.is_verified',
+                    'github_repositories.submitted_date',
+                    'verifier.name as verified_by_name',
+                    'github_repositories.verified_at',
+                    DB::raw('CASE WHEN github_repositories.is_verified = 1 THEN "Verified" ELSE "Pending" END as status')
+                )
+                ->first();
+
+            // Student's own branches
+            $myBranches = DB::table('github_repositories')
+                ->where('project_id', $proj->id)
+                ->where('student_id', $studentId)
+                ->where('link_type', 'branch')
+                ->select(
+                    'id',
+                    'branch_name',
+                    'branch_url',
+                    'submitted_date',
+                    'created_at'
+                )
+                ->get()
+                ->map(function ($b) {
+                    $b->linked_tasks_count = DB::table('tasks')
+                        ->where('github_repository_id', $b->id)
+                        ->count();
+                    return $b;
+                });
+
+            // All team branches for this project
+            $teamBranches = DB::table('github_repositories')
+                ->join('users', 'users.id', '=', 'github_repositories.student_id')
+                ->where('github_repositories.project_id', $proj->id)
+                ->where('github_repositories.link_type', 'branch')
+                ->select(
+                    'github_repositories.id',
+                    'github_repositories.student_id',
+                    'users.name as student_name',
+                    'github_repositories.branch_name',
+                    'github_repositories.branch_url',
+                    'github_repositories.submitted_date',
+                    'github_repositories.created_at'
+                )
+                ->get()
+                ->map(function ($b) {
+                    $b->linked_tasks_count = DB::table('tasks')
+                        ->where('github_repository_id', $b->id)
+                        ->count();
+                    return $b;
+                });
+
+            $flatRepos[] = [
+                'id' => $mainRepo ? $mainRepo->id : null,
+                'projectId' => $proj->id,
+                'project' => $proj->title,
+                'url' => $mainRepo ? $mainRepo->url : '',
+                'status' => $mainRepo ? $mainRepo->status : 'Pending',
+                'isVerified' => $mainRepo ? (bool)$mainRepo->is_verified : false,
+                'faculty' => $supervisor ?: ($mainRepo ? $mainRepo->verified_by_name : 'Unassigned'),
+                'isLead' => $isLead,
+                'leadName' => $leadName,
+                'myBranches' => $myBranches,
+                'teamBranches' => $teamBranches,
+            ];
+
+            $projectDetails[] = [
+                'projectId' => $proj->id,
+                'projectTitle' => $proj->title,
+                'isLead' => $isLead,
+                'leadName' => $leadName,
+                'supervisor' => $supervisor ?: 'Unassigned',
+                'mainRepo' => $mainRepo,
+                'myBranches' => $myBranches,
+                'teamBranches' => $teamBranches,
+            ];
+        }
+
+        return response()->json([
+            'repos' => $flatRepos,
+            'projects' => $projectDetails,
+        ]);
     }
 
     public function saveGithubUrl(Request $request)
@@ -963,11 +1133,33 @@ class StudentController extends Controller
         }
 
         $projectTitle = $request->input('project');
+        $projectId = $request->input('projectId');
         $url = $request->input('url');
 
-        $project = DB::table('projects')->where('title', $projectTitle)->first();
+        $project = null;
+        if ($projectId) {
+            $project = DB::table('projects')->where('id', $projectId)->first();
+        } elseif ($projectTitle) {
+            $project = DB::table('projects')->where('title', $projectTitle)->first();
+        }
+
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        // Check if student is Team Lead or sole student on project
+        $isLead = DB::table('project_student')
+            ->where('project_id', $project->id)
+            ->where('student_id', $studentId)
+            ->where('role', 'project_lead')
+            ->exists();
+
+        $totalStudents = DB::table('project_student')
+            ->where('project_id', $project->id)
+            ->count();
+
+        if (!$isLead && $totalStudents > 1) {
+            return response()->json(['error' => 'Only the Team Lead can set or edit the main repository link for this project.'], 403);
         }
 
         $repoName = 'repo';
@@ -977,10 +1169,16 @@ class StudentController extends Controller
         }
 
         DB::table('github_repositories')->updateOrInsert(
-            ['project_id' => $project->id],
+            [
+                'project_id' => $project->id,
+                'link_type' => 'main',
+            ],
             [
                 'repository_name' => $repoName,
                 'repository_url' => $url,
+                'student_id' => null,
+                'branch_name' => null,
+                'branch_url' => null,
                 'submitted_date' => now()->toDateString(),
                 'is_verified' => false,
                 'verified_by' => null,
@@ -993,12 +1191,179 @@ class StudentController extends Controller
             DB::table('notifications')->insert([
                 'user_id' => $studentId,
                 'type' => 'github',
-                'message' => "GitHub repository URL updated for {$projectTitle}",
+                'message' => "Main GitHub repository URL updated for {$project->title}",
                 'is_read' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function saveGithubBranch(Request $request)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $projectId = $request->input('projectId');
+        $projectTitle = $request->input('project');
+        $branchName = trim($request->input('branchName', ''));
+        $branchUrl = trim($request->input('branchUrl', ''));
+
+        $project = null;
+        if ($projectId) {
+            $project = DB::table('projects')->where('id', $projectId)->first();
+        } elseif ($projectTitle) {
+            $project = DB::table('projects')->where('title', $projectTitle)->first();
+        }
+
+        if (!$project) {
+            return response()->json(['error' => 'Project not found.'], 404);
+        }
+
+        if (empty($branchName)) {
+            return response()->json(['error' => 'Branch name is required.'], 422);
+        }
+
+        // Verify student is assigned to this project
+        $isAssigned = DB::table('project_student')
+            ->where('project_id', $project->id)
+            ->where('student_id', $studentId)
+            ->exists();
+
+        if (!$isAssigned) {
+            return response()->json(['error' => 'You are not assigned to this project.'], 403);
+        }
+
+        // Auto-construct branchUrl if not provided
+        if (empty($branchUrl)) {
+            $mainRepo = DB::table('github_repositories')
+                ->where('project_id', $project->id)
+                ->where('link_type', 'main')
+                ->first();
+
+            if ($mainRepo && !empty($mainRepo->repository_url)) {
+                $branchUrl = rtrim($mainRepo->repository_url, '/') . '/tree/' . ltrim($branchName, '/');
+            } else {
+                return response()->json(['error' => 'Please provide a Branch URL or set the main repository first.'], 422);
+            }
+        }
+
+        $branchId = $request->input('id');
+        if ($branchId) {
+            DB::table('github_repositories')
+                ->where('id', $branchId)
+                ->where('student_id', $studentId)
+                ->update([
+                    'branch_name' => $branchName,
+                    'branch_url' => $branchUrl,
+                    'repository_name' => $branchName,
+                    'repository_url' => $branchUrl,
+                    'updated_at' => now(),
+                ]);
+        } else {
+            $branchId = DB::table('github_repositories')->insertGetId([
+                'project_id' => $project->id,
+                'student_id' => $studentId,
+                'link_type' => 'branch',
+                'branch_name' => $branchName,
+                'branch_url' => $branchUrl,
+                'repository_name' => $branchName,
+                'repository_url' => $branchUrl,
+                'submitted_date' => now()->toDateString(),
+                'is_verified' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'branch' => [
+                'id' => $branchId,
+                'branchName' => $branchName,
+                'branchUrl' => $branchUrl,
+            ]
+        ]);
+    }
+
+    public function deleteGithubBranch(Request $request, $id)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $branch = DB::table('github_repositories')
+            ->where('id', $id)
+            ->where('link_type', 'branch')
+            ->first();
+
+        if (!$branch) {
+            return response()->json(['error' => 'Branch record not found.'], 404);
+        }
+
+        if ($branch->student_id != $studentId) {
+            $isLead = DB::table('project_student')
+                ->where('project_id', $branch->project_id)
+                ->where('student_id', $studentId)
+                ->where('role', 'project_lead')
+                ->exists();
+
+            if (!$isLead) {
+                return response()->json(['error' => 'You cannot delete another member\'s branch.'], 403);
+            }
+        }
+
+        // Unlink tasks referencing this branch
+        DB::table('tasks')
+            ->where('github_repository_id', $id)
+            ->update(['github_repository_id' => null]);
+
+        DB::table('github_repositories')->where('id', $id)->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function updateTaskGithub(Request $request, $id)
+    {
+        $studentId = $this->getStudentId($request);
+        if (!$studentId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $task = DB::table('tasks')
+            ->join('modules', 'modules.id', '=', 'tasks.module_id')
+            ->where('tasks.id', $id)
+            ->select('tasks.*', 'modules.project_id')
+            ->first();
+
+        if (!$task) {
+            return response()->json(['error' => 'Task not found.'], 404);
+        }
+
+        $githubRepoId = $request->input('github_repository_id');
+        $githubPrUrl = $request->input('github_pr_url');
+
+        if ($githubRepoId) {
+            $branch = DB::table('github_repositories')
+                ->where('id', $githubRepoId)
+                ->where('project_id', $task->project_id)
+                ->first();
+
+            if (!$branch) {
+                return response()->json(['error' => 'Invalid branch selected for this project.'], 422);
+            }
+        }
+
+        DB::table('tasks')->where('id', $id)->update([
+            'github_repository_id' => $githubRepoId ?: null,
+            'github_pr_url' => $githubPrUrl ?: null,
+            'updated_at' => now(),
+        ]);
 
         return response()->json(['success' => true]);
     }
