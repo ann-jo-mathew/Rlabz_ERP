@@ -616,7 +616,7 @@ hr.fin-divider {
 
 .finance-sidebar {
   width: 260px;
-  background: var(--sidebar-bg);
+  background: var(--teal-800);
   color: var(--sidebar-text);
   display: flex;
   flex-direction: column;

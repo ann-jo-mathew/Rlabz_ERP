@@ -89,7 +89,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: var(--bg-canvas-dark);
+  background: linear-gradient(135deg, var(--teal-200) 0%, var(--teal-800) 100%);
   padding: 20px;
 }
 
@@ -256,7 +256,7 @@ body {
 .sidebar {
   width: 260px;
   height: 100vh;
-  background: var(--sidebar-bg);
+  background: var(--teal-800);
   color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
@@ -271,7 +271,7 @@ body {
 }
 
 .sidebar-header {
-  padding: 24px 20px;
+  padding: 16px 20px 14px 2px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -289,9 +289,9 @@ body {
 }
 
 .sidebar-watermark {
-  height: 38px;
+  height: 84px;
   width: auto;
-  max-height: 42px;
+  max-height: 88px;
   object-fit: contain;
   display: block;
 }
