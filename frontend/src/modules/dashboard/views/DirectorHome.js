@@ -212,12 +212,12 @@ export function DirectorHome(route, router) {
               <span class="chart-legend-val">${nova} (${novaPct}%)</span>
             </div>
             <div class="chart-legend-item" style="cursor: pointer;" data-track="Orbit" title="Click to view Orbit Dev students">
-              <span class="chart-legend-dot" style="background:#0284c7;"></span>
+              <span class="chart-legend-dot" style="background:#4DB6AC;"></span>
               <span>Orbit Devs:</span>
               <span class="chart-legend-val">${orbit} (${orbitPct}%)</span>
             </div>
             <div class="chart-legend-item" style="cursor: pointer;" data-track="Spark" title="Click to view Spark Learner students">
-              <span class="chart-legend-dot" style="background:var(--primary-accent);"></span>
+              <span class="chart-legend-dot" style="background:#009688;"></span>
               <span>Spark Learners:</span>
               <span class="chart-legend-val">${spark} (${sparkPct}%)</span>
             </div>
@@ -243,11 +243,11 @@ export function DirectorHome(route, router) {
 
           <div class="director-chart-legend">
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:var(--primary-accent);"></span>
+              <span class="chart-legend-dot" style="background:#004D40;"></span>
               <span>Sanctioned Budget</span>
             </div>
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:#6366f1;"></span>
+              <span class="chart-legend-dot" style="background:#80CBC4;"></span>
               <span>Actual Expenditure</span>
             </div>
             <div class="chart-legend-item">
@@ -262,7 +262,7 @@ export function DirectorHome(route, router) {
           <div class="director-chart-header">
             <div class="director-chart-title-group">
               <h3>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#009688" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 Milestone Delivery & Department Velocity
               </h3>
               <div class="director-chart-subtitle">Trajectory of completed deliverables and proposal throughput</div>
@@ -276,12 +276,12 @@ export function DirectorHome(route, router) {
 
           <div class="director-chart-legend">
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:#3b82f6;"></span>
-              <span>Milestones Completed</span>
+              <span class="chart-legend-dot" style="background:#4DB6AC;"></span>
+              <span>Tasks Throughput</span>
             </div>
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:var(--primary-accent);"></span>
-              <span>Task Throughput</span>
+              <span class="chart-legend-dot" style="background:#00695C;"></span>
+              <span>Milestones Completed</span>
             </div>
             <div class="chart-legend-item">
               <span class="chart-legend-dot" style="background:#f59e0b;"></span>
@@ -309,7 +309,7 @@ export function DirectorHome(route, router) {
 
           <div class="director-chart-legend">
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:var(--primary-accent);"></span>
+              <span class="chart-legend-dot" style="background:#009688;"></span>
               <span>In Progress (${activeProjects})</span>
             </div>
             <div class="chart-legend-item">
@@ -317,7 +317,7 @@ export function DirectorHome(route, router) {
               <span>Proposed (${pendingCount})</span>
             </div>
             <div class="chart-legend-item">
-              <span class="chart-legend-dot" style="background:#3b82f6;"></span>
+              <span class="chart-legend-dot" style="background:#4DB6AC;"></span>
               <span>Completed (${remainingProjects})</span>
             </div>
             <div class="chart-legend-item">
@@ -651,9 +651,9 @@ export function DirectorHome(route, router) {
     if (!ChartClass) return;
 
     const tooltipDefaults = {
-      backgroundColor: '#0f172a',
-      titleColor: '#f8fafc',
-      bodyColor: '#cbd5e1',
+      backgroundColor: '#004D40',
+      titleColor: '#E0F2F1',
+      bodyColor: '#80CBC4',
       padding: 10,
       cornerRadius: 8,
       displayColors: true,
@@ -674,7 +674,7 @@ export function DirectorHome(route, router) {
           labels: ['Nova Leads', 'Orbit Developers', 'Spark Learners'],
           datasets: [{
             data: [nova || 1, orbit || 1, spark || 1],
-            backgroundColor: ['#8b5cf6', '#0284c7', 'var(--primary-accent)'],
+            backgroundColor: ['#8b5cf6', '#4DB6AC', '#009688'],
             borderColor: '#ffffff',
             borderWidth: 3,
             hoverOffset: 8,
@@ -759,7 +759,7 @@ export function DirectorHome(route, router) {
             {
               label: 'Sanctioned Budget',
               data: budgets,
-              backgroundColor: 'var(--primary-accent)',
+              backgroundColor: '#004D40',
               borderRadius: 6,
               barPercentage: 0.6,
               categoryPercentage: 0.7
@@ -767,7 +767,7 @@ export function DirectorHome(route, router) {
             {
               label: 'Actual Spent',
               data: spents,
-              backgroundColor: '#6366f1',
+              backgroundColor: '#80CBC4',
               borderRadius: 6,
               barPercentage: 0.6,
               categoryPercentage: 0.7
@@ -816,8 +816,8 @@ export function DirectorHome(route, router) {
 
       const ctx = lineEl.getContext('2d');
       const gradient = ctx.createLinearGradient(0, 0, 0, 240);
-      gradient.addColorStop(0, 'rgba(59, 130, 246, 0.28)');
-      gradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
+      gradient.addColorStop(0, 'rgba(77, 182, 172, 0.30)');
+      gradient.addColorStop(1, 'rgba(77, 182, 172, 0.01)');
 
       chartInstances.velocityLine = new ChartClass(lineEl, {
         type: 'line',
@@ -827,21 +827,21 @@ export function DirectorHome(route, router) {
             {
               label: 'Tasks Throughput',
               data: taskThroughput,
-              borderColor: '#3b82f6',
+              borderColor: '#4DB6AC',
               backgroundColor: gradient,
               borderWidth: 2.5,
               tension: 0.38,
               fill: true,
               pointRadius: 4,
               pointHoverRadius: 6,
-              pointBackgroundColor: '#3b82f6',
+              pointBackgroundColor: '#4DB6AC',
               pointBorderColor: '#ffffff',
               pointBorderWidth: 2
             },
             {
               label: 'Milestones Completed',
               data: milestonesCompleted,
-              borderColor: 'var(--primary-accent)',
+              borderColor: '#00695C',
               backgroundColor: 'transparent',
               borderWidth: 2.5,
               borderDash: [5, 4],
@@ -849,7 +849,7 @@ export function DirectorHome(route, router) {
               fill: false,
               pointRadius: 3,
               pointHoverRadius: 6,
-              pointBackgroundColor: 'var(--primary-accent)'
+              pointBackgroundColor: '#00695C'
             },
             {
               label: 'Proposals Received',
@@ -907,9 +907,9 @@ export function DirectorHome(route, router) {
           datasets: [{
             data: [activeCount, proposedCount, completedCount, highPriorityCount],
             backgroundColor: [
-              'rgba(16, 185, 129, 0.75)',
+              'rgba(0, 150, 136, 0.75)',
               'rgba(245, 158, 11, 0.75)',
-              'rgba(59, 130, 246, 0.75)',
+              'rgba(77, 182, 172, 0.75)',
               'rgba(139, 92, 246, 0.75)'
             ],
             borderColor: '#ffffff',

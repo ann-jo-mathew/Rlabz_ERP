@@ -95,7 +95,7 @@
     width: 45px;
     height: 45px;
     border-radius: 10px;
-    background: #e8f7f1;
+    background: #E0F2F1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -138,7 +138,7 @@
 
 .faculty-view-btn {
     border: none;
-    background: #087f5b;
+    background: #009688;
     color: white;
     padding: 9px 16px;
     border-radius: 7px;
@@ -147,7 +147,7 @@
 }
 
 .faculty-view-btn:hover {
-    background: #066b4d;
+    background: #00897B;
 }
 
 
@@ -197,8 +197,8 @@
 }
 
 .faculty-status.active {
-    background: #e7f7ef;
-    color: #087f5b;
+    background: #E0F2F1;
+    color: #009688;
 }
 
 
@@ -227,7 +227,7 @@
 }
 
 .progress-header strong {
-    color: #087f5b;
+    color: #009688;
 }
 
 .progress-bar {
@@ -240,7 +240,7 @@
 
 .progress-fill {
     height: 100%;
-    background: #08a875;
+    background: #00897B;
     border-radius: 10px;
 }
 
@@ -295,7 +295,7 @@
 }
 
 .project-information div {
-    background: #f7faf9;
+    background: #F0FAF9;
     border-radius: 8px;
     padding: 12px;
 }
@@ -321,7 +321,7 @@
     width: 100%;
     margin-top: 20px;
     border: none;
-    background: #087f5b;
+    background: #009688;
     color: white;
     padding: 11px;
     border-radius: 8px;
@@ -330,7 +330,7 @@
 }
 
 .faculty-project-view:hover {
-    background: #066b4d;
+    background: #00897B;
 }
 
 
@@ -386,7 +386,7 @@
 
 .faculty-project-info div {
     padding: 15px;
-    background: #f7faf9;
+    background: #F0FAF9;
     border-radius: 8px;
 }
 
@@ -460,7 +460,7 @@
     justify-content: center;
     font-weight: 700;
     color: white;
-    background: #087f5b;
+    background: #009688;
 }
 
 
@@ -479,7 +479,7 @@
 
 .faculty-student-select:focus {
     outline: none;
-    border-color: #087f5b;
+    border-color: #009688;
 }
 
 
@@ -491,7 +491,7 @@
 
 .faculty-assign-button {
     border: none;
-    background: #087f5b;
+    background: #009688;
     color: white;
     padding: 11px 20px;
     border-radius: 8px;
@@ -500,7 +500,7 @@
 }
 
 .faculty-assign-button:hover {
-    background: #066b4d;
+    background: #00897B;
 }
 
 
@@ -511,9 +511,9 @@
 }
 
 .assignment-success {
-    background: #e7f7ef;
-    border: 1px solid #b7e4ce;
-    color: #087f5b;
+    background: #E0F2F1;
+    border: 1px solid #B2DFDB;
+    color: #009688;
     padding: 11px 15px;
     border-radius: 8px;
     font-size: 13px;
@@ -609,7 +609,7 @@
 
 .faculty-student-table thead,
 .faculty-student-table th {
-    background: #e8f7f1;
+    background: #E0F2F1;
     padding: 14px 20px;
     font-size: 13px;
     font-weight: 700;
@@ -747,7 +747,7 @@
     background: #f1f5f9;
 }
 .calendar-day.selected {
-    background: #087f5b;
+    background: #009688;
     color: white;
     font-weight: bold;
 }
@@ -803,7 +803,7 @@
     transition: border-color 0.2s;
 }
 .meeting-form-input:focus, .meeting-form-select:focus {
-    border-color: #087f5b;
+    border-color: #009688;
 }
 .meeting-team-preview {
     background: var(--bg-canvas-light);
@@ -815,7 +815,7 @@
 }
 .meeting-submit-btn {
     width: 100%;
-    background: #087f5b;
+    background: #009688;
     color: white;
     border: none;
     padding: 12px;
@@ -825,7 +825,7 @@
     transition: background 0.2s;
 }
 .meeting-submit-btn:hover {
-    background: #066b4d;
+    background: #00897B;
 }
 .meetings-list-card {
     background: var(--surface-card);
@@ -940,7 +940,7 @@
 }
 .sprint-feedback-box {
     background: var(--bg-canvas-light);
-    border-left: 4px solid #087f5b;
+    border-left: 4px solid #009688;
     padding: 12px;
     border-radius: 0 8px 8px 0;
     margin-top: 10px;
@@ -952,7 +952,7 @@
     justify-content: flex-end;
 }
 .btn-verify {
-    background: #087f5b;
+    background: #009688;
     color: white;
     border: none;
     padding: 8px 16px;
@@ -961,7 +961,7 @@
     cursor: pointer;
 }
 .btn-verify:hover {
-    background: #066b4d;
+    background: #00897B;
 }
 .btn-edit {
     background: #f1f5f9;
@@ -1007,7 +1007,7 @@
     overflow: hidden;
 }
 .report-btn-download {
-    background: #087f5b;
+    background: #009688;
     color: white;
     border: none;
     padding: 8px 14px;
@@ -1019,7 +1019,7 @@
     gap: 6px;
 }
 .report-btn-download:hover {
-    background: #066b4d;
+    background: #00897B;
 }
 .notification-card {
     background: var(--surface-card);
@@ -1034,8 +1034,8 @@
     border-left: 4px solid #cbd5e1;
 }
 .notification-card.unread {
-    border-left-color: #087f5b;
-    background: #f7fdfa;
+    border-left-color: #009688;
+    background: #F0FAF9;
 }
 .notification-card-content h4 {
     margin: 0 0 6px;
@@ -1057,7 +1057,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    color: #087f5b;
+    color: #009688;
     font-weight: 600;
     font-size: 13px;
     margin-left: 10px;
@@ -1086,11 +1086,11 @@
     resize: none;
 }
 .git-message-box textarea:focus {
-    border-color: #087f5b;
+    border-color: #009688;
 }
 .git-message-btn {
     margin-top: 8px;
-    background: #087f5b;
+    background: #009688;
     color: white;
     border: none;
     padding: 6px 12px;
@@ -1100,7 +1100,7 @@
     font-weight: 600;
 }
 .git-message-btn:hover {
-    background: #066b4d;
+    background: #00897B;
 }
 .git-log-container {
     max-height: 250px;
@@ -1268,7 +1268,7 @@
 
 .faculty-sprints .status-badge.todo,
 .faculty-meetings .status-badge.todo,
-.faculty-verify-tasks .status-badge.todo { background: #dbeafe; color: #2563eb; }
+.faculty-verify-tasks .status-badge.todo { background: #E0F2F1; color: #009688; }
 .faculty-sprints .status-badge.in_progress,
 .faculty-meetings .status-badge.in_progress,
 .faculty-verify-tasks .status-badge.in_progress { background: #fce7f3; color: #db2777; }
@@ -1318,7 +1318,7 @@
 .faculty-student-table thead th,
 .project-table-container table thead,
 .project-table-container table thead th {
-    background: #e8f7f1 !important;
+    background: #E0F2F1 !important;
     color: var(--primary) !important;
     border-bottom: 2px solid var(--border-color) !important;
     font-weight: 700 !important;
@@ -1408,7 +1408,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 3px solid #e8f7f1;
+    border: 3px solid #E0F2F1;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -1441,7 +1441,7 @@
 }
 
 .simple-profile-badge {
-    background: #e8f7f1;
+    background: #E0F2F1;
     color: var(--primary);
     padding: 3px 10px;
     border-radius: 12px;

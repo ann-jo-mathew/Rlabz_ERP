@@ -107,7 +107,7 @@
 }
 
 .fin-kpi-card.primary  { background: linear-gradient(135deg, var(--primary), var(--primary-hover)); }
-.fin-kpi-card.teal     { background: linear-gradient(135deg, #0891b2, #0e7490); }
+.fin-kpi-card.teal     { background: linear-gradient(135deg, #00897B, #00796B); }
 .fin-kpi-card.indigo   { background: linear-gradient(135deg, #6366f1, #4f46e5); }
 .fin-kpi-card.purple   { background: linear-gradient(135deg, #a855f7, #9333ea); }
 .fin-kpi-card.warning  { background: linear-gradient(135deg, #f59e0b, #d97706); }
@@ -210,7 +210,7 @@ hr.fin-divider {
 .fin-badge.success { background: var(--border-color); color: var(--primary); }
 .fin-badge.warning { background: #fef3c7; color: #92400e; }
 .fin-badge.danger  { background: #fee2e2; color: #991b1b; }
-.fin-badge.info    { background: #dbeafe; color: #1e40af; }
+.fin-badge.info    { background: #E0F2F1; color: #00695C; }
 .fin-badge.neutral { background: #f1f5f9; color: #475569; }
 .fin-badge.purple  { background: #ede9fe; color: #5b21b6; }
 
@@ -234,9 +234,9 @@ hr.fin-divider {
 .fin-btn.primary {
   background: linear-gradient(135deg, var(--primary), var(--primary-hover));
   color: #fff;
-  box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+  box-shadow: 0 2px 8px rgba(0,150,136,0.3);
 }
-.fin-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,150,105,0.4); }
+.fin-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,150,136,0.4); }
 
 .fin-btn.outline {
   background: transparent;
@@ -440,8 +440,8 @@ hr.fin-divider {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  background: linear-gradient(135deg, rgba(5,150,105,0.04), rgba(5,150,105,0.02));
-  border: 1px solid rgba(5,150,105,0.18);
+  background: linear-gradient(135deg, rgba(0,150,136,0.04), rgba(0,150,136,0.02));
+  border: 1px solid rgba(0,150,136,0.18);
   border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.25rem;
@@ -534,7 +534,7 @@ hr.fin-divider {
 
 /* Designation badges */
 .fin-badge.nova   { background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); }
-.fin-badge.orbit  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.fin-badge.orbit  { background: #E0F2F1; color: #00695C; border: 1px solid #B2DFDB; }
 .fin-badge.spark  { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 .fin-badge.indigo { background: #ede9fe; color: #5b21b6; }
 .fin-badge.primary { background: var(--border-color); color: var(--primary); }
@@ -749,12 +749,12 @@ hr.fin-divider {
   flex-wrap: wrap;
   gap: 1rem;
   background: var(--bg-main);
-  border: 1px solid #bbf7d0;
+  border: 1px solid #B2DFDB;
   border-radius: 6px;
   padding: 8px 12px;
   margin-bottom: 1rem;
   font-size: 0.8rem;
-  color: #166534;
+  color: #00695C;
 }
 
 .finance-invoice-modal .billing-cap-item {

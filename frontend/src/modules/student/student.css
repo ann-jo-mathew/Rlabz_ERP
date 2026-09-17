@@ -106,7 +106,7 @@
   justify-content: center;
   font-size: 1.1rem;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 18, 32, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 150, 136, 0.25);
   flex-shrink: 0;
 }
 
@@ -220,8 +220,8 @@
 
 .student-kpi-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 32px -8px rgba(0, 18, 32, 0.15), 0 4px 12px rgba(0, 0, 0, 0.04);
-  border-color: #6ee7b7;
+  box-shadow: 0 16px 32px -8px rgba(0, 150, 136, 0.15), 0 4px 12px rgba(0, 0, 0, 0.04);
+  border-color: #80CBC4;
 }
 
 .student-kpi-card:hover::before {
@@ -239,7 +239,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 18, 32, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 150, 136, 0.12);
   transition: transform 0.25s ease;
 }
 
@@ -387,7 +387,7 @@
   background: var(--primary);
   border-color: var(--primary);
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 18, 32, 0.22);
+  box-shadow: 0 4px 10px rgba(0, 150, 136, 0.22);
   transform: translateY(-1px);
 }
 
@@ -534,12 +534,12 @@
 .student-btn-primary {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 18, 32, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 150, 136, 0.2);
 }
 
 .student-btn-primary:hover {
   background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
-  box-shadow: 0 6px 16px rgba(0, 18, 32, 0.35);
+  box-shadow: 0 6px 16px rgba(0, 150, 136, 0.35);
   transform: translateY(-1px);
 }
 
@@ -602,7 +602,7 @@
 .student-select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 18, 32, 0.15);
+  box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.15);
 }
 
 .student-input::placeholder,
@@ -903,7 +903,7 @@
 
 .student-calendar-day.active-selected {
   border-color: var(--primary) !important;
-  box-shadow: 0 0 0 2px rgba(0, 18, 32, 0.25);
+  box-shadow: 0 0 0 2px rgba(0, 150, 136, 0.25);
   background: var(--primary-light) !important;
 }
 
@@ -942,7 +942,7 @@
 .student-meeting-item.active-selected {
   border-color: var(--primary) !important;
   background: var(--bg-main) !important;
-  box-shadow: 0 4px 14px rgba(0, 18, 32, 0.12) !important;
+  box-shadow: 0 4px 14px rgba(0, 150, 136, 0.12) !important;
   border-left: 4px solid var(--primary) !important;
 }
 
@@ -1210,7 +1210,7 @@
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   color: #ffffff;
   border-bottom-right-radius: 3px;
-  box-shadow: 0 2px 6px rgba(0, 18, 32, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 150, 136, 0.25);
 }
 
 .student-chat-msg-wrapper.received .student-chat-msg {
@@ -1286,7 +1286,7 @@
   border-color: var(--primary);
   color: var(--primary);
   transform: translateX(-3px);
-  box-shadow: 0 4px 12px rgba(0, 18, 32, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 150, 136, 0.15);
 }
 
 /* Project Detail Card & Header */
@@ -1487,9 +1487,9 @@
 }
 
 .project-info-icon-box.blue {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
+  background: linear-gradient(135deg, #E0F2F1 0%, #B2DFDB 100%);
+  color: #009688;
+  border: 1px solid #B2DFDB;
 }
 
 .project-info-icon-box.amber {
@@ -1615,8 +1615,8 @@
 }
 
 .team-member-card:hover {
-  border-color: #6ee7b7;
-  box-shadow: 0 12px 24px -6px rgba(0, 18, 32, 0.14);
+  border-color: #80CBC4;
+  box-shadow: 0 12px 24px -6px rgba(0, 150, 136, 0.14);
   transform: translateY(-3px);
 }
 
@@ -1636,7 +1636,7 @@
   justify-content: center;
   font-size: 1.15rem;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0, 18, 32, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 150, 136, 0.25);
   margin-bottom: 4px;
 }
 
@@ -1664,7 +1664,7 @@
   padding: 3px 9px;
   border-radius: 20px;
   letter-spacing: 0.02em;
-  box-shadow: 0 2px 6px rgba(0, 18, 32, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 150, 136, 0.25);
 }
 
 .member-name {
@@ -1740,7 +1740,7 @@
 .module-item-card.active {
   background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-main) 100%);
   border-color: var(--primary);
-  box-shadow: 0 4px 14px rgba(0, 18, 32, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 150, 136, 0.12);
 }
 
 .module-icon-box {
@@ -2537,7 +2537,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 18, 32, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 150, 136, 0.12);
   transition: transform 0.2s ease;
 }
 
@@ -2565,7 +2565,7 @@
   border-radius: 12px;
   padding: 12px 16px;
   margin-top: 8px;
-  box-shadow: 0 2px 6px rgba(0, 18, 32, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 150, 136, 0.08);
 }
 
 .student-file-preview-info {
@@ -2676,7 +2676,7 @@
   background: var(--primary);
   border-color: var(--primary);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 18, 32, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 150, 136, 0.25);
   transform: translateY(-1px);
 }
 
@@ -2750,7 +2750,7 @@
   font-weight: 600 !important;
   font-size: 0.9rem !important;
   padding: 10px 22px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 18, 32, 0.2) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 150, 136, 0.2) !important;
   transition: all 0.2s !important;
 }
 
@@ -2818,7 +2818,7 @@
 
 .student-search-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 18, 32, 0.15);
+  box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.15);
 }
 
 .student-filter-select {
@@ -2836,7 +2836,7 @@
 
 .student-filter-select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 18, 32, 0.15);
+  box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.15);
 }
 
 .student-filter-pills {
@@ -2866,7 +2866,7 @@
   background: var(--primary);
   border-color: var(--primary);
   color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 18, 32, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 150, 136, 0.2);
 }
 
 .student-filter-btn-clear {
@@ -3004,14 +3004,14 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 18, 32, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 150, 136, 0.08);
 }
 
 .student-sync-btn:hover {
   background: var(--primary-light);
   border-color: var(--primary);
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(0, 18, 32, 0.15);
+  box-shadow: 0 3px 8px rgba(0, 150, 136, 0.15);
 }
 
 .student-sync-btn:active {
@@ -3069,9 +3069,9 @@
 }
 
 .student-task-status-select.in_progress {
-  background-color: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
+  background-color: #E0F2F1;
+  color: #00897B;
+  border-color: #B2DFDB;
 }
 
 .student-task-status-select.completed {
@@ -3249,13 +3249,13 @@
 .team-member-mini-card.is-me {
   background: var(--bg-main);
   border: 1.5px solid var(--primary);
-  box-shadow: 0 2px 6px rgba(0, 18, 32, 0.12);
+  box-shadow: 0 2px 6px rgba(0, 150, 136, 0.12);
 }
 
 .team-member-mini-card.is-me:hover {
   background: var(--primary-light);
   border-color: var(--primary-hover);
-  box-shadow: 0 4px 12px rgba(0, 18, 32, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 150, 136, 0.2);
 }
 
 .member-mini-avatar {
@@ -3270,7 +3270,7 @@
   color: #ffffff;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 18, 32, 0.25);
+  box-shadow: 0 2px 4px rgba(0, 150, 136, 0.25);
 }
 
 .member-mini-avatar.is-lead {
@@ -3317,7 +3317,7 @@
   border-radius: 12px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  box-shadow: 0 1px 3px rgba(0, 18, 32, 0.35);
+  box-shadow: 0 1px 3px rgba(0, 150, 136, 0.35);
   flex-shrink: 0;
 }
 
@@ -3744,9 +3744,9 @@
 .weekly-task-id-badge {
   font-size: 0.72rem;
   font-weight: 700;
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
+  background: #E0F2F1;
+  color: #009688;
+  border: 1px solid #B2DFDB;
   padding: 2px 7px;
   border-radius: 6px;
   font-family: monospace;
@@ -3847,9 +3847,9 @@
   font-family: monospace;
   font-size: 0.72rem;
   font-weight: 700;
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #dbeafe;
+  background: #E0F2F1;
+  color: #00897B;
+  border: 1px solid #B2DFDB;
   padding: 1px 5px;
   border-radius: 4px;
   margin-bottom: 2px;

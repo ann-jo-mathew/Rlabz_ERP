@@ -314,18 +314,18 @@ export async function FinanceDashboard(route, router) {
         </div>
         <div class="fin-legend" style="margin-top:1.25rem">
           <div class="fin-legend-item">
-            <span class="fin-legend-dot" style="background:var(--primary)"></span>
+            <span class="fin-legend-dot" style="background:#004D40"></span>
             <span class="leg-label">Student Payroll</span>
             <span class="leg-pct">${fmt(summary.totalPayroll)}</span>
           </div>
           <div class="fin-legend-item">
-            <span class="fin-legend-dot" style="background:#0891b2"></span>
+            <span class="fin-legend-dot" style="background:#26A69A"></span>
             <span class="leg-label">Faculty Honorarium</span>
             <span class="leg-pct">${fmt(summary.totalFaculty)}</span>
           </div>
           <div class="fin-legend-item">
-            <span class="fin-legend-dot" style="background:#6366f1"></span>
-            <span class="leg-label">Hosting & Other Costs</span>
+            <span class="fin-legend-dot" style="background:#80CBC4"></span>
+            <span class="leg-label">Hosting &amp; Other Costs</span>
             <span class="leg-pct">${fmt(summary.totalOtherExpenses)}</span>
           </div>
           <div class="fin-legend-item">
@@ -414,19 +414,19 @@ export async function FinanceDashboard(route, router) {
   const Chart = await loadChartJs();
 
   const COLORS = {
-    primary: 'var(--primary)',
-    teal: '#0891b2',
-    indigo: '#6366f1',
-    warning: '#f59e0b',
-    danger: '#ef4444',
-    grid: 'var(--border-subtle)',
-    text: 'var(--text-muted)',
+    primary:  '#009688',   /* teal-500 — Received / Student Payroll */
+    teal:     '#26A69A',   /* teal-400 — Faculty Honorarium         */
+    indigo:   '#6366f1',   /* indigo   — Hosting & Other            */
+    warning:  '#f59e0b',   /* amber    — Maintenance / Outstanding   */
+    danger:   '#ef4444',   /* red      — Unbilled                   */
+    grid:     '#B2DFDB',   /* teal-100 — grid lines                  */
+    text:     '#5E7B76',   /* muted teal text                        */
   };
 
   const tooltipDefaults = {
-    backgroundColor: '#0f172a',
-    titleColor: '#e2e8f0',
-    bodyColor: '#94a3b8',
+    backgroundColor: '#004D40',
+    titleColor: '#E0F2F1',
+    bodyColor: '#80CBC4',
     padding: 12,
     cornerRadius: 8,
     displayColors: true,
@@ -439,7 +439,7 @@ export async function FinanceDashboard(route, router) {
       labels: ['Student Payroll', 'Faculty/Resource', 'Hosting & Other', 'Maintenance & Support'],
       datasets: [{
         data: [summary.totalPayroll, summary.totalFaculty, summary.totalOtherExpenses, summary.totalMaintenance || 0],
-        backgroundColor: [COLORS.primary, COLORS.teal, COLORS.indigo, '#f59e0b'],
+        backgroundColor: ['#004D40', '#26A69A', '#80CBC4', '#f59e0b'],
         borderWidth: 2,
         borderColor: '#ffffff',
         hoverOffset: 8,

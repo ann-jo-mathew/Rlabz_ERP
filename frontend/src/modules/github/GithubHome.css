@@ -49,7 +49,7 @@
 }
 
 .faculty-github-search input:focus {
-    border-color: #0ca678;
+    border-color: #009688;
     box-shadow: 0 0 0 3px rgba(12, 166, 120, 0.1);
 }
 
@@ -95,8 +95,8 @@
 }
 
 .faculty-github .github-status-verified {
-    background: #e6f7ef;
-    color: #087f5b;
+    background: #E0F2F1;
+    color: #009688;
 }
 
 .faculty-github .github-status-pending {
@@ -178,18 +178,18 @@
 
 .faculty-github .github-verify-button {
     border: none;
-    background: #0ca678;
+    background: #009688;
     color: white;
 }
 
 .faculty-github .github-verify-button:hover {
-    background: #087f5b;
+    background: #009688;
 }
 
 .faculty-github .github-verified-button {
-    border: 1px solid #b7e4d2;
-    background: #e6f7ef;
-    color: #087f5b;
+    border: 1px solid #B2DFDB;
+    background: #E0F2F1;
+    color: #009688;
 }
 
 /* Empty search */

@@ -314,7 +314,7 @@
 }
 
 .kpi-segment.nova { background: #9333ea; }
-.kpi-segment.orbit { background: #0284c7; }
+.kpi-segment.orbit { background: #4DB6AC; }
 .kpi-segment.spark { background: var(--primary); }
 
 .track-badge-micro {
@@ -431,17 +431,17 @@
   box-shadow: 0 14px 28px rgba(4, 120, 87, 0.42) !important;
 }
 
-/* Card 2: Vibrant Teal (Pending Proposals) */
+/* Card 2: Material Teal (Pending Proposals) */
 .director-kpi-card.kpi-teal {
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+  background: linear-gradient(135deg, #00897B 0%, #00796B 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
   border-radius: 20px !important;
-  box-shadow: 0 8px 24px -4px rgba(8, 145, 178, 0.32) !important;
+  box-shadow: 0 8px 24px -4px rgba(0, 150, 136, 0.32) !important;
 }
 
 .director-kpi-card.kpi-teal:hover {
   border-color: rgba(255, 255, 255, 0.35) !important;
-  box-shadow: 0 14px 28px rgba(8, 145, 178, 0.42) !important;
+  box-shadow: 0 14px 28px rgba(0, 150, 136, 0.42) !important;
 }
 
 /* Card 3: Royal Indigo/Purple (Student Talent Pool) */
@@ -595,8 +595,8 @@
 }
 
 :is(.director-kpi-grid > .director-kpi-card:first-child, .director-kpi-card[class*="kpi-"]) .kpi-segment.nova { background: #d8b4fe !important; }
-:is(.director-kpi-grid > .director-kpi-card:first-child, .director-kpi-card[class*="kpi-"]) .kpi-segment.orbit { background: #7dd3fc !important; }
-:is(.director-kpi-grid > .director-kpi-card:first-child, .director-kpi-card[class*="kpi-"]) .kpi-segment.spark { background: #86efac !important; }
+:is(.director-kpi-grid > .director-kpi-card:first-child, .director-kpi-card[class*="kpi-"]) .kpi-segment.orbit { background: #80CBC4 !important; }
+:is(.director-kpi-grid > .director-kpi-card:first-child, .director-kpi-card[class*="kpi-"]) .kpi-segment.spark { background: #E0F2F1 !important; }
 
 :is(.director-kpi-grid > .director-kpi-card:first-child, .director-kpi-card[class*="kpi-"]) .track-badge-micro {
   background: rgba(0, 0, 0, 0.25) !important;
