@@ -33,8 +33,6 @@ class AdminUserSeeder extends Seeder
             'project.close',
             'project.assign_faculty',
             'project.assign_students',
-            'project.module.create',
-            'project.task.create',
             'project.task.update',
             'project.submission.review',
             'project.client_requirements.view',

@@ -15,6 +15,11 @@ class ProjectTaskController extends Controller
     {
         $user = $request->input('auth_user');
         $role = $user['role'] ?? '';
+
+        // Admin and Director are explicitly prohibited from creating modules and tasks
+        if (in_array($permission, ['project.module.create', 'project.task.create']) && in_array($role, ['admin', 'director'])) {
+            abort(403, 'Forbidden: ' . ucfirst($role) . ' is not permitted to create modules or tasks');
+        }
         
         // Allow role-based bypass for specific permissions. Module/task creation and
         // status updates are a Faculty responsibility — Coordinator is intentionally

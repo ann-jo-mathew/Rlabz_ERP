@@ -85,7 +85,7 @@ class AdminUserController extends Controller
             'system.admin', 'admin.manage_users', 'admin.manage_permissions', 'admin.reset_passwords', 'admin.audit_logs',
             'view-dashboard', 'view-coordinator', 'view-faculty', 'view-finance', 'view-finance-readonly', 'view-student',
             'view-student-designations', 'view-projects', 'project.view_global', 'project.view_assigned', 'project.create',
-            'project.close', 'project.assign_faculty', 'project.assign_students', 'project.module.create', 'project.task.create',
+            'project.close', 'project.assign_faculty', 'project.assign_students',
             'project.task.update', 'project.submission.review', 'project.client_requirements.view', 'project.client_requirements.create',
             'project.client_requirements.update', 'view-design', 'design.create', 'design.review', 'design.approve', 'view-github',
             'view-communication', 'view-certificates', 'view-certificates-read', 'view-audit-notifications'

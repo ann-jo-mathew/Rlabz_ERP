@@ -13,8 +13,8 @@ export async function ProjectDetails(route, router) {
 
   // Helper to determine if permissions allow actions
   const canViewAssignments = role === 'director' || role === 'coordinator' || role === 'developer';
-  const canCreateTask = (permissions.includes('project.task.create') || role === 'faculty' || role === 'coordinator' || role === 'developer') && role !== 'director';
-  const canCreateModule = (permissions.includes('project.module.create') || role === 'faculty' || role === 'coordinator' || role === 'developer') && role !== 'director';
+  const canCreateTask = (permissions.includes('project.task.create') || role === 'faculty' || role === 'coordinator' || role === 'developer') && role !== 'director' && role !== 'admin';
+  const canCreateModule = (permissions.includes('project.module.create') || role === 'faculty' || role === 'coordinator' || role === 'developer') && role !== 'director' && role !== 'admin';
   
   container.innerHTML = `
     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
