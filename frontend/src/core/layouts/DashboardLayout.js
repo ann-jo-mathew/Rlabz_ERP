@@ -533,11 +533,20 @@ export async function DashboardLayout(contentChild, route, router) {
   }
 
   wrapper.innerHTML = `
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo" id="sidebar-logo-link" role="link" tabindex="0" title="Go to dashboard" style="cursor: pointer;">
           <img src="/assets/Rlabz_Logo_dark.png" alt="RLabZ ERP" class="sidebar-watermark" style="height: 84px; width: auto;" />
         </div>
+        <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close navigation menu" title="Close navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="18" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <nav class="sidebar-nav">
       </nav>
@@ -545,7 +554,16 @@ export async function DashboardLayout(contentChild, route, router) {
 
     <div class="main-wrapper">
       <header class="topbar">
-        <div class="topbar-title">${topbarTitle}</div>
+        <div class="topbar-left">
+          <button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="Toggle navigation menu" title="Open navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="topbar-title">${topbarTitle}</div>
+        </div>
         <div style="display:flex; align-items:center; gap:0.85rem;">
           <div class="user-profile" id="user-profile-header">
           <div class="avatar" style="${headerPhoto ? 'padding: 0; overflow: hidden;' : ''}">
@@ -652,6 +670,38 @@ export async function DashboardLayout(contentChild, route, router) {
   // Populate sidebar navigation
   const sidebarNav = wrapper.querySelector('.sidebar-nav');
   populateSidebarNav(sidebarNav, currentPath, authStore);
+
+  // Mobile Off-Canvas Sidebar Controls
+  const mobileToggleBtn = wrapper.querySelector('#mobile-sidebar-toggle');
+  const sidebarCloseBtn = wrapper.querySelector('#sidebar-close-btn');
+  const sidebarBackdrop = wrapper.querySelector('#sidebar-backdrop');
+  const sidebarEl = wrapper.querySelector('.sidebar');
+
+  const openMobileSidebar = () => {
+    if (sidebarEl) sidebarEl.classList.add('mobile-open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.add('active');
+    document.body.classList.add('sidebar-open-locked');
+  };
+
+  const closeMobileSidebar = () => {
+    if (sidebarEl) sidebarEl.classList.remove('mobile-open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+    document.body.classList.remove('sidebar-open-locked');
+  };
+
+  if (mobileToggleBtn) mobileToggleBtn.addEventListener('click', openMobileSidebar);
+  if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeMobileSidebar);
+  if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+  // Auto-close on nav link click on mobile
+  if (sidebarNav) {
+    sidebarNav.addEventListener('click', (e) => {
+      const link = e.target.closest('a');
+      if (link && window.innerWidth <= 992) {
+        closeMobileSidebar();
+      }
+    });
+  }
 
   // Native Notification Drawer Controls (Matching Finance Dashboard)
   const bellBtn = wrapper.querySelector('#fin-bell-btn');

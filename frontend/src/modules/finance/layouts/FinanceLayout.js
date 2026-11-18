@@ -73,11 +73,20 @@ export async function FinanceLayout(contentChild, route, router) {
   }
 
   wrapper.innerHTML = `
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="finance-sidebar-backdrop"></div>
+
     <aside class="sidebar finance-sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <img src="/assets/Rlabz_Logo_dark.png" alt="RLabZ ERP" class="sidebar-watermark" style="height: 84px; width: auto;" />
         </div>
+        <button class="sidebar-close-btn" id="finance-sidebar-close-btn" aria-label="Close navigation menu" title="Close navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="18" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <!-- NOTE: Deliberately avoiding .sidebar-nav class to prevent core router from overriding this -->
       <nav class="finance-sidebar-nav sidebar-nav-container">
@@ -89,7 +98,16 @@ export async function FinanceLayout(contentChild, route, router) {
 
     <div class="main-wrapper finance-main-wrapper">
       <header class="topbar">
-        <div class="topbar-title">${topbarTitle}</div>
+        <div class="topbar-left">
+          <button class="mobile-sidebar-toggle" id="finance-mobile-sidebar-toggle" aria-label="Toggle navigation menu" title="Open navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="topbar-title">${topbarTitle}</div>
+        </div>
         <div style="display:flex; align-items:center; gap: 0.85rem;">
           <div class="user-profile" id="finance-user-profile-header" style="position: relative; cursor: pointer;" title="View Profile & Settings">
             <div class="avatar" id="finance-topbar-avatar">${initial}</div>
@@ -154,6 +172,38 @@ export async function FinanceLayout(contentChild, route, router) {
     } else {
       outlet.appendChild(contentChild);
     }
+  }
+
+  // Mobile Off-Canvas Sidebar Controls
+  const mobileToggleBtn = wrapper.querySelector('#finance-mobile-sidebar-toggle');
+  const sidebarCloseBtn = wrapper.querySelector('#finance-sidebar-close-btn');
+  const sidebarBackdrop = wrapper.querySelector('#finance-sidebar-backdrop');
+  const sidebarEl = wrapper.querySelector('.finance-sidebar');
+  const finSidebarNav = wrapper.querySelector('.finance-sidebar-nav');
+
+  const openMobileSidebar = () => {
+    if (sidebarEl) sidebarEl.classList.add('mobile-open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.add('active');
+    document.body.classList.add('sidebar-open-locked');
+  };
+
+  const closeMobileSidebar = () => {
+    if (sidebarEl) sidebarEl.classList.remove('mobile-open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+    document.body.classList.remove('sidebar-open-locked');
+  };
+
+  if (mobileToggleBtn) mobileToggleBtn.addEventListener('click', openMobileSidebar);
+  if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeMobileSidebar);
+  if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+  if (finSidebarNav) {
+    finSidebarNav.addEventListener('click', (e) => {
+      const link = e.target.closest('a');
+      if (link && window.innerWidth <= 992) {
+        closeMobileSidebar();
+      }
+    });
   }
 
   // Bind User Profile Header Click & Popover

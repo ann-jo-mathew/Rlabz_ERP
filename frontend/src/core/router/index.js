@@ -250,6 +250,12 @@ class VanillaRouter {
       }
       // ─── Fix 2: use pre-resolved updateSidebar — no await on every nav ───
       if (_updateSidebar) _updateSidebar(currentPath);
+
+      // Auto-close any mobile sidebar open on mobile viewports
+      document.querySelectorAll('.sidebar.mobile-open').forEach(s => s.classList.remove('mobile-open'));
+      document.querySelectorAll('.sidebar-backdrop.active').forEach(b => b.classList.remove('active'));
+      document.body.classList.remove('sidebar-open-locked');
+
       // Update topbar title
       const topbarTitle = this.container.querySelector('.topbar-title');
       if (topbarTitle) {
