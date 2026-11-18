@@ -213,11 +213,11 @@ export async function CoordinatorMeetings(route, router) {
             <input type="text" id="meeting-location" placeholder="e.g. Seminar Hall, Room 204">
           </div>
 
-          <!-- Shown (and required) only when Mode = Online -->
+          <!-- Shown when Mode = Online (optional) -->
           <div class="coordinator-form-group" id="meeting-link-group" hidden>
-            <label for="meeting-link">Meeting Link *</label>
+            <label for="meeting-link">Meeting Link</label>
             <input type="url" id="meeting-link" placeholder="https://meet.google.com/xyz-abc-def" inputmode="url" autocomplete="off">
-            <small style="color:#6b7280; margin-top:0.25rem;">Teams, Google Meet or Zoom link (must start with http:// or https://).</small>
+            <small style="color:#6b7280; margin-top:0.25rem;">Teams, Google Meet or Zoom link (optional; must start with http:// or https://).</small>
           </div>
 
           <div class="coordinator-form-group full-width">
@@ -424,7 +424,7 @@ export async function CoordinatorMeetings(route, router) {
       const isOnline = modeSelect?.value === 'Online';
       if (linkGroup) linkGroup.hidden = !isOnline;
       if (linkInput) {
-        linkInput.required = isOnline;
+        linkInput.required = false;
         if (!isOnline) linkInput.value = '';
       }
     }
@@ -450,11 +450,9 @@ export async function CoordinatorMeetings(route, router) {
         return;
       }
 
-      if (mode === 'Online' && !isHttpUrl(meetingLink)) {
+      if (mode === 'Online' && meetingLink && !isHttpUrl(meetingLink)) {
         // Inline message on the field itself, so the rest of the form isn't reset.
-        linkInput.setCustomValidity(meetingLink
-          ? 'Enter a valid meeting link starting with http:// or https://'
-          : 'A meeting link is required for online meetings.');
+        linkInput.setCustomValidity('Enter a valid meeting link starting with http:// or https://');
         linkInput.reportValidity();
         linkInput.addEventListener('input', () => linkInput.setCustomValidity(''), { once: true });
         return;

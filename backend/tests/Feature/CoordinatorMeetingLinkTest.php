@@ -52,10 +52,10 @@ class CoordinatorMeetingLinkTest extends TestCase
         ], $overrides));
     }
 
-    public function test_online_meeting_requires_a_link(): void
+    public function test_online_meeting_does_not_require_a_link(): void
     {
-        $this->schedule(['mode' => 'Online'])->assertStatus(422)->assertJsonValidationErrors('meeting_link');
-        $this->schedule(['mode' => 'Online', 'meeting_link' => ''])->assertStatus(422)->assertJsonValidationErrors('meeting_link');
+        $this->schedule(['mode' => 'Online'])->assertStatus(201);
+        $this->schedule(['mode' => 'Online', 'meeting_link' => ''])->assertStatus(201);
     }
 
     public function test_online_meeting_link_must_be_http_or_https(): void

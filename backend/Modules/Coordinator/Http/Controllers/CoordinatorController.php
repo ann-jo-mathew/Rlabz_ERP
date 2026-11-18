@@ -758,10 +758,9 @@ class CoordinatorController extends Controller
             'location' => 'nullable|string|max:255',
             'mode' => 'nullable|string|in:Offline,Online',
             'agenda' => 'nullable|string',
-            // Required (and must be an http/https URL) only for Online meetings.
-            'meeting_link' => ['nullable', 'required_if:mode,Online', 'string', 'max:500', 'url', 'regex:/^https?:\/\//i'],
+            // Optional for all meetings (not compulsory); if provided, must be a valid http/https URL.
+            'meeting_link' => ['nullable', 'string', 'max:500', 'url', 'regex:/^https?:\/\//i'],
         ], [
-            'meeting_link.required_if' => 'A meeting link is required for online meetings.',
             'meeting_link.url' => 'The meeting link must be a valid http:// or https:// URL.',
             'meeting_link.regex' => 'The meeting link must be a valid http:// or https:// URL.',
         ]);
@@ -784,7 +783,7 @@ class CoordinatorController extends Controller
             'location' => $validated['location'] ?? null,
             'mode' => $validated['mode'] ?? null,
             'agenda' => $validated['agenda'] ?? null,
-            'meeting_link' => $validated['meeting_link'] ?? null,
+            'meeting_link' => ($validated['mode'] ?? null) === 'Offline' ? null : ($validated['meeting_link'] ?? null),
             'status' => 'scheduled',
             'created_by' => $this->currentUserId($request) ?? $request->user()?->id,
             'created_at' => now(),
