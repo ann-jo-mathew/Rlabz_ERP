@@ -595,7 +595,7 @@ export function FacultyChat(route, router) {
                             autocomplete="off"
                             style="flex: 1; min-width: 0; height: 44px; padding: 0 1rem; border-radius: 8px; border: 1px solid var(--border-color, #cbd5e1); font-size: 0.92rem; outline: none; background: var(--bg-canvas-light, #f8fafc);" 
                         />
-                        <button type="submit" id="btn-send-chat-msg" class="btn btn-primary" style="width: auto !important; flex-shrink: 0; height: 44px; padding: 0 1.5rem; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap;">
+                        <button type="submit" id="btn-send-chat-msg" class="btn btn-primary btn-sm" style="flex: 0 0 auto !important; width: auto !important; height: 44px; padding: 0 1.5rem !important; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap;">
                             <span>Send</span>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>
@@ -813,7 +813,7 @@ export function FacultyChat(route, router) {
                             autocomplete="off"
                             style="flex: 1; min-width: 0; height: 44px; padding: 0 1rem; border-radius: 8px; border: 1px solid var(--border-color, #cbd5e1); font-size: 0.92rem; outline: none; background: var(--bg-canvas-light, #f8fafc);" 
                         />
-                        <button type="submit" id="btn-send-chat-msg" class="btn btn-primary" style="width: auto !important; flex-shrink: 0; height: 44px; padding: 0 1.5rem; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap;">
+                        <button type="submit" id="btn-send-chat-msg" class="btn btn-primary btn-sm" style="flex: 0 0 auto !important; width: auto !important; height: 44px; padding: 0 1.5rem !important; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap;">
                             <span>Send</span>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>

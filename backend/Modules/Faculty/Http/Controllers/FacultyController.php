@@ -34,6 +34,13 @@ class FacultyController extends Controller
                     return $payload['sub'];
                 }
             }
+            if (str_contains($token, '|')) {
+                [$tokenId, $tokenPlain] = explode('|', $token, 2);
+                $pat = DB::table('personal_access_tokens')->where('id', $tokenId)->first();
+                if ($pat && $pat->tokenable_id) {
+                    return (int) $pat->tokenable_id;
+                }
+            }
         }
 
         // 3. Check query parameter or header
@@ -531,14 +538,13 @@ class FacultyController extends Controller
             ->leftJoin('student_profiles', 'student_profiles.student_id', '=', 'users.id')
             ->join('projects', 'projects.id', '=', 'project_student.project_id');
 
-        // If faculty has assigned projects, include only students under those projects,
-        // but retrieve ALL projects those students are part of!
-        if ($projectIds->isNotEmpty()) {
-            if ($facultyStudentIds->isEmpty()) {
-                return response()->json([]);
-            }
-            $query->whereIn('project_student.student_id', $facultyStudentIds);
+        // If faculty has no assigned projects, return empty list
+        if ($projectIds->isEmpty()) {
+            return response()->json([]);
         }
+
+        // Only include students working on projects assigned to this faculty!
+        $query->whereIn('project_student.project_id', $projectIds);
 
         $studentRecords = $query->select(
             'users.id as student_id',
@@ -580,23 +586,24 @@ class FacultyController extends Controller
             });
 
         // Also calculate average ratings from student_work_logs table for each student per project
-        $workLogRatings = DB::table('student_work_logs')
-            ->join('project_student', 'project_student.id', '=', 'student_work_logs.project_student_id')
-            ->where(function ($q) {
-                $q->whereNotNull('student_work_logs.rating')
-                  ->orWhereNotNull('student_work_logs.ratings');
-            })
-            ->select(
-                'project_student.student_id',
-                'project_student.project_id',
-                DB::raw('ROUND(AVG(COALESCE(student_work_logs.rating, student_work_logs.ratings)), 1) as avg_rating'),
-                DB::raw('COUNT(student_work_logs.id) as rated_tasks_count')
-            )
-            ->groupBy('project_student.student_id', 'project_student.project_id')
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->student_id . '_' . $item->project_id;
-            });
+        $workLogCol = Schema::hasColumn('student_work_logs', 'rating') ? 'rating' : (Schema::hasColumn('student_work_logs', 'ratings') ? 'ratings' : null);
+        $workLogRatings = collect();
+        if ($workLogCol) {
+            $workLogRatings = DB::table('student_work_logs')
+                ->join('project_student', 'project_student.id', '=', 'student_work_logs.project_student_id')
+                ->whereNotNull("student_work_logs.{$workLogCol}")
+                ->select(
+                    'project_student.student_id',
+                    'project_student.project_id',
+                    DB::raw("ROUND(AVG(student_work_logs.{$workLogCol}), 1) as avg_rating"),
+                    DB::raw('COUNT(student_work_logs.id) as rated_tasks_count')
+                )
+                ->groupBy('project_student.student_id', 'project_student.project_id')
+                ->get()
+                ->keyBy(function ($item) {
+                    return $item->student_id . '_' . $item->project_id;
+                });
+        }
 
         $students = $studentRecords->map(function ($s) use ($taskRatings, $workLogRatings, $projectIds) {
             $key = $s->student_id . '_' . $s->project_id;

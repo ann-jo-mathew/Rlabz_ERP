@@ -331,20 +331,11 @@ export function FacultyStudents() {
                 const data = await res.json();
                 students = groupStudents(Array.isArray(data) ? data : []);
             } else {
-                // Fallback default sample for assigned projects
-                students = groupStudents([
-                    { student_name: 'Student Nova', student_email: 'nova@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Nova' },
-                    { student_name: 'Student Orbit', student_email: 'orbit@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Orbit' },
-                    { student_name: 'Student Spark', student_email: 'spark@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Spark' }
-                ]);
+                students = [];
             }
         } catch (err) {
-            console.warn('Could not fetch students from API, using fallback data:', err);
-            students = groupStudents([
-                { student_name: 'Student Nova', student_email: 'nova@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Nova' },
-                { student_name: 'Student Orbit', student_email: 'orbit@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Orbit' },
-                { student_name: 'Student Spark', student_email: 'spark@rajagiri.edu', project_name: 'RLabZ ERP - Student Portal', designation: 'Spark' }
-            ]);
+            console.warn('Could not fetch students from API:', err);
+            students = [];
         } finally {
             isLoading = false;
             const tableBody = container.querySelector('#faculty-student-table-body');
