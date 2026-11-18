@@ -2,6 +2,13 @@ import { modules } from '../../module-manifest.js';
 import { authGuard, getSafeDefaultRoute } from '../guards/authGuard.js';
 import { useAuthStore } from '../stores/auth.js';
 
+// ─── Fix 2: static import — resolved once, no await on every navigation ──────
+let _updateSidebar = null;
+import('../layouts/DashboardLayout.js').then(m => { _updateSidebar = m.updateSidebar; });
+
+// ─── Fix 1: module-factory cache — dynamic import runs only once per route ───
+const _componentFactoryCache = new Map();
+
 class VanillaRouter {
   constructor() {
     this.routes = [];
@@ -161,33 +168,52 @@ class VanillaRouter {
 
     let outlet = null;
 
+    // ─── Fix 3: delayed spinner — only show if load takes > 80ms ─────────────
+    let spinnerTimer = null;
+    const showSpinner = () => {
+      if (isSameLayout) {
+        outlet = this.container.querySelector('#layout-outlet');
+        if (outlet) {
+          outlet.innerHTML = '<div class="spinner" style="border-top-color: var(--primary); margin: 40px auto; display: block; width: 32px; height: 32px;"></div>';
+        }
+      } else {
+        this.container.innerHTML = '<div class="spinner" style="border-top-color: var(--primary); margin: 40px auto; display: block; width: 32px; height: 32px;"></div>';
+      }
+    };
+
     if (isSameLayout) {
       outlet = this.container.querySelector('#layout-outlet');
-      if (outlet) {
-        outlet.innerHTML = '<div class="spinner" style="border-top-color: var(--primary); margin: 40px auto; display: block; width: 32px; height: 32px;"></div>';
-      }
-    } else {
-      this.container.innerHTML = '<div class="spinner" style="border-top-color: var(--primary); margin: 40px auto; display: block; width: 32px; height: 32px;"></div>';
     }
 
+    spinnerTimer = setTimeout(showSpinner, 80);
+
     let contentElement = null;
-    
+
     try {
       if (route.component) {
         let componentDef = route.component;
         if (typeof componentDef === 'function' && componentDef.name !== 'DashboardLayout') {
-          const result = componentDef(route, this);
-          if (result && typeof result.then === 'function') {
-            const module = await result;
-            if (this.navId !== currentNavId) return;
-            componentDef = module.default || module;
-            if (typeof componentDef === 'function') {
-              contentElement = await componentDef(route, this);
-            } else {
-              contentElement = componentDef;
-            }
+          // ─── Fix 1: use cached factory if available ───────────────────────
+          const cacheKey = route.name || route.path;
+          if (_componentFactoryCache.has(cacheKey)) {
+            const cachedFactory = _componentFactoryCache.get(cacheKey);
+            contentElement = await cachedFactory(route, this);
           } else {
-            contentElement = result;
+            const result = componentDef(route, this);
+            if (result && typeof result.then === 'function') {
+              const mod = await result;
+              if (this.navId !== currentNavId) { clearTimeout(spinnerTimer); return; }
+              const factory = mod.default || mod;
+              if (typeof factory === 'function') {
+                // Cache the resolved factory for future navigations
+                _componentFactoryCache.set(cacheKey, factory);
+                contentElement = await factory(route, this);
+              } else {
+                contentElement = factory;
+              }
+            } else {
+              contentElement = result;
+            }
           }
         } else if (componentDef && typeof componentDef.render === 'function') {
           contentElement = await componentDef.render(route, this);
@@ -198,6 +224,8 @@ class VanillaRouter {
       contentElement = document.createElement('div');
       contentElement.innerHTML = `<div class="alert-error" style="margin: 2rem;"><strong>Failed to load view content:</strong><pre style="white-space: pre-wrap; font-size: 0.85rem; margin-top: 0.5rem;">${(e && e.stack) || (e && e.message) || String(e)}</pre></div>`;
     }
+
+    clearTimeout(spinnerTimer);
 
     if (this.navId !== currentNavId) return;
 
@@ -220,8 +248,8 @@ class VanillaRouter {
       if (outlet) {
         outlet.classList.toggle('student-content-outlet', isStudentPortal);
       }
-      const { updateSidebar } = await import('../layouts/DashboardLayout.js');
-      updateSidebar(currentPath);
+      // ─── Fix 2: use pre-resolved updateSidebar — no await on every nav ───
+      if (_updateSidebar) _updateSidebar(currentPath);
       // Update topbar title
       const topbarTitle = this.container.querySelector('.topbar-title');
       if (topbarTitle) {

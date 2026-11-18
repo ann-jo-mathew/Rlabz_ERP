@@ -17,9 +17,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             DevUserSeeder::class,
-            ProjectSeeder::class,
-            FullDatabaseDemoSeeder::class,
-            ProjectDummyFinanceAndTaskSeeder::class,
+            // RLabZProjectsSeeder handles all 16 real projects, students,
+            // faculty, finance, modules, tasks and work logs.
+            // The old demo seeders (ProjectSeeder, FullDatabaseDemoSeeder,
+            // ProjectDummyFinanceAndTaskSeeder) are intentionally excluded.
+            RLabZProjectsSeeder::class,
             DesignModuleSeeder::class,
         ]);
     }

@@ -4,6 +4,8 @@
  */
 
 import { API_BASE } from '../config/api.js';
+import { bustCache } from '../utils/fetchCache.js';
+import { invalidateRouteCache } from '../guards/authGuard.js';
 
 class AuthStore {
   constructor() {

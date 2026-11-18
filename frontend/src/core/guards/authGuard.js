@@ -19,9 +19,20 @@ const MODULE_PATH_MAP = {
   profile: '/profile'
 };
 
+// ─── Fix 4: cache getSafeDefaultRoute per token — avoids re-scanning all
+//            modules on every single navigation event ────────────────────────
+let _routeCache = { token: null, role: null, route: null };
+
 export function getSafeDefaultRoute(authStore) {
   if (!authStore || !authStore.isAuthenticated) {
     return '/login';
+  }
+
+  // Return cached result when nothing about the session has changed
+  const token = authStore.token;
+  const role  = authStore.role;
+  if (_routeCache.token === token && _routeCache.role === role && _routeCache.route) {
+    return _routeCache.route;
   }
 
   // 1. If user object has a defaultRoute, verify user actually has permission for it
@@ -39,6 +50,7 @@ export function getSafeDefaultRoute(authStore) {
       const hasRole = !targetMod.allowedRoles || targetMod.allowedRoles.includes(userRole);
       
       if (hasMod && hasAnyPerm && (hasRole || modName === 'admin')) {
+        _routeCache = { token, role, route: cand };
         return cand;
       }
     }
@@ -56,10 +68,18 @@ export function getSafeDefaultRoute(authStore) {
 
     if (mod.requiredAnyPermissions && !mod.requiredAnyPermissions.some(p => authStore.permissions?.includes(p))) continue;
 
-    return mod.path || MODULE_PATH_MAP[mod.name] || '/profile';
+    const result = mod.path || MODULE_PATH_MAP[mod.name] || '/profile';
+    _routeCache = { token, role, route: result };
+    return result;
   }
 
+  _routeCache = { token, role, route: '/profile' };
   return '/profile';
+}
+
+// Invalidate the cache on logout so the next login gets a fresh computation
+export function invalidateRouteCache() {
+  _routeCache = { token: null, role: null, route: null };
 }
 
 export function authGuard(to, from, next) {
