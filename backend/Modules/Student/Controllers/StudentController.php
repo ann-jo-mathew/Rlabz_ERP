@@ -27,6 +27,16 @@ class StudentController extends Controller
         if ($user) {
             return $user->id ?? null;
         }
+        $token = $request->bearerToken() ?: $request->query('token');
+        if ($token) {
+            $parts = explode('.', $token);
+            if (count($parts) === 3) {
+                $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+                if (isset($payload['sub'])) {
+                    return $payload['sub'];
+                }
+            }
+        }
         return null;
     }
 
@@ -1545,6 +1555,25 @@ class StudentController extends Controller
         return response()->json($meetings);
     }
 
+    private function ensureChatParticipant($chatId, $userId)
+    {
+        if (!$chatId || !$userId) return;
+        $exists = DB::table('chat_participants')
+            ->where('chat_id', $chatId)
+            ->where('user_id', $userId)
+            ->exists();
+
+        if (!$exists) {
+            DB::table('chat_participants')->insert([
+                'chat_id' => $chatId,
+                'user_id' => $userId,
+                'joined_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+    }
+
     public function getChatMessages(Request $request, $projectId)
     {
         $studentId = $this->getStudentId($request);
@@ -1552,32 +1581,104 @@ class StudentController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $chat = DB::table('chats')->where('project_id', $projectId)->first();
-        if (!$chat) {
-            $chatId = DB::table('chats')->insertGetId([
-                'project_id' => $projectId,
-                'title' => 'Project Chat',
-                'created_by' => $studentId,
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+        $type = $request->query('type', null);
+
+        // Find assigned faculty for this project
+        $facultyId = DB::table('project_faculty')
+            ->where('project_id', $projectId)
+            ->value('faculty_id');
+
+        // If type not explicitly specified, prioritize individual chat with supervisor if faculty exists
+        if (!$type) {
+            $hasIndividualChat = false;
+            if ($facultyId) {
+                $hasIndividualChat = DB::table('chats')
+                    ->where('project_id', $projectId)
+                    ->where('title', "Individual: Faculty-{$facultyId}_Student-{$studentId}")
+                    ->exists();
+            }
+            $type = ($hasIndividualChat || $facultyId) ? 'individual' : 'group';
+        }
+
+        if ($type === 'individual' && $facultyId) {
+            // Find or create 1-on-1 chat with assigned supervisor
+            $chat = DB::table('chats')
+                ->where('project_id', $projectId)
+                ->where('title', "Individual: Faculty-{$facultyId}_Student-{$studentId}")
+                ->first();
+
+            if (!$chat) {
+                // Check by participants as fallback
+                $chat = DB::table('chats')
+                    ->join('chat_participants as p1', 'p1.chat_id', '=', 'chats.id')
+                    ->join('chat_participants as p2', 'p2.chat_id', '=', 'chats.id')
+                    ->where('chats.project_id', $projectId)
+                    ->where('chats.title', 'like', 'Individual:%')
+                    ->where('p1.user_id', $facultyId)
+                    ->where('p2.user_id', $studentId)
+                    ->select('chats.id')
+                    ->first();
+            }
+
+            if (!$chat) {
+                $chatId = DB::table('chats')->insertGetId([
+                    'project_id' => $projectId,
+                    'title' => "Individual: Faculty-{$facultyId}_Student-{$studentId}",
+                    'created_by' => $studentId,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } else {
+                $chatId = $chat->id;
+            }
+
+            $this->ensureChatParticipant($chatId, $studentId);
+            $this->ensureChatParticipant($chatId, $facultyId);
         } else {
-            $chatId = $chat->id;
+            // Group chat for project
+            $chat = DB::table('chats')
+                ->where('project_id', $projectId)
+                ->where(function ($q) {
+                    $q->where('title', 'Project Group Chat')
+                      ->orWhere('title', 'Project Chat')
+                      ->orWhereNull('title');
+                })
+                ->first();
+
+            if (!$chat) {
+                $chatId = DB::table('chats')->insertGetId([
+                    'project_id' => $projectId,
+                    'title' => 'Project Group Chat',
+                    'created_by' => $studentId,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } else {
+                $chatId = $chat->id;
+            }
+
+            $this->ensureChatParticipant($chatId, $studentId);
+            if ($facultyId) {
+                $this->ensureChatParticipant($chatId, $facultyId);
+            }
         }
 
         $messages = DB::table('chat_messages')
             ->join('users', 'users.id', '=', 'chat_messages.sender_id')
             ->where('chat_messages.chat_id', $chatId)
             ->select(
+                'chat_messages.id',
                 'chat_messages.message as text',
+                'users.id as sender_id',
                 'users.role as sender_role',
                 'users.name as sender_name',
                 'chat_messages.created_at as time'
             )
             ->orderBy('chat_messages.created_at', 'asc')
             ->get()
-            ->map(function ($msg) {
+            ->map(function ($msg) use ($studentId) {
                 $rawText = $msg->text;
                 $displayText = $rawText;
                 $attachment = null;
@@ -1591,15 +1692,24 @@ class StudentController extends Controller
                 }
 
                 return [
-                    'sender' => $msg->sender_role === 'student' ? 'student' : 'faculty',
+                    'id' => $msg->id,
+                    'sender' => $msg->sender_id == $studentId ? 'student' : ($msg->sender_role === 'student' ? 'student' : 'faculty'),
+                    'senderId' => $msg->sender_id,
                     'senderName' => $msg->sender_name,
+                    'senderRole' => $msg->sender_role,
+                    'isMe' => ($msg->sender_id == $studentId),
                     'text' => $displayText,
                     'attachment' => $attachment,
                     'time' => $msg->time
                 ];
             });
 
-        return response()->json($messages);
+        return response()->json([
+            'chat_id' => $chatId,
+            'type' => $type,
+            'messages' => $messages,
+            'data' => $messages
+        ]);
     }
 
     public function saveChatMessage(Request $request, $projectId)
@@ -1609,21 +1719,79 @@ class StudentController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $chat = DB::table('chats')->where('project_id', $projectId)->first();
-        if (!$chat) {
-            $chatId = DB::table('chats')->insertGetId([
-                'project_id' => $projectId,
-                'title' => 'Project Chat',
-                'created_by' => $studentId,
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-        } else {
-            $chatId = $chat->id;
+        $type = $request->input('type', null);
+
+        $facultyId = DB::table('project_faculty')
+            ->where('project_id', $projectId)
+            ->value('faculty_id');
+
+        if (!$type) {
+            $type = $facultyId ? 'individual' : 'group';
         }
 
-        $text = $request->input('text', '');
+        if ($type === 'individual' && $facultyId) {
+            $chat = DB::table('chats')
+                ->where('project_id', $projectId)
+                ->where('title', "Individual: Faculty-{$facultyId}_Student-{$studentId}")
+                ->first();
+
+            if (!$chat) {
+                $chat = DB::table('chats')
+                    ->join('chat_participants as p1', 'p1.chat_id', '=', 'chats.id')
+                    ->join('chat_participants as p2', 'p2.chat_id', '=', 'chats.id')
+                    ->where('chats.project_id', $projectId)
+                    ->where('chats.title', 'like', 'Individual:%')
+                    ->where('p1.user_id', $facultyId)
+                    ->where('p2.user_id', $studentId)
+                    ->select('chats.id')
+                    ->first();
+            }
+
+            if (!$chat) {
+                $chatId = DB::table('chats')->insertGetId([
+                    'project_id' => $projectId,
+                    'title' => "Individual: Faculty-{$facultyId}_Student-{$studentId}",
+                    'created_by' => $studentId,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } else {
+                $chatId = $chat->id;
+            }
+
+            $this->ensureChatParticipant($chatId, $studentId);
+            $this->ensureChatParticipant($chatId, $facultyId);
+        } else {
+            $chat = DB::table('chats')
+                ->where('project_id', $projectId)
+                ->where(function ($q) {
+                    $q->where('title', 'Project Group Chat')
+                      ->orWhere('title', 'Project Chat')
+                      ->orWhereNull('title');
+                })
+                ->first();
+
+            if (!$chat) {
+                $chatId = DB::table('chats')->insertGetId([
+                    'project_id' => $projectId,
+                    'title' => 'Project Group Chat',
+                    'created_by' => $studentId,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } else {
+                $chatId = $chat->id;
+            }
+
+            $this->ensureChatParticipant($chatId, $studentId);
+            if ($facultyId) {
+                $this->ensureChatParticipant($chatId, $facultyId);
+            }
+        }
+
+        $text = trim($request->input('text', ''));
         $attachment = null;
 
         if ($request->hasFile('file')) {
@@ -1670,6 +1838,10 @@ class StudentController extends Controller
             }
         }
 
+        if (empty($text) && !$attachment) {
+            return response()->json(['error' => 'Message or attachment is required'], 422);
+        }
+
         $finalMessage = $text;
         if ($attachment) {
             $finalMessage = json_encode([
@@ -1679,7 +1851,7 @@ class StudentController extends Controller
         }
 
         try {
-            DB::table('chat_messages')->insert([
+            $msgId = DB::table('chat_messages')->insertGetId([
                 'chat_id' => $chatId,
                 'sender_id' => $studentId,
                 'message' => $finalMessage,
@@ -1690,7 +1862,7 @@ class StudentController extends Controller
             // In case of any schema limitation, alter table and retry
             try {
                 DB::statement('ALTER TABLE chat_messages MODIFY message LONGTEXT');
-                DB::table('chat_messages')->insert([
+                $msgId = DB::table('chat_messages')->insertGetId([
                     'chat_id' => $chatId,
                     'sender_id' => $studentId,
                     'message' => $finalMessage,
@@ -1702,7 +1874,11 @@ class StudentController extends Controller
             }
         }
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'message_id' => $msgId,
+            'chat_id' => $chatId
+        ]);
     }
 
     public function getNotifications(Request $request)

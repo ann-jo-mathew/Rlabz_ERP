@@ -412,11 +412,32 @@ export async function updateTaskGithub(taskId, githubRepositoryId, githubPrUrl) 
   return res;
 }
 
-export async function saveChatMessage(project, text, attachment = null) {
-  const proj = cachedProjects.find(p => p.title === project);
+export async function fetchLiveChatMessages(projectId, type = 'individual') {
+  try {
+    const res = await apiFetch(`/student/chats/${projectId}?type=${type}`);
+    return Array.isArray(res) ? res : (res.messages || []);
+  } catch (err) {
+    console.error(`Error loading live chat for project ${projectId}:`, err);
+    return [];
+  }
+}
+
+export async function sendLiveChatMessage(projectId, text, attachment = null, type = 'individual') {
+  const payload = { text: text || '', type };
+  if (attachment) {
+    payload.attachment = attachment;
+  }
+  return apiFetch(`/student/chats/${projectId}/messages`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function saveChatMessage(project, text, attachment = null, type = 'individual') {
+  const proj = cachedProjects.find(p => p.title === project || p.id === project);
   if (!proj) return;
   
-  const payload = { text: text || '' };
+  const payload = { text: text || '', type };
   if (attachment) {
     payload.attachment = attachment;
   }

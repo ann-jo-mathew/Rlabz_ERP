@@ -584,7 +584,7 @@ export function FacultyChat(route, router) {
                 <div style="padding: 1rem 1.5rem; background: var(--surface-card, #fff); border-top: 1px solid var(--border-color, #e2e8f0);">
                     <form id="chat-form" style="display: flex; gap: 0.75rem; align-items: center;">
                         <input type="file" id="chat-file-input" style="display: none;" />
-                        <button type="button" id="btn-attach-file" class="btn btn-outline" title="Attach file" style="padding: 0.6rem 0.8rem; border-radius: 8px; color: var(--text-secondary); border-color: var(--border-color);">
+                        <button type="button" id="btn-attach-file" class="btn btn-outline" title="Attach file" style="flex-shrink: 0; padding: 0.6rem 0.8rem; border-radius: 8px; color: var(--text-secondary); border-color: var(--border-color);">
                             📎
                         </button>
                         <input 
@@ -593,9 +593,9 @@ export function FacultyChat(route, router) {
                             placeholder="Type a message to all students in ${title}..." 
                             value="${draftText}" 
                             autocomplete="off"
-                            style="flex: 1; height: 44px; padding: 0 1rem; border-radius: 8px; border: 1px solid var(--border-color, #cbd5e1); font-size: 0.92rem; outline: none; background: var(--bg-canvas-light, #f8fafc);" 
+                            style="flex: 1; min-width: 0; height: 44px; padding: 0 1rem; border-radius: 8px; border: 1px solid var(--border-color, #cbd5e1); font-size: 0.92rem; outline: none; background: var(--bg-canvas-light, #f8fafc);" 
                         />
-                        <button type="submit" id="btn-send-chat-msg" class="btn btn-primary" style="height: 44px; padding: 0 1.25rem; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <button type="submit" id="btn-send-chat-msg" class="btn btn-primary" style="width: auto !important; flex-shrink: 0; height: 44px; padding: 0 1.5rem; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap;">
                             <span>Send</span>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>
@@ -802,7 +802,7 @@ export function FacultyChat(route, router) {
                 <div style="padding: 1rem 1.5rem; background: var(--surface-card, #fff); border-top: 1px solid var(--border-color, #e2e8f0);">
                     <form id="chat-form" style="display: flex; gap: 0.75rem; align-items: center;">
                         <input type="file" id="chat-file-input" style="display: none;" />
-                        <button type="button" id="btn-attach-file" class="btn btn-outline" title="Attach file" style="padding: 0.6rem 0.8rem; border-radius: 8px; color: var(--text-secondary); border-color: var(--border-color);">
+                        <button type="button" id="btn-attach-file" class="btn btn-outline" title="Attach file" style="flex-shrink: 0; padding: 0.6rem 0.8rem; border-radius: 8px; color: var(--text-secondary); border-color: var(--border-color);">
                             📎
                         </button>
                         <input 
@@ -811,9 +811,9 @@ export function FacultyChat(route, router) {
                             placeholder="Message ${sName} privately..." 
                             value="${draftText}" 
                             autocomplete="off"
-                            style="flex: 1; height: 44px; padding: 0 1rem; border-radius: 8px; border: 1px solid var(--border-color, #cbd5e1); font-size: 0.92rem; outline: none; background: var(--bg-canvas-light, #f8fafc);" 
+                            style="flex: 1; min-width: 0; height: 44px; padding: 0 1rem; border-radius: 8px; border: 1px solid var(--border-color, #cbd5e1); font-size: 0.92rem; outline: none; background: var(--bg-canvas-light, #f8fafc);" 
                         />
-                        <button type="submit" id="btn-send-chat-msg" class="btn btn-primary" style="height: 44px; padding: 0 1.25rem; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <button type="submit" id="btn-send-chat-msg" class="btn btn-primary" style="width: auto !important; flex-shrink: 0; height: 44px; padding: 0 1.5rem; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap;">
                             <span>Send</span>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>
