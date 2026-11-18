@@ -28,6 +28,7 @@ export const modules = [
     title: 'User Management',
     icon: 'IconAdmin',
     allowedRoles: ['admin'],
+    requiredAnyPermissions: ['system.admin', 'admin.manage_users', 'admin.manage_permissions', 'admin.reset_passwords', 'admin.audit_logs'],
   },
   {
     name: 'design',
@@ -37,6 +38,7 @@ export const modules = [
     title: 'Design Studio & UI/UX',
     icon: 'IconDesign',
     allowedRoles: ['design_head', 'director', 'developer', 'coordinator', 'faculty'],
+    requiredAnyPermissions: ['view-design', 'design.create', 'design.review', 'design.approve'],
   },
   {
     name: 'director',
@@ -46,6 +48,7 @@ export const modules = [
     title: 'Director Dashboard',
     icon: 'IconDashboard',
     allowedRoles: ['director'],
+    requiredAnyPermissions: ['view-dashboard'],
   },
   {
     name: 'developer',
@@ -55,6 +58,7 @@ export const modules = [
     title: 'Developer Dashboard',
     icon: 'IconDashboard',
     allowedRoles: ['developer'],
+    requiredAnyPermissions: ['view-dashboard'],
   },
   {
     name: 'dashboard',
@@ -63,6 +67,7 @@ export const modules = [
     sidebar: false,
     title: 'Executive Dashboard',
     icon: 'IconDashboard',
+    requiredAnyPermissions: ['view-dashboard'],
   },
 
 {
@@ -72,6 +77,7 @@ export const modules = [
   sidebar: true,
   title: 'Co-ordinator Workspace',
   icon: 'IconCoordinator',
+  requiredAnyPermissions: ['view-coordinator'],
 },
 
   {
@@ -81,6 +87,7 @@ export const modules = [
     sidebar: true,
     title: 'Faculty Portal',
     icon: 'IconFaculty',
+    requiredAnyPermissions: ['view-faculty'],
   },
   {
     name: 'finance',
@@ -89,7 +96,8 @@ export const modules = [
     sidebar: true,
     title: 'Finance & Payroll',
     icon: 'IconFinance',
-    allowedRoles: ['finance'],
+    allowedRoles: ['finance', 'director', 'developer', 'coordinator'],
+    requiredAnyPermissions: ['view-finance', 'view-finance-readonly', 'view-student-designations'],
   },
   {
     name: 'student',
@@ -98,7 +106,8 @@ export const modules = [
     sidebar: true,
     title: 'Student Portal & Records',
     icon: 'IconStudent',
-    allowedRoles: ['student'],
+    allowedRoles: ['student', 'director', 'developer', 'coordinator'],
+    requiredAnyPermissions: ['view-student'],
   },
   {
     name: 'project',
@@ -107,6 +116,7 @@ export const modules = [
     sidebar: false,
     title: 'Projects',
     icon: 'IconProjects',
+    requiredAnyPermissions: ['view-projects', 'project.view_global', 'project.view_assigned'],
   },
   {
     name: 'communication',
@@ -114,6 +124,7 @@ export const modules = [
     sidebar: true,
     title: 'Communication',
     icon: 'IconCommunication',
+    requiredAnyPermissions: ['view-communication'],
   },
   {
     name: 'github',
@@ -122,6 +133,7 @@ export const modules = [
     sidebar: true,
     title: 'GitHub Integration',
     icon: 'IconGithub',
+    requiredAnyPermissions: ['view-github'],
 },
   {
   name: 'certificates',
@@ -130,6 +142,7 @@ export const modules = [
   sidebar: true,
   title: 'Certificates & Reporting',
   icon: 'IconCertificates',
+  requiredAnyPermissions: ['view-certificates', 'view-certificates-read'],
 },
   {
     name: 'audit-notifications',
@@ -137,5 +150,6 @@ export const modules = [
     sidebar: true,
     title: 'Audit Log & Notifications',
     icon: 'IconAudit',
+    requiredAnyPermissions: ['view-audit-notifications'],
   }
 ];

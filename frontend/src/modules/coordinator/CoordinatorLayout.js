@@ -76,50 +76,68 @@ export async function CoordinatorLayout(contentChild, route, router) {
     <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
   </svg>`;
 
+    const { useAuthStore } = await import('@/core/stores/auth.js');
+    const authStore = useAuthStore();
+    const userPerms = authStore.permissions || [];
+
     const navItems = [
       {
         title: 'Coordinator Overview',
         path: '/coordinator',
-        icon: iconOverview
+        icon: iconOverview,
+        perm: 'view-coordinator'
       },
       {
         title: 'Projects',
         path: '/coordinator/projects',
-        icon: iconProjects
+        icon: iconProjects,
+        anyPerms: ['view-projects', 'project.view_global']
       },
       {
         title: 'Students',
         path: '/coordinator/students',
-        icon: iconStudents
+        icon: iconStudents,
+        perm: 'view-student'
       },
       {
         title: 'Meetings',
         path: '/coordinator/meetings',
-        icon: iconMeetings
+        icon: iconMeetings,
+        perm: 'view-communication'
       },
-    {
-  title: 'Certificates',
-  path: '/coordinator/certificates',
-  icon: iconCertificates
-},
+      {
+        title: 'Certificates',
+        path: '/coordinator/certificates',
+        icon: iconCertificates,
+        anyPerms: ['view-certificates', 'view-certificates-read']
+      },
       {
         title: 'Reports',
         path: '/coordinator/reports',
-        icon: iconReports
+        icon: iconReports,
+        perm: 'view-coordinator'
       },
       {
-  title: 'Finance',
-  path: '/coordinator/finance',
-  icon: iconFinance
-},
+        title: 'Finance',
+        path: '/coordinator/finance',
+        icon: iconFinance,
+        anyPerms: ['view-finance', 'view-finance-readonly']
+      },
       {
         title: 'Notifications',
         path: '/coordinator/notifications',
-        icon: iconNotifications
+        icon: iconNotifications,
+        perm: 'view-coordinator'
       }
     ];
 
-    const navHTML = navItems.map(item => `
+    const visibleNavItems = navItems.filter(item => {
+      if (item.perm) return userPerms.includes(item.perm);
+      if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+      return true;
+    });
+
+    const navHTML = visibleNavItems.map(item => `
       <li>
         <a href="${item.path}" data-path="${item.path}">
           ${item.icon}

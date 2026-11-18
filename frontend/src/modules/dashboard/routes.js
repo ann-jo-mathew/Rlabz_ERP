@@ -19,6 +19,7 @@ const routes = [
       {
         path: '',
         name: 'dashboard-home',
+        meta: { requiredAnyPermissions: ['view-dashboard'] },
         component: async () => {
           const authStore = useAuthStore();
           return authStore.role === 'developer'
@@ -29,6 +30,7 @@ const routes = [
       {
         path: 'projects',
         name: 'dashboard-projects',
+        meta: { requiredAnyPermissions: ['view-projects', 'project.view_global', 'project.view_assigned'] },
         component: async () => {
           const authStore = useAuthStore();
           return authStore.role === 'developer'
@@ -39,16 +41,19 @@ const routes = [
       {
         path: 'projects/create',
         name: 'dashboard-projects-create',
+        meta: { requiredAnyPermissions: ['project.create'] },
         component: () => import('@/modules/project/views/ProjectCreate.js')
       },
       {
         path: 'projects/:id',
         name: 'dashboard-projects-details',
+        meta: { requiredAnyPermissions: ['view-projects', 'project.view_global', 'project.view_assigned'] },
         component: () => import('@/modules/project/views/ProjectDetails.js')
       },
       {
         path: 'students',
         name: 'dashboard-students',
+        meta: { requiredAnyPermissions: ['view-student'] },
         component: async () => {
           const authStore = useAuthStore();
           return authStore.role === 'developer'
@@ -59,6 +64,7 @@ const routes = [
       {
         path: 'students/:id',
         name: 'dashboard-student-detail',
+        meta: { requiredAnyPermissions: ['view-student'] },
         component: async () => {
           const authStore = useAuthStore();
           return authStore.role === 'developer'
@@ -69,6 +75,7 @@ const routes = [
       {
         path: 'clients',
         name: 'dashboard-clients',
+        meta: { requiredAnyPermissions: ['project.client_requirements.view', 'project.client_requirements.create'] },
         component: async () => {
           const authStore = useAuthStore();
           return authStore.role === 'developer'
@@ -79,6 +86,7 @@ const routes = [
       {
         path: 'finance',
         name: 'dashboard-finance',
+        meta: { requiredAnyPermissions: ['view-finance', 'view-finance-readonly'] },
         component: async () => {
           const authStore = useAuthStore();
           return authStore.role === 'developer'
@@ -89,6 +97,7 @@ const routes = [
       {
         path: 'audit',
         name: 'dashboard-audit',
+        meta: { requiredAnyPermissions: ['view-audit-notifications', 'admin.audit_logs'] },
         component: async () => {
           const authStore = useAuthStore();
           return authStore.role === 'developer'
@@ -99,6 +108,7 @@ const routes = [
       {
         path: 'github',
         name: 'dashboard-github',
+        meta: { requiredAnyPermissions: ['view-github'] },
         component: () => import('@/modules/github/views/GithubHome.js')
       }
     ]

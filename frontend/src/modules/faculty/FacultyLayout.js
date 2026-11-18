@@ -1,4 +1,5 @@
 import { DashboardLayout } from '@/core/layouts/DashboardLayout.js';
+import { useAuthStore } from '@/core/stores/auth.js';
 import './faculty.css';
 
 export async function FacultyLayout(contentChild, route, router) {
@@ -37,18 +38,27 @@ export async function FacultyLayout(contentChild, route, router) {
     const iconVerifyTask = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`;
     const iconChat = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
     
-    const menuItems = [
-        { title: 'Dashboard', path: '/faculty', icon: iconDashboard },
+    const authStore = useAuthStore();
+    const userPerms = authStore.permissions || [];
+
+    const rawMenuItems = [
+        { title: 'Dashboard', path: '/faculty', icon: iconDashboard, perm: 'view-faculty' },
         { title: 'Profile', path: '/faculty/profile', icon: iconProfile },
-        { title: 'My Project', path: '/faculty/projects', icon: iconProjects },
-        { title: 'Chat', path: '/faculty/chat', icon: iconChat },
-        { title: 'Students', path: '/faculty/students', icon: iconStudents },
-        { title: 'Assign Module & Task', path: '/faculty/sprints', icon: iconSprints },
-        { title: 'Verify Task', path: '/faculty/verify-tasks', icon: iconVerifyTask },
-        { title: 'Meetings', path: '/faculty/meetings', icon: iconMeetings },
-        { title: 'Report', path: '/faculty/reports', icon: iconReport },        
-        { title: 'Notifications', path: '/faculty/notifications', icon: iconNotifications }
+        { title: 'My Project', path: '/faculty/projects', icon: iconProjects, anyPerms: ['view-projects', 'project.view_assigned'] },
+        { title: 'Chat', path: '/faculty/chat', icon: iconChat, perm: 'view-communication' },
+        { title: 'Students', path: '/faculty/students', icon: iconStudents, anyPerms: ['view-faculty', 'view-student'] },
+        { title: 'Assign Module & Task', path: '/faculty/sprints', icon: iconSprints, anyPerms: ['project.module.create', 'project.task.create'] },
+        { title: 'Verify Task', path: '/faculty/verify-tasks', icon: iconVerifyTask, perm: 'project.submission.review' },
+        { title: 'Meetings', path: '/faculty/meetings', icon: iconMeetings, perm: 'view-communication' },
+        { title: 'Report', path: '/faculty/reports', icon: iconReport, perm: 'view-faculty' },        
+        { title: 'Notifications', path: '/faculty/notifications', icon: iconNotifications, perm: 'view-faculty' }
     ];
+
+    const menuItems = rawMenuItems.filter(item => {
+        if (item.perm) return userPerms.includes(item.perm);
+        if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+        return true;
+    });
 
     const updateActiveSidebarLinks = () => {
         const currentPath = window.location.pathname;

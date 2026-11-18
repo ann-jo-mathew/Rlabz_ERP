@@ -1521,7 +1521,7 @@ hr.fin-divider {
   z-index: 100000 !important;
 }
 
-.swal2-popup {
+.swal2-popup:not(.swal2-toast) {
   font-family: var(--font-family, 'Plus Jakarta Sans', sans-serif) !important;
   border-radius: 14px !important;
   padding: 1.75rem !important;
@@ -1530,7 +1530,7 @@ hr.fin-divider {
   box-sizing: border-box !important;
 }
 
-.swal2-title {
+.swal2-popup:not(.swal2-toast) .swal2-title {
   font-family: var(--font-family, 'Plus Jakarta Sans', sans-serif) !important;
   font-weight: 800 !important;
   font-size: 1.35rem !important;
@@ -1538,7 +1538,7 @@ hr.fin-divider {
   padding: 0 0 0.85rem 0 !important;
 }
 
-.swal2-html-container {
+.swal2-popup:not(.swal2-toast) .swal2-html-container {
   font-family: var(--font-family, 'Plus Jakarta Sans', sans-serif) !important;
   color: var(--text-main, #334155) !important;
   font-size: 0.88rem !important;
@@ -1548,7 +1548,7 @@ hr.fin-divider {
   overflow-x: hidden !important;
 }
 
-.swal2-actions {
+.swal2-popup:not(.swal2-toast) .swal2-actions {
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;

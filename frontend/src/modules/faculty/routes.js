@@ -45,16 +45,19 @@ const routes = [
         path: 'sprints',
         name: 'project-modules-and-tasks',
         title: 'PROJECT MODULES & TASKS',
+        meta: { requiredAnyPermissions: ['project.module.create', 'project.task.create'] },
         component: () => import('./views/FacultySprints.js')
       },
       {
         path: 'verify-tasks',
         name: 'faculty-verify-tasks',
+        meta: { requiredAnyPermissions: ['project.submission.review'] },
         component: () => import('./views/FacultyVerifyTasks.js')
       },
       {
         path: 'verify-task',
         name: 'faculty-verify-task',
+        meta: { requiredAnyPermissions: ['project.submission.review'] },
         component: () => import('./views/FacultyVerifyTasks.js')
       },
       {

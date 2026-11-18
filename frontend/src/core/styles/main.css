@@ -1210,3 +1210,47 @@ select.app-select:focus {
     margin-left: 0;
   }
 }
+
+/* ── SweetAlert2 Toast Overrides (Clean, Compact, Minimal) ── */
+.swal2-container.swal2-top-end,
+.swal2-container.swal2-top-right {
+  padding: 1rem !important;
+}
+
+body .swal2-popup.swal2-toast {
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid var(--border-color, #e2e8f0) !important;
+  background: #ffffff !important;
+  width: auto !important;
+  max-width: 320px !important;
+  align-items: center !important;
+}
+
+body .swal2-popup.swal2-toast .swal2-icon {
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+  min-width: 1.35rem !important;
+  margin: 0 0.55rem 0 0 !important;
+  border-width: 2px !important;
+}
+
+body .swal2-popup.swal2-toast .swal2-icon .swal2-icon-content {
+  font-size: 1rem !important;
+}
+
+body .swal2-popup.swal2-toast .swal2-title {
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary, #0f172a) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.35 !important;
+}
+
+body .swal2-popup.swal2-toast .swal2-timer-progress-bar {
+  height: 3px !important;
+  background: var(--primary, #009688) !important;
+}

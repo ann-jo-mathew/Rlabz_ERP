@@ -135,97 +135,35 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
     sidebarNav.dataset.portal = targetPortal;
     if (targetPortal === 'student') {
       sidebarNav.dataset.hasDesignAccess = String(studentHasDesignAccess);
+      const studentItems = [
+        { title: 'Dashboard', path: '/student', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>`, perm: 'view-student' },
+        { title: 'My Projects', path: '/student/projects', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`, perm: 'view-projects' },
+        ...(studentHasDesignAccess ? [{ title: 'Design', path: '/student/design', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>`, perm: 'view-design' }] : []),
+        { title: 'Progress Reports', path: '/student/reports', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="14" x2="14" y2="14"></line><path d="M21 16V8a2 2 0 0 0-1.95-2H20a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2h.05A2 2 0 0 0 2 8v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"></path></svg>`, perm: 'view-student' },
+        { title: 'Work Logs', path: '/student/work-logs', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`, perm: 'view-student' },
+        { title: 'Certificates', path: '/student/certificates', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>`, anyPerms: ['view-certificates', 'view-certificates-read'] },
+        { title: 'Meetings', path: '/student/meetings', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`, perm: 'view-communication' },
+        { title: 'GitHub', path: '/student/github', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`, perm: 'view-github' },
+        { title: 'Chat', path: '/student/chat', icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`, perm: 'view-communication' }
+      ];
+
+      const userPerms = authStore.permissions || [];
+      const visibleStudentItems = studentItems.filter(item => {
+        if (item.perm) return userPerms.includes(item.perm);
+        if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+        return true;
+      });
+
       sidebarNav.innerHTML = `
         <ul>
-          <li>
-            <a href="/student">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-              </svg>
-              <span>Dashboard</span>
-            </a>
-          </li>
-          <li>
-            <a href="/student/projects">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-              </svg>
-              <span>My Projects</span>
-            </a>
-          </li>
-          ${studentHasDesignAccess ? `
-          <li>
-            <a href="/student/design" id="student-sidebar-design-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="m4.93 4.93 4.24 4.24"></path>
-                <path d="m14.83 9.17 4.24-4.24"></path>
-                <path d="m14.83 14.83 4.24 4.24"></path>
-                <path d="m9.17 14.83-4.24 4.24"></path>
-                <circle cx="12" cy="12" r="4"></circle>
-              </svg>
-              <span>Design</span>
-            </a>
-          </li>
-          ` : ''}
-          <li>
-            <a href="/student/reports">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="9" y1="18" x2="15" y2="18"></line>
-                <line x1="10" y1="14" x2="14" y2="14"></line>
-                <path d="M21 16V8a2 2 0 0 0-1.95-2H20a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2h.05A2 2 0 0 0 2 8v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"></path>
-              </svg>
-              <span>Progress Reports</span>
-            </a>
-          </li>
-          <li>
-            <a href="/student/work-logs">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              <span>Work Logs</span>
-            </a>
-          </li>
-          <li>
-            <a href="/student/certificates">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="8" r="7"></circle>
-                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-              </svg>
-              <span>Certificates</span>
-            </a>
-          </li>
-          <li>
-            <a href="/student/meetings">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-              <span>Meetings</span>
-            </a>
-          </li>
-          <li>
-            <a href="/student/github">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-              </svg>
-              <span>GitHub</span>
-            </a>
-          </li>
-          <li>
-            <a href="/student/chat">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              <span>Chat</span>
-            </a>
-          </li>
+          ${visibleStudentItems.map(item => `
+            <li>
+              <a href="${item.path}">
+                ${item.icon}
+                <span>${item.title}</span>
+              </a>
+            </li>
+          `).join('')}
         </ul>
       `;
     } else if (targetPortal === 'faculty') {
@@ -240,22 +178,29 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
       const iconVerifyTask = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`;
       const iconChat = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
 
-      const navItems = [
-        { title: 'Dashboard', path: '/faculty', icon: iconDashboard },
+      const facultyItems = [
+        { title: 'Dashboard', path: '/faculty', icon: iconDashboard, perm: 'view-faculty' },
         { title: 'Profile', path: '/faculty/profile', icon: iconProfile },
-        { title: 'My Project', path: '/faculty/projects', icon: iconProjects },
-        { title: 'Chat', path: '/faculty/chat', icon: iconChat },
-        { title: 'Students', path: '/faculty/students', icon: iconStudents },
-        { title: 'Assign Module & Task', path: '/faculty/sprints', icon: iconSprints },
-        { title: 'Verify Task', path: '/faculty/verify-tasks', icon: iconVerifyTask },
-        { title: 'Meetings', path: '/faculty/meetings', icon: iconMeetings },
-        { title: 'Report', path: '/faculty/reports', icon: iconReport },
-        { title: 'Notifications', path: '/faculty/notifications', icon: iconNotifications }
+        { title: 'My Project', path: '/faculty/projects', icon: iconProjects, anyPerms: ['view-projects', 'project.view_assigned'] },
+        { title: 'Chat', path: '/faculty/chat', icon: iconChat, perm: 'view-communication' },
+        { title: 'Students', path: '/faculty/students', icon: iconStudents, anyPerms: ['view-faculty', 'view-student'] },
+        { title: 'Assign Module & Task', path: '/faculty/sprints', icon: iconSprints, anyPerms: ['project.module.create', 'project.task.create'] },
+        { title: 'Verify Task', path: '/faculty/verify-tasks', icon: iconVerifyTask, perm: 'project.submission.review' },
+        { title: 'Meetings', path: '/faculty/meetings', icon: iconMeetings, perm: 'view-communication' },
+        { title: 'Report', path: '/faculty/reports', icon: iconReport, perm: 'view-faculty' },
+        { title: 'Notifications', path: '/faculty/notifications', icon: iconNotifications, perm: 'view-faculty' }
       ];
+
+      const userPerms = authStore.permissions || [];
+      const visibleFacultyItems = facultyItems.filter(item => {
+        if (item.perm) return userPerms.includes(item.perm);
+        if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+        return true;
+      });
 
       sidebarNav.innerHTML = `
         <ul>
-          ${navItems.map(item => `
+          ${visibleFacultyItems.map(item => `
             <li>
               <a href="${item.path}">
                 ${item.icon}
@@ -273,21 +218,28 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
       const iconFinance = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
       const iconAudit = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
 
-      const navItems = [
-        { title: 'Developer Overview', path: '/developer', icon: iconOverview },
-        { title: 'Projects & Proposals', path: '/developer/projects', icon: iconProjects },
-        { title: 'Student Track Roster', path: '/developer/students', icon: iconStudents },
-        { title: 'Client Requirements', path: '/developer/clients', icon: iconClients },
-        { title: 'Finance & Payroll (Read-Only)', path: '/developer/finance', icon: iconFinance },
-        { title: 'System Audit Log', path: '/developer/audit', icon: iconAudit }
+      const devItems = [
+        { title: 'Developer Overview', path: '/developer', icon: iconOverview, perm: 'view-dashboard' },
+        { title: 'Projects & Proposals', path: '/developer/projects', icon: iconProjects, anyPerms: ['view-projects', 'project.view_global'] },
+        { title: 'Student Track Roster', path: '/developer/students', icon: iconStudents, perm: 'view-student' },
+        { title: 'Client Requirements', path: '/developer/clients', icon: iconClients, anyPerms: ['project.client_requirements.view', 'project.client_requirements.create'] },
+        { title: 'Finance & Payroll (Read-Only)', path: '/developer/finance', icon: iconFinance, anyPerms: ['view-finance', 'view-finance-readonly'] },
+        { title: 'System Audit Log', path: '/developer/audit', icon: iconAudit, perm: 'view-audit-notifications' }
       ];
+
+      const userPerms = authStore.permissions || [];
+      const visibleDevItems = devItems.filter(item => {
+        if (item.perm) return userPerms.includes(item.perm);
+        if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+        return true;
+      });
 
       sidebarNav.innerHTML = `
         <div class="sidebar-section-title" style="padding: 0.75rem 1.25rem 0.25rem; font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">
           Developer Operations
         </div>
         <ul>
-          ${navItems.map(item => `
+          ${visibleDevItems.map(item => `
             <li>
               <a href="${item.path}">
                 ${item.icon}
@@ -305,21 +257,28 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
       const iconFinance = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
       const iconAudit = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
 
-      const navItems = [
-        { title: 'Executive Overview', path: '/director', icon: iconOverview },
-        { title: 'Projects & Proposals', path: '/director/projects', icon: iconProjects },
-        { title: 'Student Track Roster', path: '/director/students', icon: iconStudents },
-        { title: 'Client Requirements', path: '/director/clients', icon: iconClients },
-        { title: 'Finance & Payroll (Read-Only)', path: '/director/finance', icon: iconFinance },
-        { title: 'System Audit Log', path: '/director/audit', icon: iconAudit }
+      const directorItems = [
+        { title: 'Executive Overview', path: '/director', icon: iconOverview, perm: 'view-dashboard' },
+        { title: 'Projects & Proposals', path: '/director/projects', icon: iconProjects, anyPerms: ['view-projects', 'project.view_global'] },
+        { title: 'Student Track Roster', path: '/director/students', icon: iconStudents, perm: 'view-student' },
+        { title: 'Client Requirements', path: '/director/clients', icon: iconClients, anyPerms: ['project.client_requirements.view', 'project.client_requirements.create'] },
+        { title: 'Finance & Payroll (Read-Only)', path: '/director/finance', icon: iconFinance, anyPerms: ['view-finance', 'view-finance-readonly'] },
+        { title: 'System Audit Log', path: '/director/audit', icon: iconAudit, perm: 'view-audit-notifications' }
       ];
+
+      const userPerms = authStore.permissions || [];
+      const visibleDirectorItems = directorItems.filter(item => {
+        if (item.perm) return userPerms.includes(item.perm);
+        if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+        return true;
+      });
 
       sidebarNav.innerHTML = `
         <div class="sidebar-section-title" style="padding: 0.75rem 1.25rem 0.25rem; font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">
           Director Workspace
         </div>
         <ul>
-          ${navItems.map(item => `
+          ${visibleDirectorItems.map(item => `
             <li>
               <a href="${item.path}">
                 ${item.icon}
@@ -335,19 +294,26 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
       const iconProfile = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
       const iconCommunication = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
 
-      const navItems = [
-        { title: 'Design Studio', path: '/design', icon: iconStudio },
-        { title: 'Projects & Prototypes', path: '/projects', icon: iconProjects },
-        { title: 'Team Communication', path: '/communication', icon: iconCommunication },
+      const designItems = [
+        { title: 'Design Studio', path: '/design', icon: iconStudio, perm: 'view-design' },
+        { title: 'Projects & Prototypes', path: '/projects', icon: iconProjects, anyPerms: ['view-projects', 'project.view_global', 'project.view_assigned'] },
+        { title: 'Team Communication', path: '/communication', icon: iconCommunication, perm: 'view-communication' },
         { title: 'My Profile & Security', path: '/profile', icon: iconProfile }
       ];
+
+      const userPerms = authStore.permissions || [];
+      const visibleDesignItems = designItems.filter(item => {
+        if (item.perm) return userPerms.includes(item.perm);
+        if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+        return true;
+      });
 
       sidebarNav.innerHTML = `
         <div class="sidebar-section-title" style="padding: 0.75rem 1.25rem 0.25rem; font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">
           Design Department
         </div>
         <ul>
-          ${navItems.map(item => `
+          ${visibleDesignItems.map(item => `
             <li>
               <a href="${item.path}">
                 ${item.icon}
@@ -361,17 +327,24 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
       const iconUsers = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
       const iconProjects = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
 
-      const navItems = [
-        { title: 'User Management', path: '/admin', icon: iconUsers },
-        { title: 'Projects', path: '/admin/projects', icon: iconProjects }
+      const adminItems = [
+        { title: 'User Management', path: '/admin', icon: iconUsers, anyPerms: ['system.admin', 'admin.manage_users', 'admin.manage_permissions'] },
+        { title: 'Projects', path: '/admin/projects', icon: iconProjects, anyPerms: ['view-projects', 'project.view_global', 'project.view_assigned'] }
       ];
+
+      const userPerms = authStore.permissions || [];
+      const visibleAdminItems = adminItems.filter(item => {
+        if (item.perm) return userPerms.includes(item.perm);
+        if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+        return true;
+      });
 
       sidebarNav.innerHTML = `
         <div class="sidebar-section-title" style="padding: 0.75rem 1.25rem 0.25rem; font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">
           Administration
         </div>
         <ul>
-          ${navItems.map(item => `
+          ${visibleAdminItems.map(item => `
             <li>
               <a href="${item.path}">
                 ${item.icon}
@@ -398,10 +371,16 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
       };
 
       const userAllowedModules = authStore.modules || [];
+      const userPermissions = authStore.permissions || [];
       const availableModules = modules.filter(m => {
         if (!m.sidebar) return false;
         if (!userAllowedModules.includes(m.name)) return false;
         if (m.allowedRoles && !m.allowedRoles.includes(authStore.role)) return false;
+        if (m.requiredAnyPermissions && Array.isArray(m.requiredAnyPermissions)) {
+          if (!m.requiredAnyPermissions.some(p => userPermissions.includes(p))) {
+            return false;
+          }
+        }
         return true;
       });
 

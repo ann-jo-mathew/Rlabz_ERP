@@ -150,22 +150,102 @@ class AuthController extends Controller
             'design_head' => '/design',
         ];
         
-        $modules = [
-            'admin' => ['admin', 'project', 'profile'],
-            'director' => ['director', 'dashboard', 'project', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication', 'design', 'profile'],
-            'developer' => ['developer', 'dashboard', 'project', 'finance', 'github', 'audit-notifications', 'certificates', 'student', 'faculty', 'coordinator', 'communication', 'design', 'profile'],
-            'coordinator' => ['coordinator', 'project', 'student', 'communication', 'github', 'certificates', 'design', 'profile'],
-            'finance' => ['finance', 'project', 'profile'],
-            'faculty' => ['faculty', 'project', 'communication', 'github', 'profile'],
-            'student' => ['student', 'project', 'communication', 'github', 'certificates', 'profile'],
-            'design_head' => ['design', 'project', 'communication', 'profile'],
+        // Derive authorized modules dynamically from role & granular permissions
+        $userPermissions = is_string($user->permissions) ? (json_decode($user->permissions, true) ?: []) : ($user->permissions ?? []);
+        if (!is_array($userPermissions)) {
+            $userPermissions = [];
+        }
+
+        $derivedModules = ['profile']; // Everyone gets profile/security
+
+        // Map granular permissions to modules
+        $permModuleMap = [
+            'view-dashboard' => ['dashboard', 'director', 'developer'],
+            'view-coordinator' => ['coordinator'],
+            'view-faculty' => ['faculty'],
+            'view-student' => ['student'],
+            'view-finance' => ['finance'],
+            'view-finance-readonly' => ['finance'],
+            'view-student-designations' => ['finance'],
+            'view-projects' => ['project'],
+            'project.view_global' => ['project'],
+            'project.view_assigned' => ['project'],
+            'view-design' => ['design'],
+            'design.create' => ['design'],
+            'view-github' => ['github'],
+            'view-communication' => ['communication'],
+            'view-certificates' => ['certificates'],
+            'view-certificates-read' => ['certificates'],
+            'view-audit-notifications' => ['audit-notifications'],
+            'system.admin' => ['admin', 'project'],
+            'admin.manage_users' => ['admin'],
         ];
+
+        foreach ($userPermissions as $p) {
+            if (isset($permModuleMap[$p])) {
+                foreach ($permModuleMap[$p] as $modName) {
+                    $derivedModules[] = $modName;
+                }
+            }
+        }
+
+        // Always allow admin module if role is admin
+        if ($role === 'admin') {
+            $derivedModules[] = 'admin';
+            $derivedModules[] = 'project';
+        }
+
+        $derivedModules = array_values(array_unique($derivedModules));
+
+        // Determine an accessible default route for this user based on their allowed modules
+        $defaultRoute = $defaultRoutes[$role] ?? '/student';
         
+        // Check if the role default route module is accessible
+        $roleToModuleMap = [
+            'admin' => 'admin',
+            'director' => 'director',
+            'developer' => 'developer',
+            'coordinator' => 'coordinator',
+            'finance' => 'finance',
+            'faculty' => 'faculty',
+            'student' => 'student',
+            'design_head' => 'design',
+        ];
+        $expectedModule = $roleToModuleMap[$role] ?? null;
+
+        if ($expectedModule && !in_array($expectedModule, $derivedModules) && !in_array('dashboard', $derivedModules)) {
+            // Find the first module they DO have access to
+            $modulePathMap = [
+                'dashboard' => '/dashboard',
+                'director' => '/director',
+                'developer' => '/developer',
+                'coordinator' => '/coordinator',
+                'faculty' => '/faculty',
+                'finance' => '/finance',
+                'student' => '/student',
+                'project' => '/projects',
+                'design' => '/design',
+                'github' => '/github',
+                'certificates' => '/certificates',
+                'communication' => '/communication',
+                'audit-notifications' => '/audit-notifications',
+                'admin' => '/admin',
+            ];
+            $foundFallback = null;
+            foreach ($derivedModules as $mod) {
+                if ($mod !== 'profile' && isset($modulePathMap[$mod])) {
+                    $foundFallback = $modulePathMap[$mod];
+                    break;
+                }
+            }
+            $defaultRoute = $foundFallback ?: '/profile';
+        }
+
         // Convert stdClass to array for mutation if using DB facade
         $userArray = (array) $user;
-        $userArray['defaultRoute'] = $defaultRoutes[$role] ?? '/student';
-        $userArray['modules'] = $modules[$role] ?? $modules['student'];
-        $userArray['permissions'] = is_string($user->permissions) ? json_decode($user->permissions, true) : ($user->permissions ?? []);
+        $userArray['defaultRoute'] = $defaultRoute;
+        $userArray['modules'] = $derivedModules;
+        $userArray['permissions'] = $userPermissions;
 
         if ($role === 'student' && Schema::hasTable('student_profiles')) {
             $profile = DB::table('student_profiles')->where('student_id', $user->id)->first();
@@ -352,6 +432,93 @@ class AuthController extends Controller
                 $userArray['designation'] = $facProf->designation ?? 'Faculty Member';
             }
         }
+
+        // Include fresh derived modules
+        $permModuleMap = [
+            'view-dashboard' => ['dashboard', 'director', 'developer'],
+            'view-coordinator' => ['coordinator'],
+            'view-faculty' => ['faculty'],
+            'view-student' => ['student'],
+            'view-finance' => ['finance'],
+            'view-finance-readonly' => ['finance'],
+            'view-student-designations' => ['finance'],
+            'view-projects' => ['project'],
+            'project.view_global' => ['project'],
+            'project.view_assigned' => ['project'],
+            'view-design' => ['design'],
+            'design.create' => ['design'],
+            'view-github' => ['github'],
+            'view-communication' => ['communication'],
+            'view-certificates' => ['certificates'],
+            'view-certificates-read' => ['certificates'],
+            'view-audit-notifications' => ['audit-notifications'],
+            'system.admin' => ['admin', 'project'],
+            'admin.manage_users' => ['admin'],
+        ];
+
+        $derivedModules = ['profile'];
+        foreach ($userArray['permissions'] as $p) {
+            if (isset($permModuleMap[$p])) {
+                foreach ($permModuleMap[$p] as $modName) {
+                    $derivedModules[] = $modName;
+                }
+            }
+        }
+        if ($user->role === 'admin') {
+            $derivedModules[] = 'admin';
+            $derivedModules[] = 'project';
+        }
+        $userArray['modules'] = array_values(array_unique($derivedModules));
+
+        $defaultRoutes = [
+            'admin' => '/admin',
+            'director' => '/director',
+            'developer' => '/developer',
+            'coordinator' => '/coordinator',
+            'finance' => '/finance',
+            'faculty' => '/faculty',
+            'student' => '/student',
+            'design_head' => '/design',
+        ];
+        $roleToModuleMap = [
+            'admin' => 'admin',
+            'director' => 'director',
+            'developer' => 'developer',
+            'coordinator' => 'coordinator',
+            'finance' => 'finance',
+            'faculty' => 'faculty',
+            'student' => 'student',
+            'design_head' => 'design',
+        ];
+        $defaultRoute = $defaultRoutes[$user->role] ?? '/student';
+        $expectedModule = $roleToModuleMap[$user->role] ?? null;
+        if ($expectedModule && !in_array($expectedModule, $userArray['modules']) && !in_array('dashboard', $userArray['modules'])) {
+            $modulePathMap = [
+                'dashboard' => '/dashboard',
+                'director' => '/director',
+                'developer' => '/developer',
+                'coordinator' => '/coordinator',
+                'faculty' => '/faculty',
+                'finance' => '/finance',
+                'student' => '/student',
+                'project' => '/projects',
+                'design' => '/design',
+                'github' => '/github',
+                'certificates' => '/certificates',
+                'communication' => '/communication',
+                'audit-notifications' => '/audit-notifications',
+                'admin' => '/admin',
+            ];
+            $foundFallback = null;
+            foreach ($userArray['modules'] as $mod) {
+                if ($mod !== 'profile' && isset($modulePathMap[$mod])) {
+                    $foundFallback = $modulePathMap[$mod];
+                    break;
+                }
+            }
+            $defaultRoute = $foundFallback ?: '/profile';
+        }
+        $userArray['defaultRoute'] = $defaultRoute;
 
         return response()->json([
             'status' => 'success',

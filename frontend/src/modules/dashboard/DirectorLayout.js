@@ -42,15 +42,22 @@ export async function DirectorLayout(contentChild, route, router) {
 
     const authStore = useAuthStore();
     const navItems = [
-      { title: authStore.role === 'developer' ? 'Developer Overview' : 'Director Overview', path: '/dashboard', icon: iconOverview },
-      { title: 'Projects & Proposals', path: '/dashboard/projects', icon: iconProjects },
-      { title: 'Student Track Roster', path: '/dashboard/students', icon: iconStudents },
-      { title: 'Client Requirements', path: '/dashboard/clients', icon: iconClients },
-      { title: 'Finance Oversight', path: '/dashboard/finance', icon: iconFinance },
-      { title: 'System Audit Log', path: '/dashboard/audit', icon: iconAudit }
+      { title: authStore.role === 'developer' ? 'Developer Overview' : 'Director Overview', path: '/dashboard', icon: iconOverview, perm: 'view-dashboard' },
+      { title: 'Projects & Proposals', path: '/dashboard/projects', icon: iconProjects, anyPerms: ['view-projects', 'project.view_global'] },
+      { title: 'Student Track Roster', path: '/dashboard/students', icon: iconStudents, perm: 'view-student' },
+      { title: 'Client Requirements', path: '/dashboard/clients', icon: iconClients, anyPerms: ['project.client_requirements.view', 'project.client_requirements.create'] },
+      { title: 'Finance Oversight', path: '/dashboard/finance', icon: iconFinance, anyPerms: ['view-finance', 'view-finance-readonly'] },
+      { title: 'System Audit Log', path: '/dashboard/audit', icon: iconAudit, perm: 'view-audit-notifications' }
     ];
 
-    const navHTML = navItems.map(item => `
+    const userPerms = authStore.permissions || [];
+    const visibleNavItems = navItems.filter(item => {
+      if (item.perm) return userPerms.includes(item.perm);
+      if (item.anyPerms) return item.anyPerms.some(p => userPerms.includes(p));
+      return true;
+    });
+
+    const navHTML = visibleNavItems.map(item => `
       <li>
         <a href="${item.path}" data-path="${item.path}">
           ${item.icon}

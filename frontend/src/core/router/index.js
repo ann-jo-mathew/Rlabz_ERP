@@ -1,5 +1,5 @@
 import { modules } from '../../module-manifest.js';
-import { authGuard } from '../guards/authGuard.js';
+import { authGuard, getSafeDefaultRoute } from '../guards/authGuard.js';
 import { useAuthStore } from '../stores/auth.js';
 
 class VanillaRouter {
@@ -70,8 +70,8 @@ class VanillaRouter {
     // 2. Root redirect
     if (path === '/') {
       const authStore = useAuthStore();
-      const defaultRoute = authStore?.user?.defaultRoute || (authStore?.role === 'developer' ? '/developer' : (authStore?.role === 'director' ? '/director' : '/dashboard'));
-      const r = this.routes.find(r => r.path === defaultRoute) || this.routes.find(r => r.path === '/developer') || this.routes.find(r => r.path === '/dashboard') || this.routes[0];
+      const defaultRoute = getSafeDefaultRoute(authStore);
+      const r = this.routes.find(r => r.path === defaultRoute) || this.routes.find(r => r.path === '/profile') || this.routes[0];
       return r ? { route: r, params: {} } : null;
     }
 
@@ -97,9 +97,18 @@ class VanillaRouter {
     return null;
   }
 
-  async handleRoute(rawPath) {
+  async handleRoute(rawPath, redirectDepth = 0) {
+    if (redirectDepth > 8) {
+      console.warn('Infinite redirect recursion detected in router! Falling back to /profile or /login');
+      const authStore = useAuthStore();
+      if (authStore.isAuthenticated && rawPath !== '/profile') {
+        return this.push('/profile');
+      }
+      return;
+    }
+
     const authStore = useAuthStore();
-    const defaultRoute = authStore.user?.defaultRoute || (authStore.role === 'developer' ? '/developer' : (authStore.role === 'director' ? '/director' : '/dashboard'));
+    const defaultRoute = getSafeDefaultRoute(authStore);
 
     const [pathname, queryString] = (rawPath || '').split('?');
 
@@ -124,7 +133,13 @@ class VanillaRouter {
       let redirectTarget = null;
       const next = (to) => { if (to) redirectTarget = to; };
       await guard(targetRoute, this.currentRoute, next);
-      if (redirectTarget) return this.push(redirectTarget);
+      if (redirectTarget) {
+        if (redirectTarget === rawPath || redirectTarget === pathname) {
+          // If guard redirected to the same route, break loop
+          break;
+        }
+        return this.handleRoute(redirectTarget, redirectDepth + 1);
+      }
     }
 
     this.currentRoute = targetRoute;
