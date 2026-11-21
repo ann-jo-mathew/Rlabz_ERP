@@ -66,9 +66,9 @@ export function FacultyHome(route, router) {
                 <div class="page-header" style="margin-bottom: 0;">
                     <h1 style="margin: 0 0 0.4rem; font-size: 1.65rem; font-weight: 700; color: var(--text-main, var(--text-primary));">Faculty Dashboard</h1>
                     <p style="margin: 0; font-size: 0.92rem; color: var(--text-muted, var(--text-muted)); line-height: 1.5;">
-                        Welcome back, <a href="/faculty/profile" class="faculty-profile-link" style="color: var(--primary, #059669); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer;" title="Click to view Profile">${faculty.name}</a> 
-                        &bull; <a href="/faculty/profile" class="faculty-profile-link" style="color: var(--primary, #059669); font-weight: 600; text-decoration: none; cursor: pointer;" title="Click to view Profile">${faculty.designation}</a> 
-                        &bull; <a href="/faculty/profile" class="faculty-profile-link" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view Profile">${faculty.department} (${faculty.email})</a>
+                        Welcome back, <strong style="color: var(--primary, #059669); font-weight: 700;">${faculty.name}</strong> 
+                        &bull; <span style="color: var(--text-main, #334155); font-weight: 600;">${faculty.designation}</span> 
+                        &bull; <span>${faculty.department} (${faculty.email})</span>
                     </p>
                 </div>
             </div>
@@ -284,15 +284,6 @@ export function FacultyHome(route, router) {
         container.querySelectorAll('.btn-nav-assign').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (router) router.push('/faculty/sprints');
-            });
-        });
-
-        // Faculty member writings redirect to profile
-        container.querySelectorAll('.faculty-profile-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (router) router.push('/faculty/profile');
-                else window.location.href = '/faculty/profile';
             });
         });
     }

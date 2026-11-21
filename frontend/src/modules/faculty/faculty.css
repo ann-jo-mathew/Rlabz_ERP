@@ -1253,37 +1253,80 @@
 }
 
 /* Status Badges matching My Project */
+.status-badge,
+.faculty-chat-container .status-badge,
 .faculty-sprints .status-badge,
 .faculty-meetings .status-badge,
 .faculty-verify-tasks .status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.75rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
+    display: inline-block;
     letter-spacing: 0.05em;
+    white-space: nowrap;
 }
 
-.faculty-sprints .status-badge.todo,
-.faculty-meetings .status-badge.todo,
-.faculty-verify-tasks .status-badge.todo { background: #E0F2F1; color: #009688; }
+.status-badge.proposed,
+.faculty-chat-container .status-badge.proposed,
+.faculty-sprints .status-badge.proposed,
+.faculty-meetings .status-badge.proposed,
+.faculty-verify-tasks .status-badge.proposed { background: #fef3c7; color: #d97706; }
+
+.status-badge.accepted,
+.faculty-chat-container .status-badge.accepted,
+.faculty-sprints .status-badge.accepted,
+.faculty-meetings .status-badge.accepted,
+.faculty-verify-tasks .status-badge.accepted { background: #dbeafe; color: #2563eb; }
+
+.status-badge.rejected,
+.status-badge.cancelled,
+.faculty-chat-container .status-badge.rejected,
+.faculty-chat-container .status-badge.cancelled,
+.faculty-sprints .status-badge.rejected,
+.faculty-sprints .status-badge.cancelled,
+.faculty-meetings .status-badge.rejected,
+.faculty-meetings .status-badge.cancelled,
+.faculty-verify-tasks .status-badge.rejected,
+.faculty-verify-tasks .status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+
+.status-badge.in_progress,
+.faculty-chat-container .status-badge.in_progress,
 .faculty-sprints .status-badge.in_progress,
 .faculty-meetings .status-badge.in_progress,
 .faculty-verify-tasks .status-badge.in_progress { background: #fce7f3; color: #db2777; }
+
+.status-badge.closed,
+.status-badge.completed,
+.faculty-chat-container .status-badge.closed,
+.faculty-chat-container .status-badge.completed,
+.faculty-sprints .status-badge.closed,
 .faculty-sprints .status-badge.completed,
+.faculty-meetings .status-badge.closed,
 .faculty-meetings .status-badge.completed,
+.faculty-verify-tasks .status-badge.closed,
 .faculty-verify-tasks .status-badge.completed { background: var(--border-color); color: var(--primary); }
+
+.status-badge.todo,
+.faculty-chat-container .status-badge.todo,
+.faculty-sprints .status-badge.todo,
+.faculty-meetings .status-badge.todo,
+.faculty-verify-tasks .status-badge.todo { background: #e0f2fe; color: #0284c7; }
+
+.status-badge.scheduled,
+.status-badge.pending,
+.faculty-chat-container .status-badge.scheduled,
+.faculty-chat-container .status-badge.pending,
 .faculty-sprints .status-badge.scheduled,
 .faculty-meetings .status-badge.scheduled,
-.faculty-verify-tasks .status-badge.scheduled { background: #fef3c7; color: #d97706; }
-.faculty-sprints .status-badge.cancelled,
-.faculty-meetings .status-badge.cancelled,
-.faculty-verify-tasks .status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+.faculty-verify-tasks .status-badge.scheduled { background: #fffbef; color: #b45309; }
+
+.status-badge.blocked,
+.faculty-chat-container .status-badge.blocked,
 .faculty-sprints .status-badge.blocked,
 .faculty-meetings .status-badge.blocked,
-.faculty-verify-tasks .status-badge.blocked { background: #f1f5f9; color: #475569; }
+.faculty-verify-tasks .status-badge.blocked { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
 
 /* Interactive Cards & Panels Across All Faculty Pages */
 .faculty-kpi-card-clickable,

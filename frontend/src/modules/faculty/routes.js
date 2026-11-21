@@ -11,11 +11,6 @@ const routes = [
         component: () => import('./views/FacultyHome.js')
       },
       {
-        path: 'profile',
-        name: 'faculty-profile',
-        component: () => import('./views/FacultyProfile.js')
-      },
-      {
         path: 'projects',
         name: 'faculty-projects',
         component: () => import('@/modules/project/views/ProjectDashboard.js')

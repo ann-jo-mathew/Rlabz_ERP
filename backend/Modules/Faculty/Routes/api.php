@@ -20,6 +20,8 @@ Route::prefix('faculty')->group(function () {
     Route::post('/tasks/{id}/verify', [FacultyController::class, 'verifyTask']);
     Route::get('/projects/{id}/work-logs', [FacultyController::class, 'getProjectWorkLogs']);
     Route::get('/projects/{id}/work-logs/download', [FacultyController::class, 'downloadProjectWorkLogs']);
+    Route::get('/projects/{id}/student-reports/download', [FacultyController::class, 'downloadProjectStudentReports']);
+    Route::get('/projects/{id}/students/{studentId}/reports', [FacultyController::class, 'getStudentReportsForFaculty']);
     Route::post('/work-logs/{id}/approve', [FacultyController::class, 'approveWorkLog']);
     Route::post('/work-logs/{id}/rate', [FacultyController::class, 'rateWorkLog']);
     Route::post('/work-logs/{id}/notify-coordinator', [FacultyController::class, 'notifyCoordinator']);

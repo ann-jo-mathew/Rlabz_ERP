@@ -58,13 +58,18 @@ class FacultyController extends Controller
 
     private function getWorkLogRatingColumnExpression(): mixed
     {
-        if (Schema::hasColumn('student_work_logs', 'ratings')) {
-            return 'student_work_logs.ratings';
+        static $expr = null;
+        if ($expr !== null) {
+            return $expr;
         }
         if (Schema::hasColumn('student_work_logs', 'rating')) {
-            return DB::raw('student_work_logs.rating as ratings');
+            $expr = DB::raw('student_work_logs.rating as rating, student_work_logs.rating as ratings');
+        } elseif (Schema::hasColumn('student_work_logs', 'ratings')) {
+            $expr = DB::raw('student_work_logs.ratings as rating, student_work_logs.ratings as ratings');
+        } else {
+            $expr = DB::raw('NULL as rating, NULL as ratings');
         }
-        return DB::raw('NULL as ratings');
+        return $expr;
     }
 
     /**
@@ -959,12 +964,13 @@ class FacultyController extends Controller
             ->leftJoin('github_repositories', 'github_repositories.id', '=', 'tasks.github_repository_id');
 
         if ($request->filled('project_id')) {
-            $query->where('student_reports.project_id', $request->input('project_id'));
+            $reqProjectId = (int) $request->input('project_id');
+            if ($projectIds->isNotEmpty() && !$projectIds->contains($reqProjectId)) {
+                return response()->json([]);
+            }
+            $query->where('student_reports.project_id', $reqProjectId);
         } elseif ($projectIds->isNotEmpty()) {
-            $query->where(function($q) use ($projectIds) {
-                $q->whereIn('student_reports.project_id', $projectIds)
-                  ->orWhereNull('student_reports.project_id');
-            });
+            $query->whereIn('student_reports.project_id', $projectIds);
         }
 
         $reports = $query->select(
@@ -1086,21 +1092,54 @@ class FacultyController extends Controller
         }
 
         $report = DB::table('student_reports')->where('id', $id)->first();
-        if (!$report || !$report->report_file) {
-            return response()->json(['error' => 'Report file not found'], 404);
+        if (!$report) {
+            return response()->json(['error' => 'Report not found'], 404);
         }
 
-        if (!Storage::disk('public')->exists($report->report_file)) {
-            return response()->json(['error' => 'File not found on storage'], 404);
+        // Verify project is assigned to this faculty
+        if ($report->project_id) {
+            $isAssigned = DB::table('project_faculty')
+                ->where('faculty_id', $facultyId)
+                ->where('project_id', $report->project_id)
+                ->exists();
+            $hasAnyAssignments = DB::table('project_faculty')->where('faculty_id', $facultyId)->exists();
+            if ($hasAnyAssignments && !$isAssigned) {
+                return response()->json(['error' => 'Unauthorized. This project is not assigned to you.'], 403);
+            }
         }
 
-        $filePath = Storage::disk('public')->path($report->report_file);
-        $ext = pathinfo($report->report_file, PATHINFO_EXTENSION);
+        if ($report->report_file && Storage::disk('public')->exists($report->report_file)) {
+            $filePath = Storage::disk('public')->path($report->report_file);
+            $ext = pathinfo($report->report_file, PATHINFO_EXTENSION);
+            $studentName = DB::table('users')->where('id', $report->student_id)->value('name') ?: 'Student';
+            $safeStudentName = preg_replace('/[^A-Za-z0-9_]/', '_', $studentName);
+            $downloadName = "Student_Report_{$safeStudentName}_{$report->report_date}_{$report->id}.{$ext}";
+
+            return response()->download($filePath, $downloadName);
+        }
+
+        // If no physical file exists, export text summary of work done
         $studentName = DB::table('users')->where('id', $report->student_id)->value('name') ?: 'Student';
         $safeStudentName = preg_replace('/[^A-Za-z0-9_]/', '_', $studentName);
-        $downloadName = "Weekly_Report_{$safeStudentName}_{$report->report_date}_{$report->id}.{$ext}";
+        $content = "STUDENT WORK REPORT (student_reports)\n";
+        $content .= "====================================\n";
+        $content .= "Report ID: " . $report->id . "\n";
+        $content .= "Student: " . $studentName . "\n";
+        $content .= "Report Type: " . ucfirst($report->report_type) . "\n";
+        $content .= "Report Date: " . $report->report_date . "\n";
+        $content .= "Status: " . ucfirst($report->approval_status ?? 'pending') . "\n";
+        $content .= "Submitted At: " . $report->submitted_at . "\n\n";
+        $content .= "WORK DONE:\n";
+        $content .= ($report->work_done ?? 'None') . "\n\n";
+        if (!empty($report->feedback)) {
+            $content .= "FACULTY FEEDBACK:\n" . $report->feedback . "\n";
+        }
 
-        return response()->download($filePath, $downloadName);
+        $downloadName = "Student_Report_{$safeStudentName}_{$report->report_date}_{$report->id}.txt";
+        return response($content, 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$downloadName}\""
+        ]);
     }
 
     /**
@@ -1973,8 +2012,17 @@ class FacultyController extends Controller
                 ->orderBy('student_work_logs.id', 'desc')
                 ->get();
 
+            // Pre-fetch coordinator notifications once for this project to eliminate per-row N+1 queries
+            $notifiedMessages = collect();
+            if (Schema::hasTable('notifications')) {
+                $notifiedMessages = DB::table('notifications')
+                    ->where('project_id', $id)
+                    ->where('type', 'task_time_exceeded')
+                    ->pluck('message');
+            }
+
             // Calculate deadline compliance, time overrun and coordinator notification status
-            $workLogs = $workLogs->map(function ($log) use ($id) {
+            $workLogs = $workLogs->map(function ($log) use ($notifiedMessages) {
                 $isLate = false;
                 $daysLate = 0;
                 if (!empty($log->task_due_date)) {
@@ -1996,24 +2044,35 @@ class FacultyController extends Controller
                 $log->is_time_exceeded = $isExceeded;
                 $log->time_overrun = $isExceeded ? round($hoursWorked - $taskWeight, 1) : 0;
 
-                // Check if coordinator has already been notified about this task overrun
+                // Check in-memory if coordinator has already been notified about this task overrun
                 $notifExists = false;
-                if (Schema::hasTable('notifications')) {
-                    $notifExists = DB::table('notifications')
-                        ->where('project_id', $id)
-                        ->where('type', 'task_time_exceeded')
-                        ->where('message', 'like', "%task '{$log->task_title}'%")
-                        ->exists();
+                if ($notifiedMessages->isNotEmpty() && !empty($log->task_title)) {
+                    $taskTitleEsc = $log->task_title;
+                    $notifExists = $notifiedMessages->contains(function ($msg) use ($taskTitleEsc) {
+                        return str_contains($msg, "task '{$taskTitleEsc}'");
+                    });
                 }
                 $log->coordinator_notified = $notifExists;
 
                 return $log;
             });
 
-            // Compute module pace summary for this project
+            // Compute module pace summary using a single bulk grouped query instead of per-module DB queries
             $projectModules = DB::table('modules')->where('project_id', $id)->get();
             $moduleIds = $projectModules->pluck('id');
-            $allProjectTasks = DB::table('tasks')->whereIn('module_id', $moduleIds)->get();
+            $allProjectTasks = $moduleIds->isNotEmpty() 
+                ? DB::table('tasks')->whereIn('module_id', $moduleIds)->get() 
+                : collect();
+
+            $hoursByModule = collect();
+            if ($moduleIds->isNotEmpty()) {
+                $hoursByModule = DB::table('student_work_logs')
+                    ->join('tasks', 'tasks.id', '=', 'student_work_logs.task_id')
+                    ->whereIn('tasks.module_id', $moduleIds)
+                    ->groupBy('tasks.module_id')
+                    ->select('tasks.module_id', DB::raw('SUM(student_work_logs.hours_worked) as total_logged_hours'))
+                    ->pluck('total_logged_hours', 'tasks.module_id');
+            }
 
             $behindScheduleModules = [];
             foreach ($projectModules as $pm) {
@@ -2032,12 +2091,7 @@ class FacultyController extends Controller
                     }
                 }
 
-                // Sum student work logs hours for this module
-                $taskIdsInModule = $mTasks->pluck('id');
-                $hoursInModule = DB::table('student_work_logs')
-                    ->whereIn('task_id', $taskIdsInModule)
-                    ->sum('hours_worked');
-                $hoursInModule = round((float) $hoursInModule, 1);
+                $hoursInModule = round((float) ($hoursByModule->get($pm->id) ?? 0), 1);
 
                 $isBehind = false;
                 $reason = null;
@@ -2069,10 +2123,20 @@ class FacultyController extends Controller
                 }
             }
 
+            $studentReportDates = DB::table('student_reports')
+                ->where('project_id', $id)
+                ->whereNotNull('report_date')
+                ->select('student_id', 'report_date', 'report_type')
+                ->distinct()
+                ->orderBy('report_date', 'desc')
+                ->get()
+                ->groupBy('student_id');
+
             return response()->json([
                 'project' => $project,
                 'work_logs' => $workLogs,
-                'behind_schedule_modules' => $behindScheduleModules
+                'behind_schedule_modules' => $behindScheduleModules,
+                'student_report_dates' => $studentReportDates
             ]);
         } catch (\Throwable $e) {
             \Log::error('getProjectWorkLogs error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
@@ -2199,6 +2263,234 @@ class FacultyController extends Controller
             'total_hours' => round($totalHours, 2),
             'total_logs' => count($logs),
             'hierarchical' => $structuredTree,
+        ]);
+    }
+
+    /**
+     * Download student work report from student_reports table.
+     * Enforces that only reports for projects assigned to this faculty can be downloaded.
+     */
+    public function downloadProjectStudentReports(Request $request, $id)
+    {
+        $facultyId = $this->getFacultyId($request);
+        if (!$facultyId) {
+            return response()->json(['error' => 'Unauthorized. Please log in.'], 401);
+        }
+
+        $project = DB::table('projects')->where('id', $id)->first();
+        if (!$project) {
+            return response()->json(['error' => 'Project not found.'], 404);
+        }
+
+        // Strictly verify that this project is assigned to this faculty
+        $isAssigned = DB::table('project_faculty')
+            ->where('faculty_id', $facultyId)
+            ->where('project_id', $id)
+            ->exists();
+        $hasAnyAssignments = DB::table('project_faculty')->where('faculty_id', $facultyId)->exists();
+        if ($hasAnyAssignments && !$isAssigned) {
+            return response()->json(['error' => 'Access denied. You can only download reports for projects assigned to you.'], 403);
+        }
+
+        $reportsQuery = DB::table('student_reports')
+            ->leftJoin('users as student', 'student.id', '=', 'student_reports.student_id')
+            ->leftJoin('tasks', 'tasks.id', '=', 'student_reports.task_id')
+            ->leftJoin('modules', 'modules.id', '=', 'tasks.module_id')
+            ->where('student_reports.project_id', $id);
+
+        if ($request->filled('type')) {
+            $reportsQuery->where('student_reports.report_type', $request->input('type'));
+        }
+
+        $reports = $reportsQuery->select(
+            'student_reports.*',
+            'student.name as student_name',
+            'student.email as student_email',
+            'modules.module_name',
+            'tasks.title as task_title'
+        )
+        ->orderBy('student_reports.report_date', 'desc')
+        ->orderBy('student_reports.id', 'desc')
+        ->get();
+
+        // If JSON format is requested
+        if ($request->query('format') === 'json') {
+            return response()->json([
+                'success' => true,
+                'project_id' => $id,
+                'project_title' => $project->title,
+                'total_reports' => $reports->count(),
+                'reports' => $reports
+            ]);
+        }
+
+        // Export as clean CSV document
+        $safeTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $project->title ?: 'Project');
+        $filename = "Student_Reports_{$safeTitle}_" . date('Ymd_His') . ".csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function () use ($reports, $project) {
+            $handle = fopen('php://output', 'w');
+            // Write UTF-8 BOM so Excel opens with proper character encoding
+            fputs($handle, "\xEF\xBB\xBF");
+
+            // Header metadata
+            fputcsv($handle, ['Student Work Reports (student_reports) - Project: ' . ($project->title ?? 'Untitled')]);
+            fputcsv($handle, ['Exported Date: ' . date('Y-m-d H:i:s'), 'Total Reports: ' . count($reports)]);
+            fputcsv($handle, []);
+
+            // Table headers
+            fputcsv($handle, [
+                'Report ID',
+                'Student Name',
+                'Student Email',
+                'Report Type',
+                'Report Date',
+                'Week Start',
+                'Week End',
+                'Module Name',
+                'Task Title',
+                'Work Done / Description',
+                'Approval Status',
+                'Faculty Feedback',
+                'Attached File',
+                'Submitted At'
+            ]);
+
+            foreach ($reports as $r) {
+                fputcsv($handle, [
+                    $r->id,
+                    $r->student_name ?: 'N/A',
+                    $r->student_email ?: 'N/A',
+                    ucfirst($r->report_type ?: 'daily'),
+                    $r->report_date ?: 'N/A',
+                    $r->week_start ?: 'N/A',
+                    $r->week_end ?: 'N/A',
+                    $r->module_name ?: 'General',
+                    $r->task_title ?: 'General Task',
+                    $r->work_done ?: '',
+                    ucfirst($r->approval_status ?: 'pending'),
+                    $r->feedback ?: '',
+                    $r->report_file ? basename($r->report_file) : 'None',
+                    $r->submitted_at ?: 'N/A'
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Get student reports (daily and weekly) EXCLUSIVELY from student_reports table for a specific student and project.
+     * Only allows access if the project is assigned to the logged-in faculty.
+     */
+    public function getStudentReportsForFaculty($id, $studentId, Request $request)
+    {
+        $facultyId = $this->getFacultyId($request);
+        if (!$facultyId) {
+            return response()->json(['error' => 'Unauthorized. Please log in.'], 401);
+        }
+
+        $project = DB::table('projects')->where('id', $id)->first();
+        if (!$project) {
+            return response()->json(['error' => 'Project not found.'], 404);
+        }
+
+        // Strictly verify that this project is assigned to this faculty
+        $isAssigned = DB::table('project_faculty')
+            ->where('faculty_id', $facultyId)
+            ->where('project_id', $id)
+            ->exists();
+        $hasAnyAssignments = DB::table('project_faculty')->where('faculty_id', $facultyId)->exists();
+        if ($hasAnyAssignments && !$isAssigned) {
+            return response()->json(['error' => 'Access denied. You can only view reports for projects assigned to you.'], 403);
+        }
+
+        // Fetch student details
+        $student = DB::table('users')
+            ->leftJoin('student_profiles', 'student_profiles.student_id', '=', 'users.id')
+            ->where('users.id', $studentId)
+            ->select('users.id', 'users.name', 'users.email', 'student_profiles.designation')
+            ->first();
+
+        if (!$student) {
+            return response()->json(['error' => 'Student not found.'], 404);
+        }
+
+        // Fetch student reports EXCLUSIVELY from student_reports table
+        $reportsQuery = DB::table('student_reports')
+            ->leftJoin('tasks', 'tasks.id', '=', 'student_reports.task_id')
+            ->leftJoin('modules', 'modules.id', '=', 'tasks.module_id')
+            ->where('student_reports.student_id', $studentId)
+            ->where('student_reports.project_id', $id);
+
+        if ($request->filled('date')) {
+            $reportsQuery->where('student_reports.report_date', $request->input('date'));
+        }
+
+        if ($request->filled('type')) {
+            $reportsQuery->where('student_reports.report_type', $request->input('type'));
+        }
+
+        $reports = $reportsQuery->select(
+            'student_reports.*',
+            'tasks.title as task_title',
+            'tasks.status as task_status',
+            'tasks.weight as task_weight',
+            'modules.module_name'
+        )
+        ->orderBy('student_reports.report_date', 'desc')
+        ->orderBy('student_reports.id', 'desc')
+        ->get();
+
+        // Collect all distinct dates strictly from student_reports table
+        $distinctDates = DB::table('student_reports')
+            ->where('student_id', $studentId)
+            ->where('project_id', $id)
+            ->whereNotNull('report_date')
+            ->pluck('report_date')
+            ->unique()
+            ->sortDesc()
+            ->values();
+
+        // Also fetch all reports for this student/project without filters
+        $allStudentReports = DB::table('student_reports')
+            ->leftJoin('tasks', 'tasks.id', '=', 'student_reports.task_id')
+            ->leftJoin('modules', 'modules.id', '=', 'tasks.module_id')
+            ->where('student_reports.student_id', $studentId)
+            ->where('student_reports.project_id', $id)
+            ->select(
+                'student_reports.*',
+                'tasks.title as task_title',
+                'tasks.status as task_status',
+                'tasks.weight as task_weight',
+                'modules.module_name'
+            )
+            ->orderBy('student_reports.report_date', 'desc')
+            ->orderBy('student_reports.id', 'desc')
+            ->get();
+
+        $dailyReports = $allStudentReports->where('report_type', 'daily')->values();
+        $weeklyReports = $allStudentReports->where('report_type', 'weekly')->values();
+
+        return response()->json([
+            'success' => true,
+            'student' => $student,
+            'project' => $project,
+            'reports' => $reports,
+            'all_reports' => $allStudentReports,
+            'daily_reports' => $dailyReports,
+            'weekly_reports' => $weeklyReports,
+            'available_dates' => $distinctDates
         ]);
     }
 
@@ -2332,9 +2624,9 @@ class FacultyController extends Controller
         if ($request->filled('rating') || $request->filled('ratings')) {
             $starVal = $request->input('rating') ?? $request->input('ratings');
             $starInt = (int) round((float) $starVal);
-            $updateData['ratings'] = (string) $starInt;
-            if (Schema::hasColumn('student_work_logs', 'rating')) {
-                $updateData['rating'] = $starInt;
+            $updateData['rating'] = $starInt;
+            if (Schema::hasColumn('student_work_logs', 'ratings')) {
+                $updateData['ratings'] = (string) $starInt;
             }
         }
 
@@ -2439,14 +2731,22 @@ class FacultyController extends Controller
         $ratingStr = (string) $ratingInt;
 
         $updatePayload = [
-            'ratings' => $ratingStr,
+            'rating' => $ratingInt,
             'updated_at' => now()
         ];
-        if (Schema::hasColumn('student_work_logs', 'rating')) {
-            $updatePayload['rating'] = $ratingInt;
+        if (Schema::hasColumn('student_work_logs', 'ratings')) {
+            $updatePayload['ratings'] = $ratingStr;
         }
 
         DB::table('student_work_logs')->where('id', $id)->update($updatePayload);
+
+        // Also sync rating to tasks table if task_id exists
+        if (!empty($workLog->task_id)) {
+            DB::table('tasks')->where('id', $workLog->task_id)->update([
+                'rating' => $ratingInt,
+                'updated_at' => now()
+            ]);
+        }
 
         return response()->json([
             'success' => true,

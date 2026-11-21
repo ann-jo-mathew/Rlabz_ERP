@@ -6,7 +6,6 @@ import { profilePhotoUrl, applyHeaderAvatar, rememberProfilePhoto } from '../sha
 // Primary profile page per role; roles without their own page use the shared /profile.
 const ROLE_PROFILE_ROUTES = {
   coordinator: '/coordinator/profile',
-  faculty: '/faculty/profile',
   student: '/student/profile',
 };
 
@@ -180,15 +179,13 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
 
       const facultyItems = [
         { title: 'Dashboard', path: '/faculty', icon: iconDashboard, perm: 'view-faculty' },
-        { title: 'Profile', path: '/faculty/profile', icon: iconProfile },
         { title: 'My Project', path: '/faculty/projects', icon: iconProjects, anyPerms: ['view-projects', 'project.view_assigned'] },
         { title: 'Chat', path: '/faculty/chat', icon: iconChat, perm: 'view-communication' },
         { title: 'Students', path: '/faculty/students', icon: iconStudents, anyPerms: ['view-faculty', 'view-student'] },
         { title: 'Assign Module & Task', path: '/faculty/sprints', icon: iconSprints, anyPerms: ['project.module.create', 'project.task.create'] },
         { title: 'Verify Task', path: '/faculty/verify-tasks', icon: iconVerifyTask, perm: 'project.submission.review' },
         { title: 'Meetings', path: '/faculty/meetings', icon: iconMeetings, perm: 'view-communication' },
-        { title: 'Report', path: '/faculty/reports', icon: iconReport, perm: 'view-faculty' },
-        { title: 'Notifications', path: '/faculty/notifications', icon: iconNotifications, perm: 'view-faculty' }
+        { title: 'Report', path: '/faculty/reports', icon: iconReport, perm: 'view-faculty' }
       ];
 
       const userPerms = authStore.permissions || [];

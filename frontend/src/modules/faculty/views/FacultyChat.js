@@ -370,9 +370,7 @@ export function FacultyChat(route, router) {
                                             ${type}
                                         </td>
                                         <td style="padding: 1.15rem 1.5rem;">
-                                            <span style="display: inline-block; padding: 3px 9px; border-radius: 9999px; font-size: 0.74rem; font-weight: 700; text-transform: uppercase; background: ${status === 'completed' ? '#f0fdf4' : '#eff6ff'}; color: ${status === 'completed' ? '#166534' : '#1d4ed8'}; border: 1px solid ${status === 'completed' ? '#bbf7d0' : '#bfdbfe'};">
-                                                ${status.replace('_', ' ')}
-                                            </span>
+                                            <span class="status-badge ${status.replace(' ', '_')}">${p.status || 'active'}</span>
                                         </td>
                                         <td style="padding: 1.15rem 1.5rem; text-align: right;">
                                             <button class="btn btn-sm btn-primary shadow-hover btn-open-project-hub" data-id="${p.id}" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.9rem; font-size: 0.82rem; font-weight: 600; border-radius: 6px;">
