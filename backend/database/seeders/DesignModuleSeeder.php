@@ -14,9 +14,12 @@ class DesignModuleSeeder extends Seeder
 
         // 1. Seed or update design_user_profiles
         // Design Head (ID 17 & 18)
+        $designHeadId = DB::table('users')->where('email', 'designhead@rajagiri.edu')->value('id') ?? 17;
+
         $designProfiles = [
             [
                 'user_id' => 17,
+                'user_id' => $designHeadId,
                 'division' => 'design',
                 'skill_tags' => json_encode(['UI', 'Branding', 'Direction', 'Motion', 'Poster']),
                 'weekly_capacity_hours' => 30,

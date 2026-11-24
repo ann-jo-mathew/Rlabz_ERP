@@ -95,6 +95,20 @@ class DevUserSeeder extends Seeder
                 'role' => 'faculty',
                 'permissions' => ['view-faculty', 'view-projects', 'view-communication', 'view-github', 'project.view_assigned', 'project.module.create', 'project.task.create', 'project.task.update', 'project.submission.review'],
             ],
+            [
+                'name' => 'Design Head',
+                'email' => 'designhead@rajagiri.edu',
+                'password' => Hash::make('design123'),
+                'role' => 'design_head',
+                'permissions' => ['view-design', 'view-projects', 'view-dashboard', 'view-communication', 'design.create', 'design.review', 'design.approve'],
+            ],
+            [
+                'name' => 'Design Head',
+                'email' => 'design@rajagiri.edu',
+                'password' => Hash::make('design123'),
+                'role' => 'design_head',
+                'permissions' => ['view-design', 'view-projects', 'view-dashboard', 'view-communication', 'design.create', 'design.review', 'design.approve'],
+            ],
         ];
 
         foreach ($users as $userData) {
