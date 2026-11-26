@@ -37,7 +37,15 @@ export async function FinanceLayout(contentChild, route, router) {
   const email = authStore.user?.email || 'finance@rajagiri.edu';
   const department = authStore.user?.department || 'Finance & Accounts';
 
+  const isDedicatedFinanceRole = authStore.role === 'finance';
+  const returnPortalPath = authStore.user?.defaultRoute || (authStore.role === 'student' ? '/student' : (authStore.role === 'faculty' ? '/faculty' : (authStore.role === 'coordinator' ? '/coordinator' : (authStore.role === 'admin' ? '/admin' : '/dashboard'))));
+
   const navLinks = [
+    ...(!isDedicatedFinanceRole ? [{
+      path: returnPortalPath,
+      title: '← Return to Portal',
+      icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>'
+    }] : []),
     { path: '/finance', title: 'Finance Overview', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>' },
     { path: '/finance/projects', title: 'Project Finance', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>' },
     { path: '/finance/cost-distribution', title: 'Cost Distribution', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>' },

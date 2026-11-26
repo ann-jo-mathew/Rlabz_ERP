@@ -636,10 +636,69 @@ class AdminUserController extends Controller
             "Admin updated permissions for user {$targetUser->name} ({$targetUser->email}). Total active permissions: " . count($finalPerms) . "."
         );
 
+        $permModuleMap = [
+            'system.admin' => 'admin',
+            'admin.manage_users' => 'admin',
+            'admin.manage_permissions' => 'admin',
+            'admin.reset_passwords' => 'admin',
+            'admin.audit_logs' => 'admin',
+            'view-dashboard' => 'dashboard',
+            'view-coordinator' => 'coordinator',
+            'view-faculty' => 'faculty',
+            'view-finance' => 'finance',
+            'view-finance-readonly' => 'finance',
+            'view-student-designations' => 'finance',
+            'view-student' => 'student',
+            'view-projects' => 'project',
+            'project.view_global' => 'project',
+            'project.view_assigned' => 'project',
+            'project.module.create' => 'project',
+            'project.task.create' => 'project',
+            'project.submission.review' => 'project',
+            'project.client_requirements.view' => 'project',
+            'project.client_requirements.create' => 'project',
+            'view-design' => 'design',
+            'design.create' => 'design',
+            'design.review' => 'design',
+            'design.approve' => 'design',
+            'view-github' => 'github',
+            'view-communication' => 'communication',
+            'view-certificates' => 'certificates',
+            'view-certificates-read' => 'certificates',
+            'view-audit-notifications' => 'audit-notifications',
+        ];
+
+        $extraModules = [];
+        foreach ($finalPerms as $perm) {
+            if (isset($permModuleMap[$perm])) {
+                $extraModules[] = $permModuleMap[$perm];
+            }
+        }
+        $targetRole = $targetUser->role ?? '';
+        $roleModules = [
+            'admin' => ['admin', 'dashboard'],
+            'director' => ['director', 'dashboard', 'project', 'finance'],
+            'developer' => ['developer', 'dashboard', 'project', 'finance'],
+            'coordinator' => ['coordinator', 'project'],
+            'faculty' => ['faculty', 'project'],
+            'finance' => ['finance'],
+            'design_head' => ['design', 'project', 'communication'],
+            'student' => ['student', 'project', 'communication', 'certificates', 'github'],
+        ];
+        $base = $roleModules[$targetRole] ?? [$targetRole];
+        $computedModules = array_values(array_unique(array_merge($base, $extraModules)));
+        $hasDesignAccess = in_array($targetRole, ['design_head', 'director', 'developer', 'coordinator', 'faculty'], true)
+            || in_array('view-design', $finalPerms, true)
+            || in_array('design.create', $finalPerms, true)
+            || in_array('design.review', $finalPerms, true)
+            || in_array('design.approve', $finalPerms, true);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Permissions updated successfully.',
             'permissions' => $finalPerms,
+            'modules' => $computedModules,
+            'has_design_access' => $hasDesignAccess,
         ]);
     }
 

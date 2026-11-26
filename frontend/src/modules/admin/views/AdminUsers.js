@@ -1249,6 +1249,23 @@ export function AdminUsers(route, router) {
         const data = await res.json();
         if (res.ok) {
           toast(data.message || 'Permissions updated successfully.');
+
+          // If the updated user is the active user, sync their session immediately
+          const currentLoggedUser = authStore.user;
+          if (currentLoggedUser && (String(currentLoggedUser.id) === String(selectedUser.user.id))) {
+            currentLoggedUser.permissions = data.permissions || selectedUserPermissions;
+            if (data.modules) currentLoggedUser.modules = data.modules;
+            if (data.has_design_access !== undefined) currentLoggedUser.has_design_access = data.has_design_access;
+            localStorage.setItem('user', JSON.stringify(currentLoggedUser));
+            
+            // Invalidate sidebar cache
+            const sidebarNav = document.querySelector('.sidebar-nav');
+            if (sidebarNav) {
+              delete sidebarNav.dataset.portal;
+              delete sidebarNav.dataset.permsHash;
+            }
+          }
+
           activeModal = null;
           await loadUsers(pagination.current_page);
         } else {

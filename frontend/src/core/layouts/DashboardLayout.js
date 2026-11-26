@@ -2,6 +2,7 @@ import { useAuthStore } from '../stores/auth.js';
 import { modules } from '../../module-manifest.js';
 import { API_BASE } from '../config/api.js';
 import { profilePhotoUrl, applyHeaderAvatar, rememberProfilePhoto } from '../shared/profilePhoto.js';
+import { invalidateRouteCache } from '../guards/authGuard.js';
 
 // Primary profile page per role; roles without their own page use the shared /profile.
 const ROLE_PROFILE_ROUTES = {
@@ -91,7 +92,102 @@ function renderNotificationList(notifications) {
   }).join('');
 }
 
-function populateSidebarNav(sidebarNav, currentPath, authStore) {
+export function getAuthorizedCrossModules(currentPortal, authStore) {
+  const userPerms = authStore.permissions || [];
+  const role = authStore.role;
+
+  // List of high-level portals / modules that can be granted across roles
+  const crossModules = [
+    {
+      portalKey: 'admin',
+      title: 'User Management',
+      path: '/admin',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
+      check: () => role === 'admin' || userPerms.some(p => ['system.admin', 'admin.manage_users', 'admin.manage_permissions'].includes(p))
+    },
+    {
+      portalKey: 'coordinator',
+      title: 'Coordinator Workspace',
+      path: '/coordinator',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
+      check: () => role === 'coordinator' || userPerms.includes('view-coordinator')
+    },
+    {
+      portalKey: 'faculty',
+      title: 'Faculty Portal',
+      path: '/faculty',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`,
+      check: () => role === 'faculty' || userPerms.includes('view-faculty')
+    },
+    {
+      portalKey: 'finance',
+      title: 'Finance & Payroll',
+      path: '/finance',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`,
+      check: () => role === 'finance' || userPerms.some(p => ['view-finance', 'view-finance-readonly', 'view-student-designations'].includes(p))
+    },
+    {
+      portalKey: 'student',
+      title: 'Student Portal',
+      path: '/student',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>`,
+      check: () => role === 'student' || userPerms.includes('view-student')
+    },
+    {
+      portalKey: 'design',
+      title: 'Design Studio',
+      path: '/design',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path><circle cx="12" cy="12" r="4"></circle></svg>`,
+      check: () => role === 'design_head' || Boolean(authStore.user?.has_design_access) || userPerms.some(p => ['view-design', 'design.create', 'design.review', 'design.approve'].includes(p))
+    },
+    {
+      portalKey: 'director',
+      title: 'Director Workspace',
+      path: '/director',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>`,
+      check: () => role === 'director'
+    },
+    {
+      portalKey: 'developer',
+      title: 'Developer Workspace',
+      path: '/developer',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>`,
+      check: () => role === 'developer'
+    },
+    {
+      portalKey: 'certificates',
+      title: 'Certificates & Reporting',
+      path: '/certificates',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>`,
+      check: () => userPerms.some(p => ['view-certificates', 'view-certificates-read'].includes(p)) && currentPortal !== 'student'
+    },
+    {
+      portalKey: 'communication',
+      title: 'Communication',
+      path: '/communication',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
+      check: () => userPerms.includes('view-communication') && currentPortal !== 'student' && currentPortal !== 'faculty'
+    },
+    {
+      portalKey: 'github',
+      title: 'GitHub Integration',
+      path: '/github',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
+      check: () => userPerms.includes('view-github') && currentPortal !== 'student'
+    },
+    {
+      portalKey: 'audit-notifications',
+      title: 'System Audit & Alerts',
+      path: '/audit-notifications',
+      icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
+      check: () => userPerms.includes('view-audit-notifications') && currentPortal !== 'developer' && currentPortal !== 'director'
+    }
+  ];
+
+  return crossModules.filter(m => m.portalKey !== currentPortal && m.check());
+}
+
+export function populateSidebarNav(sidebarNav, currentPath, authStore) {
   if (!sidebarNav) return;
 
   const isFaculty = authStore.role === 'faculty' || currentPath.startsWith('/faculty');
@@ -125,13 +221,19 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
     } catch (_) {}
   }
 
+  const currentPermsHash = (authStore.permissions || []).slice().sort().join(',');
   const needsStudentRerender = targetPortal === 'student' && (
     !sidebarNav.querySelector('a[href="/student/work-logs"]') ||
     sidebarNav.dataset.hasDesignAccess !== String(studentHasDesignAccess)
   );
 
-  if (sidebarNav.dataset.portal !== targetPortal || needsStudentRerender) {
+  const needsRerender = sidebarNav.dataset.portal !== targetPortal ||
+    sidebarNav.dataset.permsHash !== currentPermsHash ||
+    needsStudentRerender;
+
+  if (needsRerender) {
     sidebarNav.dataset.portal = targetPortal;
+    sidebarNav.dataset.permsHash = currentPermsHash;
     if (targetPortal === 'student') {
       sidebarNav.dataset.hasDesignAccess = String(studentHasDesignAccess);
       const studentItems = [
@@ -371,13 +473,14 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
       const userPermissions = authStore.permissions || [];
       const availableModules = modules.filter(m => {
         if (!m.sidebar) return false;
-        if (!userAllowedModules.includes(m.name)) return false;
-        if (m.allowedRoles && !m.allowedRoles.includes(authStore.role)) return false;
-        if (m.requiredAnyPermissions && Array.isArray(m.requiredAnyPermissions)) {
-          if (!m.requiredAnyPermissions.some(p => userPermissions.includes(p))) {
-            return false;
-          }
-        }
+        const hasPerm = m.requiredAnyPermissions && Array.isArray(m.requiredAnyPermissions) && m.requiredAnyPermissions.some(p => userPermissions.includes(p));
+        const hasAdminPerm = m.name === 'admin' && (authStore.role === 'admin' || userPermissions.includes('admin.manage_users') || userPermissions.includes('system.admin'));
+        const hasRole = !m.allowedRoles || m.allowedRoles.includes(authStore.role);
+        const hasMod = userAllowedModules.includes(m.name);
+        
+        if (hasPerm || hasAdminPerm) return true;
+        if (!hasMod) return false;
+        if (!hasRole) return false;
         return true;
       });
 
@@ -396,6 +499,28 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
 
       sidebarNav.innerHTML = `<ul>${navLinksHTML}</ul>`;
     }
+
+    if (targetPortal !== 'default') {
+      const crossItems = getAuthorizedCrossModules(targetPortal, authStore);
+      if (crossItems.length > 0) {
+        const crossHtml = `
+          <div class="sidebar-section-title" style="padding: 0.85rem 1.25rem 0.35rem; font-size: 0.68rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 0.5rem;">
+            Authorized Modules
+          </div>
+          <ul class="cross-portal-nav">
+            ${crossItems.map(item => `
+              <li>
+                <a href="${item.path}">
+                  ${item.icon}
+                  <span>${item.title}</span>
+                </a>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+        sidebarNav.insertAdjacentHTML('beforeend', crossHtml);
+      }
+    }
   }
 
   // Update active css classes on matching sidebar link
@@ -403,7 +528,7 @@ function populateSidebarNav(sidebarNav, currentPath, authStore) {
     const href = a.getAttribute('href');
     if (href) {
       let isActive = false;
-      if (href === '/faculty' || href === '/developer' || href === '/director' || href === '/student' || href === '/' || href === '/dashboard' || href === '/admin') {
+      if (href === '/faculty' || href === '/developer' || href === '/director' || href === '/student' || href === '/' || href === '/dashboard' || href === '/admin' || href === '/coordinator' || href === '/finance' || href === '/design') {
         isActive = currentPath === href || currentPath === href + '/';
       } else if (href === '/faculty/profile') {
         isActive = currentPath === '/faculty/profile' || currentPath.startsWith('/faculty/profile/') || currentPath === '/profile' || currentPath.startsWith('/profile/');
@@ -893,6 +1018,30 @@ export async function DashboardLayout(contentChild, route, router) {
           user.name = p.name || user.name;
           user.department = p.department || user.department;
           if (p.designation) user.designation = p.designation;
+          
+          if (Array.isArray(p.permissions)) {
+            const currentPermsStr = JSON.stringify(authStore.permissions || []);
+            const newPermsStr = JSON.stringify(p.permissions);
+            if (currentPermsStr !== newPermsStr) {
+              user.permissions = p.permissions;
+              authStore.user.permissions = p.permissions;
+              if (p.modules) {
+                user.modules = p.modules;
+                authStore.user.modules = p.modules;
+              }
+              if (p.has_design_access !== undefined) {
+                user.has_design_access = p.has_design_access;
+                authStore.user.has_design_access = p.has_design_access;
+              }
+              invalidateRouteCache();
+              const sidebar = wrapper.querySelector('.sidebar-nav');
+              if (sidebar) {
+                delete sidebar.dataset.portal;
+                delete sidebar.dataset.permsHash;
+                populateSidebarNav(sidebar, window.location.pathname, authStore);
+              }
+            }
+          }
           localStorage.setItem('user', JSON.stringify(user));
         }
 

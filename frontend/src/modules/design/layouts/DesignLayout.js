@@ -37,8 +37,16 @@ export async function DesignLayout(contentChild, route, router) {
   const email = authStore.user?.email || 'designhead@rajagiri.edu';
   const department = authStore.user?.department || 'Design & Creative Studio';
 
+  const isDedicatedDesignRole = authStore.role === 'design_head';
+  const returnPortalPath = authStore.user?.defaultRoute || (authStore.role === 'student' ? '/student' : (authStore.role === 'faculty' ? '/faculty' : (authStore.role === 'coordinator' ? '/coordinator' : (authStore.role === 'admin' ? '/admin' : '/dashboard'))));
+
   // 12 Mandatory Sidebar Entries
   const navLinks = [
+    ...(!isDedicatedDesignRole ? [{
+      path: returnPortalPath,
+      title: '← Return to Portal',
+      icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>'
+    }] : []),
     {
       path: '/design',
       title: 'Dashboard',

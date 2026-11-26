@@ -170,8 +170,21 @@ class AuthController extends Controller
             'view-projects' => ['project'],
             'project.view_global' => ['project'],
             'project.view_assigned' => ['project'],
+            'project.create' => ['project'],
+            'project.close' => ['project'],
+            'project.assign_faculty' => ['project'],
+            'project.assign_students' => ['project'],
+            'project.module.create' => ['project'],
+            'project.task.create' => ['project'],
+            'project.task.update' => ['project'],
+            'project.submission.review' => ['project'],
+            'project.client_requirements.view' => ['project'],
+            'project.client_requirements.create' => ['project'],
+            'project.client_requirements.update' => ['project'],
             'view-design' => ['design'],
             'design.create' => ['design'],
+            'design.review' => ['design'],
+            'design.approve' => ['design'],
             'view-github' => ['github'],
             'view-communication' => ['communication'],
             'view-certificates' => ['certificates'],
@@ -179,6 +192,9 @@ class AuthController extends Controller
             'view-audit-notifications' => ['audit-notifications'],
             'system.admin' => ['admin', 'project'],
             'admin.manage_users' => ['admin'],
+            'admin.manage_permissions' => ['admin'],
+            'admin.reset_passwords' => ['admin'],
+            'admin.audit_logs' => ['admin'],
         ];
 
         foreach ($userPermissions as $p) {
@@ -265,7 +281,7 @@ class AuthController extends Controller
 
         // Check active Design Team membership (for conditional design access)
         $hasDesignAccess = false;
-        if ($role === 'design_head') {
+        if ($role === 'design_head' || in_array('view-design', $userPermissions) || in_array('design.create', $userPermissions) || in_array('design.review', $userPermissions) || in_array('design.approve', $userPermissions)) {
             $hasDesignAccess = true;
         } elseif (Schema::hasTable('design_user_profiles')) {
             $hasDesignAccess = DB::table('design_user_profiles')
@@ -445,8 +461,21 @@ class AuthController extends Controller
             'view-projects' => ['project'],
             'project.view_global' => ['project'],
             'project.view_assigned' => ['project'],
+            'project.create' => ['project'],
+            'project.close' => ['project'],
+            'project.assign_faculty' => ['project'],
+            'project.assign_students' => ['project'],
+            'project.module.create' => ['project'],
+            'project.task.create' => ['project'],
+            'project.task.update' => ['project'],
+            'project.submission.review' => ['project'],
+            'project.client_requirements.view' => ['project'],
+            'project.client_requirements.create' => ['project'],
+            'project.client_requirements.update' => ['project'],
             'view-design' => ['design'],
             'design.create' => ['design'],
+            'design.review' => ['design'],
+            'design.approve' => ['design'],
             'view-github' => ['github'],
             'view-communication' => ['communication'],
             'view-certificates' => ['certificates'],
@@ -454,7 +483,21 @@ class AuthController extends Controller
             'view-audit-notifications' => ['audit-notifications'],
             'system.admin' => ['admin', 'project'],
             'admin.manage_users' => ['admin'],
+            'admin.manage_permissions' => ['admin'],
+            'admin.reset_passwords' => ['admin'],
+            'admin.audit_logs' => ['admin'],
         ];
+
+        $hasDesignAccess = false;
+        if ($user->role === 'design_head' || in_array('view-design', $userArray['permissions']) || in_array('design.create', $userArray['permissions']) || in_array('design.review', $userArray['permissions']) || in_array('design.approve', $userArray['permissions'])) {
+            $hasDesignAccess = true;
+        } elseif (Schema::hasTable('design_user_profiles')) {
+            $hasDesignAccess = DB::table('design_user_profiles')
+                ->where('user_id', $userId)
+                ->where('is_active', 1)
+                ->exists();
+        }
+        $userArray['has_design_access'] = $hasDesignAccess;
 
         $derivedModules = ['profile'];
         foreach ($userArray['permissions'] as $p) {

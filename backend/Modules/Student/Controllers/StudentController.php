@@ -2065,7 +2065,8 @@ class StudentController extends Controller
             'profile_photo_path' => $user->profile_photo_path ?? null,
             'avatar' => $user->profile_photo_path ?? ($user->avatar ?? null),
             'has_design_access' => $hasDesignAccess,
-            'design_profile' => $designProfile
+            'design_profile' => $designProfile,
+            'permissions' => is_string($user->permissions) ? (json_decode($user->permissions, true) ?: []) : ($user->permissions ?: []),
         ]);
     }
 
